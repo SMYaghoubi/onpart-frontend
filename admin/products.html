@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" href="/images/favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>مدیریت محصولات | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    body{background:#f1f5f9;}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+    .sc{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);display:flex;align-items:center;gap:14px;}
+    .sc-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+    .si-blue{background:#eff6ff;color:#1d4ed8;} .si-green{background:#dcfce7;color:#16a34a;}
+    .si-amber{background:#fef3c7;color:#d97706;} .si-red{background:#fee2e2;color:#dc2626;}
+    .sc-val{font-size:20px;font-weight:900;color:#111;} .sc-lbl{font-size:11.5px;color:#aaa;}
+    .toolbar{background:#fff;border-radius:12px;padding:14px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .fi{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-family:'Vazirmatn',sans-serif;font-size:13px;color:#333;outline:none;}
+    .fi:focus{border-color:#1d4ed8;} .fi-input{flex:1;min-width:180px;}
+    .btn-add{background:#1d4ed8;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;margin-right:auto;}
+    .btn-import{background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0;border-radius:8px;padding:9px 16px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
+    .btn-export-btn{background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe;border-radius:8px;padding:9px 16px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
+    .table-card{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden;}
+    .tc-head{padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;}
+    .tc-title{font-size:14px;font-weight:800;color:#111;}
+    .tbl{width:100%;border-collapse:collapse;}
+    .tbl th{font-size:11.5px;font-weight:700;color:#888;text-align:center;padding:10px 12px;border-bottom:2px solid #f0f0f0;background:#f8fafc;white-space:nowrap;}
+    .tbl th:nth-child(3){text-align:right;}
+    .tbl td{font-size:12.5px;color:#333;padding:10px 12px;border-bottom:1px solid #f5f5f5;text-align:center;white-space:nowrap;}
+    .tbl tbody tr:hover{background:#f9fbff;}
+    .prod-cell{display:flex;align-items:center;gap:9px;text-align:right;}
+    .badge{border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;}
+    .b-green{background:#dcfce7;color:#16a34a;} .b-red{background:#fee2e2;color:#dc2626;}
+    .b-amber{background:#fef3c7;color:#d97706;} .b-blue{background:#dbeafe;color:#1d4ed8;}
+    .b-gray{background:#f3f4f6;color:#666;}
+    .action-btns{display:flex;gap:5px;justify-content:center;}
+    .ab{width:28px;height:28px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;}
+    .ab-edit{background:#fef3c7;color:#d97706;} .ab-del{background:#fee2e2;color:#dc2626;}
+    .cb{width:15px;height:15px;cursor:pointer;accent-color:#1d4ed8;}
+    .pager{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid #f0f0f0;}
+    .pager-info{font-size:12.5px;color:#aaa;}
+    .pager-btns{display:flex;gap:6px;}
+    .pg{width:30px;height:30px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;cursor:pointer;font-family:'Vazirmatn',sans-serif;font-size:12.5px;color:#555;display:flex;align-items:center;justify-content:center;}
+    .pg:hover,.pg.on{background:#1d4ed8;color:#fff;border-color:#1d4ed8;}
+    .pg-dots{padding:0 6px;color:#bbb;font-size:13px;display:flex;align-items:center;}
+
+    .desc-info-btn{background:none;border:none;color:#bbb;cursor:pointer;font-size:14px;margin-right:6px;vertical-align:middle;transition:color .15s;}
+    .desc-info-btn:hover{color:#1d4ed8;}
+    .desc-popup{display:none;position:absolute;top:100%;right:0;left:0;margin-top:6px;background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.14);padding:14px 16px;z-index:50;min-width:240px;opacity:0;transform:translateY(-6px);transition:opacity .2s ease,transform .2s ease;}
+    .desc-popup.show{display:block;opacity:1;transform:translateY(0);}
+    .desc-popup-title{font-size:13px;font-weight:700;color:#111;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #f0f0f0;line-height:1.6;}
+    .desc-popup-row{display:flex;justify-content:space-between;font-size:12px;color:#666;padding:4px 0;}
+    .desc-popup-row b{color:#111;font-weight:600;}
+
+    .be-row{display:grid;grid-template-columns:140px 1fr;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5;}
+    .be-check{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#444;cursor:pointer;}
+    .be-check input{width:16px;height:16px;cursor:pointer;}
+
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;}
+    .modal-overlay.show{display:flex;}
+    .modal{background:#fff;border-radius:18px;width:680px;max-height:92vh;overflow-y:auto;}
+    .modal-head{padding:20px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:10;}
+    .modal-title{font-size:16px;font-weight:800;color:#111;display:flex;align-items:center;gap:8px;}
+    .modal-title i{color:#1d4ed8;}
+    .modal-close{width:32px;height:32px;background:#f3f4f6;border:none;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:#666;}
+    .modal-body{padding:24px;}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .fg{display:flex;flex-direction:column;gap:6px;} .fg.full{grid-column:1/-1;}
+    .fg label{font-size:12.5px;font-weight:600;color:#444;}
+    .finput{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:10px 13px;font-family:'Vazirmatn',sans-serif;font-size:13.5px;color:#111;outline:none;transition:border .2s;width:100%;}
+    .finput:focus{border-color:#1d4ed8;background:#fff;}
+    .fselect{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:10px 13px;font-family:'Vazirmatn',sans-serif;font-size:13px;color:#333;outline:none;width:100%;}
+    .modal-foot{padding:16px 24px;border-top:1px solid #f0f0f0;display:flex;gap:10px;position:sticky;bottom:0;background:#fff;}
+    .btn-prim{background:#1d4ed8;color:#fff;border:none;border-radius:9px;padding:11px 24px;font-family:'Vazirmatn',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;}
+    .btn-danger{background:#dc2626;color:#fff;border:none;border-radius:9px;padding:11px 20px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+    .btn-sec{background:#f3f4f6;color:#555;border:none;border-radius:9px;padding:11px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:600;display:none;align-items:center;gap:10px;z-index:999;}
+    .toast.show{display:flex;}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-placeholder"></div>
+  <div class="main">
+    <div id="topbar-placeholder"></div>
+    <div class="content">
+
+      <div class="stats">
+        <div class="sc"><div class="sc-icon si-blue"><i class="ti ti-packages"></i></div><div><div class="sc-val" id="totalCount">—</div><div class="sc-lbl">کل محصولات</div></div></div>
+        <div class="sc"><div class="sc-icon si-green"><i class="ti ti-circle-check"></i></div><div><div class="sc-val" id="activeCount">—</div><div class="sc-lbl">موجود</div></div></div>
+        <div class="sc"><div class="sc-icon si-amber"><i class="ti ti-alert-circle"></i></div><div><div class="sc-val" id="lowCount">—</div><div class="sc-lbl">موجودی کم</div></div></div>
+        <div class="sc"><div class="sc-icon si-red"><i class="ti ti-eye-off"></i></div><div><div class="sc-val" id="outCount">—</div><div class="sc-lbl">ناموجود</div></div></div>
+      </div>
+
+      <div class="toolbar">
+        <input class="fi fi-input" placeholder="جستجو نام، کد محصول..." id="searchInp" oninput="renderTable()" autocomplete="off"/>
+        <select class="fi" id="carF" onchange="renderTable()">
+          <option value="">همه خودروها</option>
+          <option>پژو ۴۰۵</option><option>پارس</option><option>دنا</option><option>سمند</option><option>پژو ۲۰۶</option><option>رنو ال ۹۰</option><option>مشترک</option>
+        </select>
+        <select class="fi" id="stockF" onchange="renderTable()">
+          <option value="">همه وضعیت‌ها</option>
+          <option value="high">موجود</option><option value="low">موجودی کم</option><option value="out">ناموجود</option>
+        </select>
+        <button class="btn-import" onclick="document.getElementById('excelInput').click()"><i class="ti ti-file-upload"></i>ورود اکسل</button>
+        <input type="file" id="excelInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel(this)"/>
+        <button class="btn-export-btn" onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i>خروجی اکسل</button>
+        <button class="btn-add" onclick="openModal('add',null)"><i class="ti ti-plus"></i>افزودن محصول</button>
+      </div>
+
+      <div class="table-card">
+        <div class="tc-head">
+          <div class="tc-title">لیست محصولات (<span id="prodCount">0</span>)</div>
+        </div>
+        <div id="bulkBar" style="display:none;align-items:center;justify-content:space-between;background:#eff6ff;border-bottom:1px solid #dbeafe;padding:10px 20px">
+          <div style="font-size:13px;font-weight:700;color:#1d4ed8;display:flex;align-items:center;gap:6px">
+            <i class="ti ti-checkbox" style="font-size:16px"></i>
+            <span id="bulkCount">0</span> محصول انتخاب شده
+            <button onclick="selectAllPages()" style="background:none;border:none;color:#1d4ed8;font-size:12px;cursor:pointer;text-decoration:underline;margin-right:8px">انتخاب همه (<span id="totalProdCount">0</span>)</button>
+            <button onclick="clearSelection()" style="background:none;border:none;color:#888;font-size:12px;cursor:pointer;text-decoration:underline;margin-right:8px">لغو انتخاب</button>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onclick="openBulkEdit()" style="background:#fff;color:#1d4ed8;border:1.5px solid #bfdbfe;border-radius:8px;padding:7px 14px;font-family:'Vazirmatn',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px"><i class="ti ti-edit" style="font-size:14px"></i>ویرایش گروهی</button>
+            <button onclick="bulkDelete()" style="background:#fee2e2;color:#dc2626;border:1.5px solid #fecaca;border-radius:8px;padding:7px 14px;font-family:'Vazirmatn',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px"><i class="ti ti-trash" style="font-size:14px"></i>حذف گروهی</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th><input type="checkbox" class="cb" id="selectAllCb" onchange="toggleSelectAll(this.checked)"/></th>
+              <th>کد محصول</th>
+              <th style="text-align:right;min-width:220px">شرح محصول</th>
+              <th>خودرو</th><th>برند</th><th>گروه</th>
+              <th>قیمت (تومان)</th><th>موجودی</th><th>گردش</th><th>وضعیت</th>
+              <th>تامین‌کننده</th>
+              <th>عملیات</th>
+            </tr></thead>
+            <tbody id="prodTbody"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <div class="pager-info" id="pagerInfo">—</div>
+          <div class="pager-btns" id="pagerBtns"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-package"></i><span id="modalTitle">افزودن محصول</span></div>
+      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg full"><label>شرح محصول *</label><input class="finput" id="f_desc" placeholder="شرح کامل محصول..."/></div>
+        <div class="fg"><label>کد محصول / OEM *</label><input class="finput" id="f_code" placeholder="کد محصول"/></div>
+        <div class="fg"><label>برند</label>
+          <div style="position:relative">
+            <input class="finput" id="f_brand" placeholder="جستجو یا افزودن برند..." autocomplete="off" oninput="filterList('brand',this.value)" onfocus="showList('brand')" style="width:100%"/>
+            <div id="brandDropdown" style="display:none;position:absolute;top:100%;right:0;left:0;background:#fff;border:1.5px solid #e5e7eb;border-radius:9px;z-index:100;max-height:200px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,.1)"></div>
+          </div>
+        </div>
+        <div class="fg"><label>خودرو</label>
+          <div style="position:relative">
+            <input class="finput" id="f_car" placeholder="جستجو یا افزودن خودرو..." autocomplete="off" oninput="filterList('car',this.value)" onfocus="showList('car')" style="width:100%"/>
+            <div id="carDropdown" style="display:none;position:absolute;top:100%;right:0;left:0;background:#fff;border:1.5px solid #e5e7eb;border-radius:9px;z-index:100;max-height:200px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,.1)"></div>
+          </div>
+        </div>
+        <div class="fg"><label>گروه کالایی</label>
+          <div style="position:relative">
+            <input class="finput" id="f_cat" placeholder="جستجو یا افزودن گروه جدید..." autocomplete="off" oninput="filterCats(this.value)" onfocus="showCatList()" style="width:100%"/>
+            <div id="catDropdown" style="display:none;position:absolute;top:100%;right:0;left:0;background:#fff;border:1.5px solid #e5e7eb;border-radius:9px;z-index:100;max-height:200px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,.1)"></div>
+          </div>
+        </div>
+        <div class="fg"><label>قیمت (تومان) *</label><input class="finput" id="f_price" placeholder="قیمت"/></div>
+        <div class="fg"><label>موجودی انبار</label><input class="finput" id="f_stock" placeholder="تعداد" value="0"/></div>
+        <div class="fg"><label>حداقل موجودی (هشدار)</label><input class="finput" id="f_minstock" placeholder="مثال: 10" value="5"/></div>
+        <div class="fg"><label>گردش</label><select class="fselect" id="f_flow"><option value="0">ندارد</option><option value="1">دارد</option></select></div>
+        <div class="fg"><label>وضعیت</label><select class="fselect" id="f_status"><option value="active">فعال</option><option value="inactive">غیرفعال</option></select></div>
+        <div class="fg full"><label>تامین‌کننده</label>
+          <div style="position:relative">
+            <input class="finput" id="f_supplier_search" placeholder="جستجوی تامین‌کننده..." autocomplete="new-password" oninput="filterSuppliers(this.value)" onfocus="showSupplierList()" style="width:100%"/>
+            <input type="hidden" id="f_supplier_id"/>
+            <div id="supplierDropdown" style="display:none;position:absolute;top:100%;right:0;left:0;background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.1);z-index:50;max-height:200px;overflow-y:auto;margin-top:4px"></div>
+          </div>
+        </div>
+        <div class="fg full"><label>توضیحات</label><textarea class="finput" id="f_note" rows="2" style="resize:none" placeholder="توضیحات اضافه..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-prim" onclick="saveProduct()"><i class="ti ti-check"></i>ذخیره محصول</button>
+      <button class="btn-danger" id="delBtn" style="display:none" onclick="deleteProduct()"><i class="ti ti-trash"></i>حذف</button>
+      <button class="btn-sec" onclick="closeModal()">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Edit Modal -->
+<div class="modal-overlay" id="bulkEditModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-edit"></i>ویرایش گروهی (<span id="bulkEditCount">0</span> محصول)</div>
+      <button class="modal-close" onclick="closeBulkEdit()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12.5px;color:#888;margin-bottom:16px;background:#fef3c7;padding:10px 14px;border-radius:8px">
+        <i class="ti ti-info-circle"></i> فقط فیلدهایی که فعال کنید روی محصولات انتخاب‌شده اعمال می‌شوند. سایر فیلدها بدون تغییر می‌مانند.
+      </div>
+      <div class="be-row">
+        <label class="be-check"><input type="checkbox" class="be-enable" id="be_enable_category"/><span>گروه کالایی</span></label>
+        <input class="finput" id="be_category" placeholder="گروه کالایی جدید"/>
+      </div>
+      <div class="be-row">
+        <label class="be-check"><input type="checkbox" class="be-enable" id="be_enable_car"/><span>خودرو</span></label>
+        <input class="finput" id="be_car" placeholder="خودروی جدید"/>
+      </div>
+      <div class="be-row">
+        <label class="be-check"><input type="checkbox" class="be-enable" id="be_enable_brand"/><span>برند</span></label>
+        <input class="finput" id="be_brand" placeholder="برند جدید"/>
+      </div>
+      <div class="be-row">
+        <label class="be-check"><input type="checkbox" class="be-enable" id="be_enable_price"/><span>قیمت</span></label>
+        <input class="finput" id="be_price" placeholder="قیمت جدید (تومان)"/>
+      </div>
+      <div class="be-row">
+        <label class="be-check"><input type="checkbox" class="be-enable" id="be_enable_stock"/><span>موجودی</span></label>
+        <input class="finput" id="be_stock" placeholder="موجودی جدید"/>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-prim" onclick="applyBulkEdit()"><i class="ti ti-check"></i>اعمال تغییرات</button>
+      <button class="btn-sec" onclick="closeBulkEdit()">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+Admin.renderSidebar('products');
+Admin.renderTopbar('مدیریت محصولات','ti-packages');
+
+const fa = n => n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+const fmt = n => fa(Number(n).toLocaleString());
+let products = [], filtered = [], currentId = null, page = 1;
+let selectedIds = new Set();
+const PER_PAGE = 15;
+
+function toast(msg, ok=true){
+  const t = document.getElementById('toast');
+  t.innerHTML = `<i class="ti ti-${ok?'check':'x'}" style="color:${ok?'#4ade80':'#f87171'};font-size:18px"></i>${msg}`;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+async function loadProducts(){
+  try {
+    const token = sessionStorage.getItem('op_token');
+    const res = await fetch(API.BASE_URL + '/api/products?limit=99999&admin=1', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    products = data.products || data || [];
+    updateStats();
+    renderTable();
+  } catch(e) {
+    // Use sample data if API fails
+    products = [
+      {id:1,code:'10403004435',description:'شمع موتور ۴۰۵-سمند-پارس TU3 - ISACO',car:'پژو ۴۰۵',brand:'ایساکو',category:'شمع و وایرشمع',price:203300,stock:142,min_stock:10,has_flow:1,status:'active'},
+      {id:2,code:'04000500399',description:'پیچ ستاره‌ای مشترک - ISACO واشردار',car:'مشترک',brand:'ایساکو',category:'پیچ و مهره',price:5500,stock:850,min_stock:50,has_flow:0,status:'active'},
+      {id:3,code:'16200100754',description:'لنت ترمزدیسکی چرخ جلو ۴۰۵ - TEXTAR',car:'پژو ۴۰۵',brand:'ایساکو',category:'لنت ترمز',price:3231400,stock:8,min_stock:10,has_flow:0,status:'active'},
+      {id:4,code:'18610503799',description:'واشر بندی پیچ کانال روغن - ISACO',car:'پژو ۴۰۵',brand:'ایساکو',category:'واشر و اورینگ',price:25900,stock:0,min_stock:15,has_flow:0,status:'active'},
+    ];
+    updateStats();
+    renderTable();
+  }
+}
+
+function updateStats(){
+  document.getElementById('totalCount').textContent = fa(products.length);
+  document.getElementById('activeCount').textContent = fa(products.filter(p=>p.stock>p.min_stock).length);
+  document.getElementById('lowCount').textContent = fa(products.filter(p=>p.stock>0&&p.stock<=p.min_stock).length);
+  document.getElementById('outCount').textContent = fa(products.filter(p=>p.stock===0||p.stock==='0').length);
+}
+
+function stockStatus(p){
+  const s = Number(p.stock), m = Number(p.min_stock||5);
+  if(s===0) return {label:'ناموجود',cls:'b-red'};
+  if(s<=m) return {label:'کم',cls:'b-amber'};
+  return {label:'موجود',cls:'b-green'};
+}
+
+function renderTable(){
+  const s = document.getElementById('searchInp').value;
+  const cf = document.getElementById('carF').value;
+  const sf = document.getElementById('stockF').value;
+  filtered = products.filter(p=>{
+    if(s && !p.description?.includes(s) && !p.code?.includes(s)) return false;
+    if(cf && p.car !== cf) return false;
+    if(sf){
+      const st = stockStatus(p).label;
+      if(sf==='high' && st!=='موجود') return false;
+      if(sf==='low' && st!=='کم') return false;
+      if(sf==='out' && st!=='ناموجود') return false;
+    }
+    return true;
+  });
+  const total = filtered.length;
+  const pages = Math.ceil(total/PER_PAGE);
+  if(page>pages) page=1;
+  const start=(page-1)*PER_PAGE, end=Math.min(start+PER_PAGE,total);
+  const slice = filtered.slice(start, end);
+
+  document.getElementById('prodCount').textContent = fa(total);
+  document.getElementById('pagerInfo').textContent = `نمایش ${fa(start+1)}–${fa(end)} از ${fa(total)}`;
+
+  document.getElementById('prodTbody').innerHTML = slice.map(p => {
+    const st = stockStatus(p);
+    return `<tr>
+      <td><input type="checkbox" class="cb" ${selectedIds.has(p.id)?'checked':''} onchange="toggleSelect(${p.id},this.checked)"/></td>
+      <td style="font-family:monospace;font-size:11.5px;color:#888">${p.code||''}</td>
+      <td style="text-align:right;font-size:12px;max-width:240px;overflow:hidden;text-overflow:ellipsis;position:relative">
+        <span>${p.description||''}</span>
+        ${p.note?`<button class="desc-info-btn" onclick="toggleDescPopup(event,${p.id})" title="توضیحات اضافه"><i class="ti ti-info-circle"></i></button>`:''}
+        <div class="desc-popup" id="descPopup_${p.id}">
+          <div class="desc-popup-title">توضیحات اضافه</div>
+          <div style="font-size:12.5px;color:#444;line-height:1.8;white-space:pre-wrap">${p.note||'—'}</div>
+        </div>
+      </td>
+      <td style="font-size:12px">${p.car||''}</td>
+      <td><span class="badge b-blue">${p.brand||''}</span></td>
+      <td style="font-size:11.5px;color:#777">${p.category||''}</td>
+      <td style="font-weight:700">${fmt(p.price||0)}</td>
+      <td style="font-weight:700;color:${Number(p.stock)===0?'#dc2626':Number(p.stock)<=Number(p.min_stock||5)?'#d97706':'#111'}">${fa(p.stock||0)}</td>
+      <td><span class="badge ${p.has_flow==1?'b-blue':'b-gray'}">${p.has_flow==1?'دارد':'ندارد'}</span></td>
+      <td><span class="badge ${st.cls}">${st.label}</span></td>
+      <td style="font-size:11.5px;color:#666">${p.supplier_name||'—'}</td>
+      <td><div class="action-btns">
+        <button class="ab ab-edit" onclick="editProduct(${p.id})" title="ویرایش"><i class="ti ti-edit"></i></button>
+        <button class="ab ab-del" onclick="confirmDelete(${p.id})" title="حذف"><i class="ti ti-trash"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('selectAllCb').checked = slice.length>0 && slice.every(p=>selectedIds.has(p.id));
+  updateBulkBar();
+
+  // Smart pagination: show limited page buttons with ellipsis
+  let btns = '';
+  function pgBtn(i){ return `<button class="pg${i===page?' on':''}" onclick="gotoPage(${i})">${fa(i)}</button>`; }
+  if(pages<=7){
+    for(let i=1;i<=pages;i++) btns+=pgBtn(i);
+  } else {
+    btns += pgBtn(1);
+    if(page>3) btns += `<span class="pg-dots">...</span>`;
+    const from = Math.max(2, page-1), to = Math.min(pages-1, page+1);
+    for(let i=from;i<=to;i++) btns+=pgBtn(i);
+    if(page<pages-2) btns += `<span class="pg-dots">...</span>`;
+    btns += pgBtn(pages);
+  }
+  document.getElementById('pagerBtns').innerHTML = btns;
+}
+
+function gotoPage(p){ page=p; renderTable(); }
+
+// ── Selection & bulk actions ──
+function toggleSelect(id, checked){
+  if(checked) selectedIds.add(id); else selectedIds.delete(id);
+  updateBulkBar();
+  document.getElementById('selectAllCb').checked = false;
+}
+
+function toggleSelectAll(checked){
+  const start=(page-1)*PER_PAGE, end=Math.min(start+PER_PAGE,filtered.length);
+  filtered.slice(start,end).forEach(p=>{ if(checked) selectedIds.add(p.id); else selectedIds.delete(p.id); });
+  renderTable();
+}
+
+function selectAllPages(){
+  filtered.forEach(p => selectedIds.add(p.id));
+  renderTable();
+  toast(`${fa(selectedIds.size)} محصول از همه صفحات انتخاب شد`);
+}
+
+function updateBulkBar(){
+  const bar = document.getElementById('bulkBar');
+  const cnt = document.getElementById('bulkCount');
+  const totalEl = document.getElementById('totalProdCount');
+  if(totalEl) totalEl.textContent = fa(filtered.length);
+  if(!bar) return;
+  if(selectedIds.size>0){
+    bar.style.display='flex';
+    cnt.textContent = fa(selectedIds.size);
+  } else {
+    bar.style.display='none';
+  }
+}
+
+function clearSelection(){
+  selectedIds.clear();
+  renderTable();
+}
+
+async function bulkDelete(){
+  if(!selectedIds.size) return;
+  if(!confirm(`آیا مطمئن هستید می‌خواهید ${fa(selectedIds.size)} محصول انتخاب‌شده را حذف کنید؟\nاین عمل قابل بازگشت نیست.`)) return;
+  const token = sessionStorage.getItem('op_token');
+  try{
+    const res = await fetch(`${API.BASE_URL}/api/products/bulk-delete`,{
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({ids: [...selectedIds]})
+    });
+    const d = await res.json();
+    if(res.ok) toast(`${fa(d.deleted)} محصول حذف شد`);
+    else toast(d.message||'خطا در حذف',false);
+  }catch(e){ toast('خطا در اتصال',false); }
+  selectedIds.clear();
+  loadProducts();
+}
+
+function openBulkEdit(){
+  if(!selectedIds.size) return;
+  document.getElementById('bulkEditCount').textContent = fa(selectedIds.size);
+  document.getElementById('bulkEditModal').classList.add('show');
+}
+
+function closeBulkEdit(){
+  document.getElementById('bulkEditModal').classList.remove('show');
+  ['be_category','be_car','be_brand','be_price','be_stock'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value='';
+  });
+  document.querySelectorAll('.be-enable').forEach(cb=>cb.checked=false);
+}
+
+async function applyBulkEdit(){
+  const fields = {};
+  if(document.getElementById('be_enable_category')?.checked) fields.category = document.getElementById('be_category').value;
+  if(document.getElementById('be_enable_car')?.checked) fields.car = document.getElementById('be_car').value;
+  if(document.getElementById('be_enable_brand')?.checked) fields.brand = document.getElementById('be_brand').value;
+  if(document.getElementById('be_enable_price')?.checked) fields.price = Number(document.getElementById('be_price').value.replace(/,/g,''));
+  if(document.getElementById('be_enable_stock')?.checked) fields.stock = Number(document.getElementById('be_stock').value);
+
+  if(!Object.keys(fields).length){ toast('حداقل یک فیلد را برای ویرایش انتخاب کنید',false); return; }
+
+  const token = sessionStorage.getItem('op_token');
+  let success=0, fail=0;
+  for(const id of selectedIds){
+    const p = products.find(x=>x.id===id);
+    if(!p) continue;
+    try {
+      const body = {
+        description: p.description, car: fields.car ?? p.car, brand: fields.brand ?? p.brand,
+        category: fields.category ?? p.category, price: fields.price ?? p.price,
+        stock: fields.stock ?? p.stock, min_stock: p.min_stock, has_flow: p.has_flow, status: p.status
+      };
+      const res = await fetch(`${API.BASE_URL}/api/products/${id}`,{
+        method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body: JSON.stringify(body)
+      });
+      if(res.ok) success++; else fail++;
+    } catch(e){ fail++; }
+  }
+  toast(`${fa(success)} محصول ویرایش شد${fail?` — ${fa(fail)} ناموفق`:''}`);
+  closeBulkEdit();
+  selectedIds.clear();
+  loadProducts();
+}
+
+// ── Description popup ──
+function toggleDescPopup(e, id){
+  e.stopPropagation();
+  document.querySelectorAll('.desc-popup.show').forEach(p=>{ if(p.id!=='descPopup_'+id) p.classList.remove('show'); });
+  document.getElementById('descPopup_'+id).classList.toggle('show');
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.desc-popup') && !e.target.closest('.desc-info-btn')){
+    document.querySelectorAll('.desc-popup.show').forEach(p=>p.classList.remove('show'));
+  }
+});
+
+
+function editProduct(id){
+  const p=products.find(x=>x.id===id);
+  if(p) openModal('edit',p);
+}
+
+function openModal(mode, p){
+  currentId = p?.id || null;
+  document.getElementById('modalTitle').textContent = mode==='add'?'افزودن محصول جدید':'ویرایش محصول';
+  document.getElementById('delBtn').style.display = mode==='edit'?'flex':'none';
+  if(p){
+    document.getElementById('f_desc').value = p.description||'';
+    document.getElementById('f_code').value = p.code||'';
+    document.getElementById('f_brand').value = p.brand||'';
+    document.getElementById('f_car').value = p.car||'';
+    document.getElementById('f_cat').value = p.category||'';
+    document.getElementById('f_price').value = p.price||'';
+    document.getElementById('f_stock').value = p.stock||0;
+    document.getElementById('f_minstock').value = p.min_stock||5;
+    document.getElementById('f_flow').value = p.has_flow||0;
+    document.getElementById('f_status').value = p.status||'active';
+    document.getElementById('f_note').value = p.note||'';
+    document.getElementById('f_supplier_id').value = p.supplier_id||'';
+    document.getElementById('f_supplier_search').value = p.supplier_name||'';
+  } else {
+    ['f_desc','f_code','f_price','f_note','f_brand','f_car','f_cat','f_supplier_search'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('f_supplier_id').value='';
+    document.getElementById('f_stock').value='0';
+    document.getElementById('f_minstock').value='5';
+  }
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+
+async function saveProduct(){
+  const desc = document.getElementById('f_desc').value.trim();
+  const code = document.getElementById('f_code').value.trim();
+  const price = document.getElementById('f_price').value.trim();
+  if(!desc||!code||!price){ toast('لطفاً فیلدهای اجباری را پر کنید',false); return; }
+
+  const data = {
+    description: desc, code, brand: document.getElementById('f_brand').value,
+    car: document.getElementById('f_car').value, category: document.getElementById('f_cat').value,
+    price: Number(price.replace(/,/g,'')), stock: Number(document.getElementById('f_stock').value),
+    min_stock: Number(document.getElementById('f_minstock').value),
+    has_flow: Number(document.getElementById('f_flow').value),
+    status: document.getElementById('f_status').value,
+    note: document.getElementById('f_note').value,
+    supplier_id: document.getElementById('f_supplier_id').value || null
+  };
+
+  try {
+    const token = sessionStorage.getItem('op_token');
+    const url = currentId ? `${API.BASE_URL}/api/products/${currentId}` : `${API.BASE_URL}/api/products`;
+    const method = currentId ? 'PUT' : 'POST';
+    const res = await fetch(url, { method, headers: {'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify(data) });
+    const result = await res.json();
+    if(!res.ok){ console.error('Save product failed:', result); throw new Error(result.message||'خطای سرور'); }
+    toast(currentId?'محصول ویرایش شد':'محصول اضافه شد');
+    closeModal(); loadProducts();
+  } catch(e) {
+    console.error('Save product error:', e);
+    toast(e.message||'خطا در ذخیره', false);
+  }
+}
+
+async function confirmDelete(id){
+  currentId = id || currentId;
+  if(!confirm('آیا از حذف این محصول مطمئن هستید؟')) return;
+  deleteProduct();
+}
+
+async function deleteProduct(){
+  try {
+    const token = sessionStorage.getItem('op_token');
+    const res = await fetch(`${API.BASE_URL}/api/products/${currentId}`, {
+      method:'DELETE', headers:{'Authorization':'Bearer '+token}
+    });
+    if(!res.ok) throw new Error((await res.json()).message || 'خطا');
+    toast('محصول حذف شد');
+    closeModal(); loadProducts();
+  } catch(e){ toast(e.message||'خطا در حذف',false); }
+}
+
+function exportExcel(){
+  const rows = [['کد','شرح','خودرو','برند','گروه','قیمت','موجودی','گردش','تامین‌کننده']];
+  filtered.forEach(p=>rows.push([
+    p.code, p.description, p.car, p.brand, p.category,
+    p.price, p.stock,
+    p.has_flow==1?'دارد':'ندارد',
+    p.supplier_id||''
+  ]));
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='products.csv'; a.click();
+  toast('خروجی اکسل دانلود شد');
+}
+
+function importExcel(input){
+  const file = input.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
+
+      if(!rows.length){ toast('فایل خالی است یا قابل خواندن نیست',false); input.value=''; return; }
+
+      // Map flexible column names (Persian or English) to our fields
+      const colMap = {
+        code: ['کد','کد محصول','code','Code'],
+        description: ['شرح','شرح محصول','نام','description','Description'],
+        car: ['خودرو','car','Car'],
+        brand: ['برند','brand','Brand'],
+        category: ['گروه','گروه کالا','گروه کالایی','دسته','category','Category'],
+        price: ['قیمت','price','Price'],
+        stock: ['موجودی','stock','Stock'],
+      };
+      function findVal(row, keys){
+        for(const k of keys){ if(row[k]!==undefined && row[k]!=='') return row[k]; }
+        return '';
+      }
+
+      const products = rows.map(row => ({
+        code: String(findVal(row, colMap.code)).trim(),
+        description: String(findVal(row, colMap.description)).trim(),
+        car: String(findVal(row, colMap.car)).trim(),
+        brand: String(findVal(row, colMap.brand)).trim(),
+        category: String(findVal(row, colMap.category)).trim(),
+        price: Number(String(findVal(row, colMap.price)).replace(/[^0-9.]/g,'')) || 0,
+        stock: Number(String(findVal(row, colMap.stock)).replace(/[^0-9.]/g,'')) || 0,
+      })).filter(p => p.code && p.description);
+
+      if(!products.length){
+        toast('هیچ ردیف معتبری در فایل یافت نشد (ستون کد و شرح الزامی است)',false);
+        input.value=''; return;
+      }
+
+      toast(`در حال وارد کردن ${fa(products.length)} محصول...`);
+
+      const token = sessionStorage.getItem('op_token');
+      const res = await fetch(`${API.BASE_URL}/api/products/bulk-import`, {
+        method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body: JSON.stringify({products})
+      });
+      const result = await res.json();
+      if(!res.ok) throw new Error(result.message||'خطا در وارد کردن');
+
+      toast(`موفق: ${fa(result.imported)} محصول جدید، ${fa(result.updated)} به‌روزرسانی شد${result.failed?` — ${fa(result.failed)} ناموفق`:''}`);
+      loadProducts();
+    } catch(err){
+      toast('خطا در خواندن یا ارسال فایل: ' + err.message, false);
+    }
+    input.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── Searchable lists ──
+var allBrands = ['ایساکو','BOSCH','TEXTAR','NGK','وژن','دنسو','فدرال موگول','سایر'];
+var allCars = ['پژو ۴۰۵','پارس','دنا','سمند','پژو ۲۰۶','رنو ال ۹۰','تیبا','ساینا','کوئیک','مشترک','سایر'];
+
+function showList(type){ filterList(type, document.getElementById('f_'+type).value||''); }
+
+function filterList(type, q){
+  var lists = {brand: allBrands, car: allCars, cat: allCats};
+  var list = lists[type] || [];
+  var dd = document.getElementById(type+'Dropdown');
+  if(!dd) return;
+  var results = q ? list.filter(function(c){ return c.includes(q); }) : list;
+  var html = '';
+  results.forEach(function(c){
+    html += '<div onclick="selectItem(\''+type+'\',\''+c+'\')" style="padding:9px 14px;cursor:pointer;font-size:13px;color:#333;border-bottom:1px solid #f5f5f5" onmouseover="this.style.background=\'#f0f4ff\'" onmouseout="this.style.background=\'\'">'+c+'</div>';
+  });
+  if(q && !list.find(function(c){ return c===q; })){
+    html += '<div onclick="addAndSelectItem(\''+type+'\',\''+q+'\')" style="padding:9px 14px;cursor:pointer;font-size:13px;color:#1d4ed8;border-top:1px solid #e5e7eb;display:flex;align-items:center;gap:6px" onmouseover="this.style.background=\'#eff6ff\'" onmouseout="this.style.background=\'\'"><i class="ti ti-plus" style="font-size:14px"></i>افزودن "'+q+'" جدید</div>';
+  }
+  dd.innerHTML = html || '<div style="padding:12px;text-align:center;color:#aaa;font-size:13px">موردی یافت نشد</div>';
+  dd.style.display = 'block';
+}
+
+function selectItem(type, val){
+  document.getElementById('f_'+type).value = val;
+  document.getElementById(type+'Dropdown').style.display = 'none';
+}
+
+function addAndSelectItem(type, val){
+  var lists = {brand: allBrands, car: allCars, cat: allCats};
+  if(lists[type] && !lists[type].includes(val)) lists[type].push(val);
+  selectItem(type, val);
+  Admin.toast('"'+val+'" \u0627\u0636\u0627\u0641\u0647 \u0634\u062f');
+}
+
+document.addEventListener('click', function(e){
+  ['brand','car','cat'].forEach(function(type){
+    var inp = document.getElementById('f_'+type);
+    var dd = document.getElementById(type+'Dropdown');
+    if(dd && inp && !inp.contains(e.target) && !dd.contains(e.target)) dd.style.display='none';
+  });
+});
+
+// ── Category management (keep for compatibility) ──
+var allCats = ['شمع و وایرشمع','لنت ترمز','کاسه نمد','پیچ و مهره','واشر و اورینگ','تایمینگ','خارجات','ماهک','دنده و کشویی','فیلتر','روغن','تسمه','سیستم برق','سیستم سوخت','سپر و بدنه','سایر'];
+
+function showCatList(){ filterList('cat', document.getElementById('f_cat').value||''); }
+function filterCats(q){ filterList('cat', q); }
+function selectCat(c){ selectItem('cat', c); }
+function addAndSelectCat(c){ addAndSelectItem('cat', c); }
+
+// ── Supplier Search ──
+let allSuppliers = [];
+
+async function loadApprovedSuppliers(){
+  const token = sessionStorage.getItem('op_token');
+  try {
+    const res = await fetch(`${API.BASE_URL}/api/suppliers`, {headers:{'Authorization':'Bearer '+token}});
+    if(res.ok){
+      const data = await res.json();
+      allSuppliers = data.filter(s => s.status === 'approved');
+      // If no approved suppliers, show all pending ones too
+      if(!allSuppliers.length) allSuppliers = data;
+    }
+  } catch(e){}
+}
+
+function showSupplierList(){
+  filterSuppliers(document.getElementById('f_supplier_search').value);
+  document.getElementById('supplierDropdown').style.display='block';
+}
+
+function filterSuppliers(q){
+  const dd = document.getElementById('supplierDropdown');
+  const list = q ? allSuppliers.filter(s => (s.company||'').includes(q) || (s.name||'').includes(q)) : allSuppliers;
+  if(!list.length){ dd.innerHTML='<div style="padding:12px;font-size:13px;color:#aaa;text-align:center">تامین‌کننده تایید شده‌ای یافت نشد</div>'; dd.style.display='block'; return; }
+  dd.innerHTML = list.map(s=>`
+    <div onclick="pickSupplier(${s.id},'${s.company.replace(/'/g,"&#39;")}')" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:0.5px solid #f5f5f5" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#111">${s.company}</div>
+        <div style="font-size:11px;color:#aaa">${s.name||''} — ${s.city||''}</div>
+      </div>
+    </div>`).join('');
+  dd.style.display='block';
+}
+
+function pickSupplier(id, name){
+  document.getElementById('f_supplier_id').value = id;
+  document.getElementById('f_supplier_search').value = name;
+  document.getElementById('supplierDropdown').style.display = 'none';
+}
+
+document.addEventListener('click', function(e){
+  if(!e.target.closest('#f_supplier_search') && !e.target.closest('#supplierDropdown')){
+    const dd = document.getElementById('supplierDropdown');
+    if(dd) dd.style.display='none';
+  }
+});
+
+loadProducts();
+loadApprovedSuppliers();
+</script>
+</body>
+</html>

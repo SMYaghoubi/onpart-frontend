@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="description" content="ورود به سامانه فروش قطعات یدکی آن‌پارت"/>
+  <meta name="keywords" content="ورود, آن‌پارت, قطعات یدکی"/>
+  <meta name="robots" content="index, follow"/>
+  <meta name="author" content="آن‌پارت"/>
+  <meta property="og:title" content="ورود به سامانه | آن‌پارت"/>
+  <meta property="og:description" content="ورود به سامانه فروش قطعات یدکی آن‌پارت"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://onpart.ir/"/>
+  <meta property="og:site_name" content="آن‌پارت"/>
+  <meta property="og:locale" content="fa_IR"/>
+  <link rel="canonical" href="https://onpart.ir/"/>
+  <link rel="icon" href="/images/favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ورود | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;font-family:'Vazirmatn',sans-serif;}
+    body{background:#efefef;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+    .wrap{display:flex;max-width:820px;width:100%;border-radius:22px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.10);animation:fadeUp .4s ease;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .left{background:#111827;width:280px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 28px;gap:16px;}
+    .left-icon{width:68px;height:68px;background:rgba(255,255,255,.07);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;color:#60a5fa;margin-bottom:8px;}
+    .left-title{color:#fff;font-size:17px;font-weight:700;text-align:center;}
+    .left-desc{color:rgba(255,255,255,.5);font-size:13px;text-align:center;line-height:1.8;}
+    .btn-register{margin-top:8px;background:transparent;border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:10px;padding:11px 32px;font-family:'Vazirmatn',sans-serif;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;transition:all .2s;}
+    .btn-register:hover{background:rgba(255,255,255,.08);}
+    .right{background:#fff;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 44px;}
+    .logo-box{width:54px;height:54px;background:#1e3a8a;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;margin-bottom:10px;}
+    .logo-name{font-size:22px;font-weight:800;color:#111;}
+    .logo-name span{color:#1d4ed8;}
+    .logo-sub{font-size:14px;font-weight:600;color:#333;margin-bottom:28px;}
+    .fg{width:100%;margin-bottom:18px;}
+    .flabel{font-size:13px;font-weight:600;color:#444;margin-bottom:7px;display:block;}
+    .input-wrap{position:relative;}
+    .finput{width:100%;background:#f5f5f5;border:1.5px solid #e5e7eb;border-radius:10px;padding:12px 42px 12px 14px;font-family:'Vazirmatn',sans-serif;font-size:13.5px;color:#111;outline:none;transition:border .2s;}
+    .finput:focus{border-color:#1d4ed8;background:#fff;}
+    .input-icon{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:#bbb;font-size:18px;}
+    .eye-btn{position:absolute;left:13px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#bbb;font-size:18px;padding:0;}
+    .btn-login{width:100%;background:#1d4ed8;color:#fff;border:none;border-radius:10px;padding:13px;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s;margin-top:4px;}
+    .btn-login:hover{background:#1e40af;}
+    .forgot{text-align:center;margin-top:14px;font-size:12.5px;color:#aaa;cursor:pointer;text-decoration:none;display:block;}
+    .forgot:hover{color:#1d4ed8;}
+    .divider{width:100%;height:1px;background:#f0f0f0;margin:20px 0;}
+    .bottom-note{font-size:12px;color:#bbb;text-align:center;}
+    .bottom-note a{color:#1d4ed8;font-weight:600;text-decoration:none;}
+    /* OTP Modal */
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:100;}
+    .overlay.show{display:flex;}
+    .otp-card{background:#fff;border-radius:18px;padding:40px 36px;width:360px;display:flex;flex-direction:column;align-items:center;gap:16px;}
+    .otp-icon{font-size:40px;color:#1d4ed8;}
+    .otp-title{font-size:17px;font-weight:700;color:#111;}
+    .otp-desc{font-size:12.5px;color:#888;text-align:center;line-height:1.8;}
+    .otp-inputs{display:flex;gap:10px;direction:ltr;}
+    .otp-input{width:48px;height:52px;border:1.5px solid #e5e7eb;border-radius:10px;text-align:center;font-size:20px;font-weight:700;font-family:'Vazirmatn',sans-serif;color:#111;outline:none;background:#f9f9f9;}
+    .otp-input:focus{border-color:#1d4ed8;background:#fff;}
+    .btn-verify{width:100%;background:#1d4ed8;color:#fff;border:none;border-radius:10px;padding:13px;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:700;cursor:pointer;}
+    .otp-resend{font-size:12px;color:#aaa;cursor:pointer;}
+    .otp-resend span{color:#1d4ed8;font-weight:600;}
+    .otp-close{font-size:12px;color:#ccc;cursor:pointer;}
+    @media(max-width:640px){.wrap{flex-direction:column;}.left{width:100%;padding:28px;}}
+  </style>
+  <link rel="stylesheet" href="css/responsive.css"/>
+</head>
+<body>
+<a href="index.html" class="page-back" title="بازگشت"><i class="ti ti-arrow-right"></i></a>
+
+<div class="wrap">
+  <div class="left">
+    <div class="left-icon"><i class="ti ti-user-circle"></i></div>
+    <div class="left-title">مشتری عزیز!</div>
+    <div class="left-desc">لطفاً برای استفاده از امکانات فروشگاه ثبت‌نام کنید</div>
+    <a class="btn-register" href="register.html">ثبت نام</a>
+  </div>
+
+  <div class="right">
+    <img src="images/logo.png" style="height:60px;object-fit:contain;margin-bottom:4px"/>
+    <div class="logo-sub">سامانه فروش قطعات یدکی خودرو</div>
+
+    <div class="fg">
+      <label class="flabel">نام کاربری</label>
+      <div class="input-wrap">
+        <input class="finput" type="text" id="username" placeholder="نام کاربری یا شماره موبایل"/>
+        <i class="ti ti-user input-icon"></i>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label class="flabel">رمزعبور</label>
+      <div class="input-wrap">
+        <input class="finput" type="password" id="password" placeholder="رمز عبور را وارد کنید"/>
+        <i class="ti ti-lock input-icon"></i>
+        <button class="eye-btn" onclick="togglePw()"><i class="ti ti-eye" id="eyeIcon"></i></button>
+      </div>
+    </div>
+
+    <button class="btn-login" onclick="doLogin()">ورود</button>
+    <div id="loginError" style="display:none;background:#fee2e2;color:#dc2626;border-radius:8px;padding:10px 14px;font-size:13px;margin-top:10px;text-align:center"></div>
+    <a class="forgot" href="forgot.html">رمز عبور را فراموش کرده‌اید؟</a>
+    <div class="divider"></div>
+    <div class="bottom-note">حساب کاربری ندارید؟ <a href="register.html">ثبت‌نام کنید</a></div>
+  </div>
+</div>
+
+<!-- OTP Modal (for 2FA) -->
+<div class="overlay" id="otpOverlay">
+  <div class="otp-card">
+    <i class="ti ti-message-2-check otp-icon"></i>
+    <div class="otp-title">کد تأیید ارسال شد</div>
+    <div class="otp-desc">کد ۵ رقمی ارسال‌شده به شماره موبایل شما را وارد کنید</div>
+    <div class="otp-inputs">
+      <input class="otp-input" maxlength="1" id="o1" oninput="otpNext(this,'o2')"/>
+      <input class="otp-input" maxlength="1" id="o2" oninput="otpNext(this,'o3')"/>
+      <input class="otp-input" maxlength="1" id="o3" oninput="otpNext(this,'o4')"/>
+      <input class="otp-input" maxlength="1" id="o4" oninput="otpNext(this,'o5')"/>
+      <input class="otp-input" maxlength="1" id="o5" oninput="otpNext(this,null)"/>
+    </div>
+    <button class="btn-verify" onclick="verifyOTP()">تأیید و ورود</button>
+    <div class="otp-resend">کد را دریافت نکردید؟ <span>ارسال مجدد</span></div>
+    <div class="otp-close" onclick="document.getElementById('otpOverlay').classList.remove('show')">انصراف</div>
+  </div>
+</div>
+
+<script>
+// Clear any existing session when login page loads
+sessionStorage.removeItem('op_token');
+sessionStorage.removeItem('op_user');
+
+function togglePw(){
+  const p=document.getElementById('password');
+  const ic=document.getElementById('eyeIcon');
+  if(p.type==='password'){p.type='text';ic.className='ti ti-eye-off';}
+  else{p.type='password';ic.className='ti ti-eye';}
+}
+async function doLogin(){
+  const u=document.getElementById('username').value.trim();
+  const p=document.getElementById('password').value.trim();
+  if(!u||!p){alert('لطفاً شماره موبایل و رمز عبور را وارد کنید');return;}
+  try{
+    const res=await fetch('https://onpartpadmin.liara.run/api/auth/user-login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:u,password:p})
+    });
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.message||'نام کاربری یا رمز عبور اشتباه است');
+    sessionStorage.setItem('op_token',data.token);
+    sessionStorage.setItem('op_user',JSON.stringify(data.user));
+    window.location.href='shop.html';
+  }catch(e){
+    const err=document.getElementById('loginError');
+    if(err){err.textContent=e.message;err.style.display='block';}
+    else alert(e.message);
+  }
+}
+function otpNext(el,nextId){
+  if(el.value&&nextId)document.getElementById(nextId).focus();
+}
+async function verifyOTP(){
+  const phone=document.getElementById('phoneInput2')?.value||document.getElementById('username').value;
+  const otp=[...document.querySelectorAll('.otp-input')].map(i=>i.value).join('');
+  if(otp.length<4){alert('کد را کامل وارد کنید');return;}
+  try{
+    const res=await fetch('https://onpartpadmin.liara.run/api/auth/verify-otp',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({phone,otp})
+    });
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.message||'کد اشتباه است');
+    sessionStorage.setItem('op_token',data.token);
+    sessionStorage.setItem('op_user',JSON.stringify(data.user));
+    window.location.href='shop.html';
+  }catch(e){alert(e.message);}
+}
+</script>
+</body>
+</html>

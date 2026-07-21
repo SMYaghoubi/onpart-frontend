@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="description" content="همکاری با آن‌پارت به عنوان تامین‌کننده قطعات یدکی. به بزرگترین شبکه توزیع قطعات یدکی بپیوندید."/>
+  <meta name="keywords" content="تامین‌کننده قطعات یدکی, همکاری, آن‌پارت"/>
+  <meta name="robots" content="index, follow"/>
+  <meta name="author" content="آن‌پارت"/>
+  <meta property="og:title" content="سامانه همکاری تامین‌کنندگان | آن‌پارت"/>
+  <meta property="og:description" content="همکاری با آن‌پارت به عنوان تامین‌کننده قطعات یدکی. به بزرگترین شبکه توزیع قطعات یدکی بپیوندید."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://onpart.ir/"/>
+  <meta property="og:site_name" content="آن‌پارت"/>
+  <meta property="og:locale" content="fa_IR"/>
+  <link rel="canonical" href="https://onpart.ir/"/>
+  <link rel="icon" href="/images/favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>سامانه همکاری تامین‌کنندگان | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/responsive.css"/>
+  <style>
+    *{box-sizing:border-box}
+    body{background:#f4f6f9;min-height:100vh}
+    .hero{background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 50%,#1d4ed8 100%);padding:60px 40px;text-align:center;position:relative;overflow:hidden}
+    .hero::before{content:'';position:absolute;top:-80px;right:-80px;width:320px;height:320px;background:rgba(255,255,255,.04);border-radius:50%}
+    .hero::after{content:'';position:absolute;bottom:-60px;left:-60px;width:240px;height:240px;background:rgba(255,255,255,.04);border-radius:50%}
+    .hero-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:6px 16px;font-size:12.5px;color:rgba(255,255,255,.9);margin-bottom:20px}
+    .hero h1{font-size:36px;font-weight:900;color:#fff;margin-bottom:12px;line-height:1.3}
+    .hero h1 span{color:#60a5fa}
+    .hero p{font-size:15px;color:rgba(255,255,255,.65);max-width:520px;margin:0 auto 32px;line-height:1.8}
+    .hero-stats{display:flex;gap:40px;justify-content:center;flex-wrap:wrap}
+    .h-stat{text-align:center;color:#fff}
+    .h-stat-val{font-size:28px;font-weight:900;color:#60a5fa}
+    .h-stat-lbl{font-size:12px;color:rgba(255,255,255,.55);margin-top:3px}
+
+    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:40px;max-width:1000px;margin:0 auto}
+    .feat-card{background:#fff;border-radius:14px;padding:24px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+    .feat-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px}
+    .feat-title{font-size:15px;font-weight:700;color:#111;margin-bottom:6px}
+    .feat-desc{font-size:13px;color:#888;line-height:1.7}
+
+    .form-wrap{max-width:780px;margin:0 auto;padding:0 40px 60px}
+    .form-card{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.07)}
+    .form-header{background:linear-gradient(135deg,#1e3a8a,#1d4ed8);padding:24px 32px;color:#fff}
+    .form-header h2{font-size:20px;font-weight:800;margin-bottom:4px}
+    .form-header p{font-size:13px;color:rgba(255,255,255,.7)}
+    .form-body{padding:32px}
+    .sec-title{font-size:13px;font-weight:700;color:#1d4ed8;padding-bottom:10px;border-bottom:2px solid #eff6ff;margin-bottom:18px;display:flex;align-items:center;gap:7px}
+    .fg{margin-bottom:16px}
+    .fg label{font-size:12.5px;font-weight:600;color:#444;display:block;margin-bottom:6px}
+    .fg label span{color:#ef4444}
+    .finput{width:100%;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:10px;padding:11px 14px;font-family:'Vazirmatn',sans-serif;font-size:13.5px;color:#111;outline:none;transition:border .2s}
+    .finput:focus{border-color:#1d4ed8;background:#fff}
+    .fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .fg-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+    .divider{height:1px;background:#f0f0f0;margin:24px 0}
+
+    .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+    .cat-item{border:1.5px solid #e5e7eb;border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px}
+    .cat-item:hover{border-color:#1d4ed8;background:#eff6ff}
+    .cat-item.sel{border-color:#1d4ed8;background:#eff6ff}
+    .cat-item input{accent-color:#1d4ed8;width:16px;height:16px;flex-shrink:0}
+    .cat-item-lbl{font-size:12.5px;font-weight:600;color:#333}
+    .cat-item-sub{font-size:11px;color:#888}
+
+    .brand-wrap{position:relative}
+    .brand-tags{display:flex;flex-wrap:wrap;gap:8px;min-height:44px;border:1.5px solid #e5e7eb;border-radius:10px;padding:8px 12px;background:#f8fafc;cursor:text}
+    .brand-tags:focus-within{border-color:#1d4ed8;background:#fff}
+    .brand-tag{display:flex;align-items:center;gap:5px;background:#1d4ed8;color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600}
+    .brand-tag button{background:none;border:none;color:rgba(255,255,255,.8);cursor:pointer;font-size:14px;padding:0;line-height:1}
+    .brand-inp{border:none;outline:none;background:transparent;font-family:'Vazirmatn',sans-serif;font-size:13px;min-width:100px;flex:1}
+    .brand-hint{font-size:11px;color:#aaa;margin-top:4px}
+
+    .btn-submit{width:100%;background:linear-gradient(135deg,#1e40af,#1d4ed8);color:#fff;border:none;border-radius:12px;padding:15px;font-family:'Vazirmatn',sans-serif;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+    .btn-submit:hover{opacity:.9}
+    .btn-submit:disabled{opacity:.6;cursor:not-allowed}
+
+    .suc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
+    .suc-overlay.show{display:flex}
+    .suc-box{background:#fff;border-radius:20px;padding:48px 40px;text-align:center;max-width:380px;width:90%}
+    .suc-icon{width:72px;height:72px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;color:#16a34a;margin:0 auto 20px}
+
+    @media(max-width:640px){
+      .features{grid-template-columns:1fr;padding:20px}
+      .form-wrap{padding:0 16px 40px}
+      .form-body{padding:20px}
+      .fg-grid,.fg-3,.cat-grid{grid-template-columns:1fr!important}
+      .hero{padding:40px 20px}
+      .hero h1{font-size:26px}
+    }
+  </style>
+</head>
+<body>
+
+<div style="background:#fff;border-bottom:1px solid #e5e7eb;height:56px;display:flex;align-items:center;padding:0 28px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+  <a href="index.html"><img src="images/logo.png" style="height:38px;object-fit:contain"/></a>
+  <a href="index.html" style="margin-right:auto;display:flex;align-items:center;gap:6px;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 14px;text-decoration:none;color:#555;font-size:13px;font-weight:600;font-family:Vazirmatn,sans-serif"><i class="ti ti-arrow-right"></i>بازگشت به صفحه اصلی</a>
+</div>
+
+<div class="hero">
+  <div class="hero-badge"><i class="ti ti-building-factory-2"></i>سامانه همکاری تامین‌کنندگان</div>
+  <h1>با <span>آن‌پارت</span> همکار شوید</h1>
+  <p>اگه تامین‌کننده قطعات یدکی خودرو هستید، به شبکه توزیع ما بپیوندید و کالاهای خود را به هزاران خریدار برسانید.</p>
+  <div class="hero-stats">
+    <div class="h-stat"><div class="h-stat-val" id="statSuppliers">—</div><div class="h-stat-lbl">تامین‌کننده فعال</div></div>
+    <div class="h-stat"><div class="h-stat-val" id="statBrands">—</div><div class="h-stat-lbl">برند پشتیبانی‌شده</div></div>
+    <div class="h-stat"><div class="h-stat-val">۲۴/۷</div><div class="h-stat-lbl">پشتیبانی آنلاین</div></div>
+  </div>
+</div>
+
+<div class="features">
+  <div class="feat-card">
+    <div class="feat-icon" style="background:#eff6ff"><i class="ti ti-trending-up" style="color:#1d4ed8"></i></div>
+    <div class="feat-title">افزایش فروش</div>
+    <div class="feat-desc">به بازار گسترده خریداران قطعات یدکی دسترسی پیدا کنید</div>
+  </div>
+  <div class="feat-card">
+    <div class="feat-icon" style="background:#f0fdf4"><i class="ti ti-shield-check" style="color:#16a34a"></i></div>
+    <div class="feat-title">پرداخت مطمئن</div>
+    <div class="feat-desc">سیستم پرداخت شفاف و به‌موقع با ضمانت تسویه</div>
+  </div>
+  <div class="feat-card">
+    <div class="feat-icon" style="background:#fef3c7"><i class="ti ti-headset" style="color:#d97706"></i></div>
+    <div class="feat-title">پشتیبانی اختصاصی</div>
+    <div class="feat-desc">تیم اختصاصی برای راهنمایی و پشتیبانی تامین‌کنندگان</div>
+  </div>
+</div>
+
+<div class="form-wrap">
+  <div class="form-card">
+    <div class="form-header">
+      <h2><i class="ti ti-clipboard-list"></i> فرم ثبت‌نام تامین‌کننده</h2>
+      <p>اطلاعات زیر را تکمیل کنید تا کارشناسان ما با شما تماس بگیرند</p>
+    </div>
+    <div class="form-body">
+
+      <div class="sec-title"><i class="ti ti-building"></i>اطلاعات شرکت / فروشگاه</div>
+      <div class="fg-grid">
+        <div class="fg"><label>نام شرکت / فروشگاه <span>*</span></label><input class="finput" id="s_company" placeholder="مثلاً شرکت قطعات ایران"/></div>
+        <div class="fg"><label>نوع فعالیت <span>*</span></label>
+          <select class="finput" id="s_type">
+            <option value="">انتخاب کنید...</option>
+            <option>تولیدکننده</option>
+            <option>وارد‌کننده</option>
+            <option>عمده‌فروش</option>
+            <option>توزیع‌کننده</option>
+            <option>سایر</option>
+          </select>
+        </div>
+        <div class="fg"><label>شماره ثبت شرکت</label><input class="finput" id="s_reg" placeholder="اختیاری"/></div>
+        <div class="fg"><label>سال تأسیس</label><input class="finput" id="s_year" placeholder="مثلاً ۱۳۸۵"/></div>
+        <div class="fg"><label>استان</label><input class="finput" id="s_province" placeholder="مثلاً تهران"/></div>
+        <div class="fg"><label>شهر <span>*</span></label><input class="finput" id="s_city" placeholder="شهر"/></div>
+        <div class="fg" style="grid-column:1/-1"><label>آدرس کامل</label><input class="finput" id="s_address" placeholder="آدرس دفتر / انبار"/></div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="sec-title"><i class="ti ti-user"></i>اطلاعات تماس</div>
+      <div class="fg-3">
+        <div class="fg"><label>نام و نام‌خانوادگی <span>*</span></label><input class="finput" id="s_name" placeholder="نام مسئول"/></div>
+        <div class="fg"><label>شماره موبایل <span>*</span></label><input class="finput" id="s_mobile" placeholder="09xxxxxxxxx" style="direction:ltr"/></div>
+        <div class="fg"><label>شماره ثابت</label><input class="finput" id="s_phone" placeholder="021xxxxxxxx" style="direction:ltr"/></div>
+        <div class="fg"><label>پست الکترونیک</label><input class="finput" id="s_email" placeholder="example@email.com" style="direction:ltr"/></div>
+        <div class="fg"><label>وب‌سایت</label><input class="finput" id="s_website" placeholder="www.example.com" style="direction:ltr"/></div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="sec-title"><i class="ti ti-car"></i>حوزه فعالیت</div>
+      <div class="cat-grid" id="catGrid">
+        <label class="cat-item"><input type="checkbox" value="engine"/><div><div class="cat-item-lbl">موتور و سرسیلندر</div><div class="cat-item-sub">پیستون، رینگ، یاتاقان</div></div></label>
+        <label class="cat-item"><input type="checkbox" value="gearbox"/><div><div class="cat-item-lbl">گیربکس و دیفرانسیل</div><div class="cat-item-sub">دیسک کلاچ، شافت</div></div></label>
+        <label class="cat-item"><input type="checkbox" value="brake"/><div><div class="cat-item-lbl">ترمز و تعلیق</div><div class="cat-item-sub">لنت، دیسک، کمک‌فنر</div></div></label>
+        <label class="cat-item"><input type="checkbox" value="electrical"/><div><div class="cat-item-lbl">برق و الکترونیک</div><div class="cat-item-sub">دینام، استارت، ECU</div></div></label>
+        <label class="cat-item"><input type="checkbox" value="body"/><div><div class="cat-item-lbl">بدنه و شیشه</div><div class="cat-item-sub">گلگیر، درب، شیشه</div></div></label>
+        <label class="cat-item"><input type="checkbox" value="cooling"/><div><div class="cat-item-lbl">سیستم خنک‌کاری</div><div class="cat-item-sub">رادیاتور، واتر‌پمپ</div></div></label>
+        <label class="cat-item"><input type="checkbox" value="fuel"/><div><div class="cat-item-lbl">سوخت‌رسانی</div><div class="cat-item-sub">انژکتور، پمپ بنزین</div></div></label>
+        <label class="cat-item"><input type="checkbox" value="steering"/><div><div class="cat-item-lbl">فرمان و هدایت</div><div class="cat-item-sub">جعبه فرمان، کمک‌فرمان</div></div></label>
+        <label class="cat-item"><input type="checkbox" value="filter"/><div><div class="cat-item-lbl">فیلتر و روغن</div><div class="cat-item-sub">فیلتر هوا، روغن، گازوئیل</div></div></label>
+        <label class="cat-item"><input type="checkbox" value="exhaust"/><div><div class="cat-item-lbl">اگزوز و دود</div><div class="cat-item-sub">اگزوز، کاتالیزور</div></div></label>
+        <label class="cat-item"><input type="checkbox" value="ac"/><div><div class="cat-item-lbl">تهویه و کولر</div><div class="cat-item-sub">کمپرسور، رادیاتور کولر</div></div></label>
+        <label class="cat-item" id="otherCatLabel"><input type="checkbox" value="other_cat" onchange="toggleOtherCat(this)"/><div><div class="cat-item-lbl">سایر قطعات</div><div class="cat-item-sub">سایر موارد</div></div></label>
+      </div>
+      <div class="fg" id="otherCatInputWrap" style="display:none;margin-top:10px">
+        <label>توضیح حوزه فعالیت دیگر <span style="color:#ef4444">*</span></label>
+        <input class="finput" id="otherCatInput" placeholder="مثلاً: قطعات کشاورزی، یدکی موتورسیکلت..."/>
+      </div>
+
+      <div class="divider"></div>
+      <div class="sec-title"><i class="ti ti-tag"></i>برندهای کاری</div>
+      <div class="fg">
+        <label>برندهایی که کار می‌کنید <span>*</span></label>
+        <div class="brand-wrap">
+          <div class="brand-tags" id="brandTags" onclick="document.getElementById('brandInp').focus()">
+            <input class="brand-inp" id="brandInp" placeholder="نام برند..." onkeydown="addBrand(event)" style="min-width:80px"/>
+          </div>
+          <button type="button" onclick="addBrandBtn()" style="margin-top:8px;width:100%;background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe;border-radius:8px;padding:9px;font-family:Vazirmatn,sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-plus"></i>افزودن برند</button>
+          <div class="brand-hint"><i class="ti ti-info-circle"></i> مثال: ایران‌خودرو، سایپا، تویوتا، بوش، NGK</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="sec-title"><i class="ti ti-chart-bar"></i>ظرفیت و توانایی</div>
+      <div class="fg-grid">
+        <div class="fg"><label>تعداد آیتم فعال در انبار (تقریبی)</label>
+          <select class="finput" id="s_inventory">
+            <option value="">انتخاب کنید...</option>
+            <option>کمتر از ۱۰۰ قلم</option>
+            <option>۱۰۰ تا ۵۰۰ قلم</option>
+            <option>۵۰۰ تا ۲,۰۰۰ قلم</option>
+            <option>۲,۰۰۰ تا ۱۰,۰۰۰ قلم</option>
+            <option>بیش از ۱۰,۰۰۰ قلم</option>
+          </select>
+        </div>
+        <div class="fg"><label>توانایی ارسال به سراسر کشور</label>
+          <select class="finput" id="s_shipping">
+            <option value="">انتخاب کنید...</option>
+            <option>بله، سراسر کشور</option>
+            <option>فقط استان محل فعالیت</option>
+            <option>چند استان منتخب</option>
+          </select>
+        </div>
+        <div class="fg" style="grid-column:1/-1"><label>توضیحات تکمیلی</label>
+          <textarea class="finput" id="s_desc" rows="3" style="resize:none" placeholder="هر اطلاعات اضافه‌ای که فکر می‌کنید مفید است..."></textarea>
+        </div>
+      </div>
+
+      <div class="fg" style="margin-top:8px">
+        <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-weight:400">
+          <input type="checkbox" id="s_terms" style="margin-top:2px;width:16px;height:16px;accent-color:#1d4ed8;flex-shrink:0"/>
+          <span style="font-size:13px;color:#555">شرایط همکاری با آن‌پارت را مطالعه کرده و می‌پذیرم. اطلاعات ارائه‌شده صحیح بوده و مسئولیت آن را می‌پذیرم.</span>
+        </label>
+      </div>
+
+      <button class="btn-submit" id="submitBtn" onclick="submitSupplier()">
+        <i class="ti ti-send"></i>ثبت درخواست همکاری
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="suc-overlay" id="sucOverlay">
+  <div class="suc-box">
+    <div class="suc-icon"><i class="ti ti-check"></i></div>
+    <div style="font-size:22px;font-weight:900;color:#111;margin-bottom:10px">درخواست ثبت شد!</div>
+    <div style="font-size:14px;color:#888;line-height:1.8;margin-bottom:24px">کارشناسان ما ظرف ۲ روز کاری با شما تماس خواهند گرفت.</div>
+    <button onclick="window.location.href='index.html'" style="background:#1d4ed8;color:#fff;border:none;border-radius:10px;padding:12px 32px;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:700;cursor:pointer">بازگشت به صفحه اصلی</button>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+// Load real stats
+fetch('https://onpartpadmin.liara.run/api/suppliers/public-stats')
+  .then(r=>r.json())
+  .then(d=>{
+    const fa = n => String(n).replace(/\d/g, x => '۰۱۲۳۴۵۶۷۸۹'[x]);
+    document.getElementById('statSuppliers').textContent = '+'+fa(d.suppliers||0);
+    document.getElementById('statBrands').textContent = '+'+fa(d.brands||0);
+  }).catch(()=>{
+    document.getElementById('statSuppliers').textContent = '۰';
+    document.getElementById('statBrands').textContent = '۰';
+  });
+
+const brands = [];
+
+function addBrand(e){
+  if(e.key !== 'Enter') return;
+  e.preventDefault();
+  addBrandFromInput();
+}
+
+function addBrandBtn(){
+  addBrandFromInput();
+}
+
+function addBrandFromInput(){
+  const val = document.getElementById('brandInp').value.trim();
+  if(!val || brands.includes(val)) return;
+  brands.push(val);
+  renderBrands();
+  document.getElementById('brandInp').value = '';
+}
+
+function removeBrand(b){
+  const i = brands.indexOf(b);
+  if(i > -1) brands.splice(i,1);
+  renderBrands();
+}
+
+function renderBrands(){
+  const wrap = document.getElementById('brandTags');
+  const inp = document.getElementById('brandInp');
+  wrap.innerHTML = '';
+  brands.forEach(b => {
+    const tag = document.createElement('div');
+    tag.className = 'brand-tag';
+    tag.innerHTML = `${b}<button type="button" onclick="removeBrand('${b}')" title="حذف">×</button>`;
+    wrap.appendChild(tag);
+  });
+  wrap.appendChild(inp);
+}
+
+// Highlight selected categories
+document.querySelectorAll('.cat-item input').forEach(cb => {
+  cb.addEventListener('change', function(){
+    this.closest('.cat-item').classList.toggle('sel', this.checked);
+  });
+});
+
+function toggleOtherCat(cb){
+  const wrap = document.getElementById('otherCatInputWrap');
+  wrap.style.display = cb.checked ? 'block' : 'none';
+  if(!cb.checked) document.getElementById('otherCatInput').value = '';
+}
+
+async function submitSupplier(){
+  const company = document.getElementById('s_company').value.trim();
+  const name = document.getElementById('s_name').value.trim();
+  const mobile = document.getElementById('s_mobile').value.trim();
+  const city = document.getElementById('s_city').value.trim();
+  const type = document.getElementById('s_type').value;
+  const terms = document.getElementById('s_terms').checked;
+
+  if(!company){ alert('نام شرکت / فروشگاه الزامی است'); return; }
+  if(!name){ alert('نام مسئول الزامی است'); return; }
+  if(!mobile){ alert('شماره موبایل الزامی است'); return; }
+  if(!city){ alert('شهر الزامی است'); return; }
+  if(!type){ alert('نوع فعالیت را انتخاب کنید'); return; }
+  if(brands.length === 0){ alert('حداقل یک برند وارد کنید'); return; }
+  if(!terms){ alert('لطفاً شرایط همکاری را بپذیرید'); return; }
+
+  const cats = [...document.querySelectorAll('.cat-item input:checked')].map(c => c.value);
+  if(cats.length === 0){ alert('حداقل یک حوزه فعالیت انتخاب کنید'); return; }
+
+  let otherCatText = '';
+  if(cats.includes('other_cat')){
+    otherCatText = document.getElementById('otherCatInput').value.trim();
+    if(!otherCatText){ alert('توضیح حوزه فعالیت دیگر را وارد کنید'); return; }
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader"></i>در حال ارسال...';
+
+  const data = {
+    company, type, name, mobile,
+    city, province: document.getElementById('s_province').value,
+    address: document.getElementById('s_address').value,
+    email: document.getElementById('s_email').value,
+    phone: document.getElementById('s_phone').value,
+    website: document.getElementById('s_website').value,
+    reg_number: document.getElementById('s_reg').value,
+    year: document.getElementById('s_year').value,
+    inventory: document.getElementById('s_inventory').value,
+    shipping: document.getElementById('s_shipping').value,
+    description: document.getElementById('s_desc').value,
+    categories: cats.includes('other_cat') ? cats.filter(c=>c!=='other_cat').concat([`other_cat:${otherCatText}`]).join(',') : cats.join(','),
+    brands: brands.join(',')
+  };
+
+  try {
+    const res = await fetch('https://onpartpadmin.liara.run/api/suppliers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if(res.ok){
+      document.getElementById('sucOverlay').classList.add('show');
+    } else {
+      const d = await res.json();
+      alert(d.message || 'خطا در ثبت درخواست');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-send"></i>ثبت درخواست همکاری';
+    }
+  } catch(e){
+    alert('خطا در ارتباط با سرور');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-send"></i>ثبت درخواست همکاری';
+  }
+}
+</script>
+</body>
+</html>

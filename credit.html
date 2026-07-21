@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <link rel="icon" href="/images/favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>سامانه اعتباری | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .hero { background: linear-gradient(135deg,#0f172a,#1e3a8a,#7c3aed); padding: 56px 40px; text-align: center; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); border-radius: 20px; padding: 6px 16px; font-size: 12.5px; color: rgba(255,255,255,.9); margin-bottom: 20px; }
+    .hero h1 { font-size: 36px; font-weight: 900; color: #fff; margin-bottom: 12px; line-height: 1.2; }
+    .hero h1 span { color: #a78bfa; }
+    .hero p { font-size: 15px; color: rgba(255,255,255,.65); max-width: 500px; margin: 0 auto 32px; line-height: 1.8; }
+    .hero-cards { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .hero-card { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15); border-radius: 14px; padding: 18px 24px; text-align: center; min-width: 130px; }
+    .hc-val { font-size: 22px; font-weight: 900; color: #a78bfa; }
+    .hc-lbl { font-size: 12px; color: rgba(255,255,255,.6); margin-top: 4px; }
+    .section { padding: 50px 40px; }
+    .sec-title { text-align: center; margin-bottom: 36px; }
+    .sec-title h2 { font-size: 26px; font-weight: 800; color: #111; margin-bottom: 8px; }
+    .steps { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+    .step-card { background: #fff; border-radius: 14px; padding: 22px 18px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+    .step-num { width: 34px; height: 34px; background: #7c3aed; border-radius: 10px; color: #fff; font-size: 15px; font-weight: 900; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+    .step-icon { font-size: 26px; color: #7c3aed; margin-bottom: 8px; }
+    .step-title { font-size: 13.5px; font-weight: 700; color: #111; margin-bottom: 6px; }
+    .step-desc { font-size: 12px; color: #888; line-height: 1.7; }
+    .guarantee-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; padding: 0 40px 50px; }
+    .g-card { background: #fff; border-radius: 14px; padding: 22px 18px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.05); border: 2px solid transparent; cursor: pointer; transition: all .15s; }
+    .g-card:hover { border-color: #7c3aed; background: #faf5ff; }
+    .g-icon { width: 52px; height: 52px; border-radius: 14px; background: #f5f3ff; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 14px; }
+    .g-title { font-size: 14px; font-weight: 700; color: #111; margin-bottom: 6px; }
+    .g-desc { font-size: 12px; color: #888; line-height: 1.6; }
+    .g-limit { display: inline-block; background: #f5f3ff; color: #7c3aed; border-radius: 6px; padding: 3px 10px; font-size: 11.5px; font-weight: 700; margin-top: 8px; }
+    .form-section { padding: 0 40px 60px; }
+    .form-card { background: #fff; border-radius: 20px; box-shadow: 0 4px 24px rgba(0,0,0,.08); overflow: hidden; max-width: 860px; margin: 0 auto; }
+    .form-header { background: linear-gradient(135deg,#4c1d95,#7c3aed); padding: 28px 36px; color: #fff; }
+    .form-header h3 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+    .form-header p { font-size: 13px; color: rgba(255,255,255,.7); }
+    .form-body { padding: 32px 36px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .fg { display: flex; flex-direction: column; gap: 6px; }
+    .fg.full { grid-column: 1/-1; }
+    .fg label { font-size: 12.5px; font-weight: 600; color: #444; }
+    .finput { background: #f8fafc; border: 1.5px solid #e5e7eb; border-radius: 9px; padding: 11px 13px; font-family: 'Vazirmatn',sans-serif; font-size: 13.5px; color: #111; outline: none; transition: all .2s; width: 100%; }
+    .finput:focus { border-color: #7c3aed; background: #fff; box-shadow: 0 0 0 3px rgba(124,58,237,.07); }
+    .fselect { background: #f8fafc; border: 1.5px solid #e5e7eb; border-radius: 9px; padding: 11px 13px; font-family: 'Vazirmatn',sans-serif; font-size: 13px; color: #333; outline: none; width: 100%; cursor: pointer; }
+    .sec-lbl { grid-column: 1/-1; font-size: 12px; font-weight: 700; color: #7c3aed; padding: 6px 0 0; display: flex; align-items: center; gap: 6px; }
+    .divider { grid-column: 1/-1; height: 1px; background: #f0f0f0; }
+    .amount-slider { width: 100%; accent-color: #7c3aed; margin-top: 8px; }
+    .amount-val { font-size: 18px; font-weight: 800; color: #7c3aed; text-align: center; margin-top: 6px; }
+    .gsel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .gsel-item { display: flex; align-items: center; gap: 10px; background: #f8fafc; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: all .15s; }
+    .gsel-item:hover, .gsel-item.on { border-color: #7c3aed; background: #faf5ff; }
+    .gsel-item input { accent-color: #7c3aed; width: 15px; height: 15px; flex-shrink: 0; }
+    .gsel-name { font-size: 13px; font-weight: 600; color: #333; }
+    .gsel-sub  { font-size: 11px; color: #aaa; }
+    .upload-zone { border: 2px dashed #ddd6fe; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all .2s; background: #fafbfc; }
+    .upload-zone:hover { border-color: #7c3aed; background: #faf5ff; }
+    .upload-zone.uploaded { border-color: #7c3aed; background: #faf5ff; }
+    .upload-zone i { font-size: 28px; color: #c4b5fd; display: block; margin-bottom: 6px; }
+    .upload-zone span { font-size: 12.5px; color: #aaa; }
+    .check-row { display: flex; align-items: flex-start; gap: 10px; margin-top: 4px; }
+    .check-row input { accent-color: #7c3aed; margin-top: 3px; width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+    .check-row label { font-size: 12.5px; color: #555; line-height: 1.6; cursor: pointer; }
+    .check-row label a { color: #7c3aed; font-weight: 600; }
+    .btn-submit { width: 100%; background: #7c3aed; color: #fff; border: none; border-radius: 11px; padding: 14px; font-family: 'Vazirmatn',sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; }
+    .btn-submit:hover { background: #6d28d9; }
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 200; align-items: center; justify-content: center; }
+    .overlay.show { display: flex; }
+    .suc-box { background: #fff; border-radius: 20px; padding: 50px 44px; text-align: center; max-width: 400px; }
+    .suc-icon { width: 80px; height: 80px; background: #f5f3ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; color: #7c3aed; margin: 0 auto 20px; }
+    .btn-close { background: #7c3aed; color: #fff; border: none; border-radius: 10px; padding: 12px 36px; font-family: 'Vazirmatn',sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 20px; }
+    .coop-nav { background: #fff; border-bottom: 1px solid #e5e7eb; height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; }
+    .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .nav-logo-box { width: 36px; height: 36px; background: #1e3a8a; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: #fff; }
+    .nav-logo-text { font-size: 20px; font-weight: 800; color: #111; }
+    .nav-logo-text span { color: #1d4ed8; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-link { font-size: 13px; color: #444; padding: 6px 13px; border-radius: 7px; cursor: pointer; transition: all .15s; text-decoration: none; }
+    .nav-link:hover { background: #f0f4ff; color: #1d4ed8; }
+    .nav-link.active { background: #f5f3ff; color: #7c3aed; font-weight: 600; }
+  </style>
+  <link rel="stylesheet" href="css/responsive.css"/>
+</head>
+<body>
+  <nav class="coop-nav">
+    <a class="nav-logo" href="index.html"><img src="images/logo.png" style="height:32px;object-fit:contain"/><div class="nav-logo-text">On<span>Part</span></div></a>
+    <div class="nav-links">
+      <a class="nav-link" href="index.html">صفحه اصلی</a>
+      <a class="nav-link" href="shop.html">فروشگاه</a>
+      <a class="nav-link" href="cooperation.html">سامانه همکاری</a>
+      <a class="nav-link active" href="credit.html">سامانه اعتباری</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:13px;color:#444;direction:ltr"><i class="ti ti-phone" style="color:#1d4ed8"></i>۰۲۱-۶۵۲۸-۰۴۴۸</div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-badge"><i class="ti ti-credit-card"></i>سامانه اعتباری آن‌پارت</div>
+    <h1>خرید اعتباری با <span>ضمانت</span><br>راحت و مطمئن</h1>
+    <p>با ارائه ضمانت معتبر، اعتبار خرید دریافت کنید و بدون پرداخت نقدی سفارش ثبت کنید</p>
+    <div class="hero-cards">
+      <div class="hero-card"><div class="hc-val">۵۰۰M</div><div class="hc-lbl">سقف اعتبار (ت)</div></div>
+      <div class="hero-card"><div class="hc-val">۳</div><div class="hc-lbl">روز بررسی</div></div>
+      <div class="hero-card"><div class="hc-val">۴۲</div><div class="hc-lbl">تأیید شده</div></div>
+      <div class="hero-card"><div class="hc-val">۴</div><div class="hc-lbl">نوع ضمانت</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title"><h2>نحوه دریافت اعتبار</h2></div>
+    <div class="steps">
+      <div class="step-card"><div class="step-num">۱</div><div class="step-icon ti ti-forms"></div><div class="step-title">ثبت درخواست</div><div class="step-desc">فرم درخواست اعتبار را تکمیل کنید</div></div>
+      <div class="step-card"><div class="step-num">۲</div><div class="step-icon ti ti-file-upload"></div><div class="step-title">آپلود مدارک</div><div class="step-desc">مدارک هویتی و ضمانت را بارگذاری کنید</div></div>
+      <div class="step-card"><div class="step-num">۳</div><div class="step-icon ti ti-user-check"></div><div class="step-title">بررسی کارشناس</div><div class="step-desc">ظرف ۳ روز کاری بررسی می‌شود</div></div>
+      <div class="step-card"><div class="step-num">۴</div><div class="step-icon ti ti-wallet"></div><div class="step-title">دریافت اعتبار</div><div class="step-desc">اعتبار به حساب شما افزوده می‌شود</div></div>
+    </div>
+  </div>
+
+  <div style="padding:0 40px 20px;text-align:center"><h2 style="font-size:26px;font-weight:800;color:#111">انواع ضمانت قابل قبول</h2></div>
+  <div class="guarantee-grid">
+    <div class="g-card"><div class="g-icon"><i class="ti ti-file-text"></i></div><div class="g-title">چک</div><div class="g-desc">یک یا چند فقره چک به عنوان ضمانت</div><div class="g-limit">تا ۱۰۰ میلیون</div></div>
+    <div class="g-card"><div class="g-icon"><i class="ti ti-contract"></i></div><div class="g-title">سفته</div><div class="g-desc">سفته با مبلغ مورد نظر</div><div class="g-limit">تا ۵۰ میلیون</div></div>
+    <div class="g-card"><div class="g-icon"><i class="ti ti-user-shield"></i></div><div class="g-title">ضامن</div><div class="g-desc">معرفی ضامن معتبر با مدارک کامل</div><div class="g-limit">تا ۷۵ میلیون</div></div>
+    <div class="g-card"><div class="g-icon"><i class="ti ti-home"></i></div><div class="g-title">ملک / سند</div><div class="g-desc">کپی سند ملکی یا خودرو</div><div class="g-limit">تا ۵۰۰ میلیون</div></div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-card">
+      <div class="form-header"><h3>فرم درخواست اعتبار</h3><p>اطلاعات زیر را تکمیل کنید تا درخواست شما بررسی شود</p></div>
+      <div class="form-body">
+        <div class="form-grid">
+          <div class="sec-lbl"><i class="ti ti-user"></i>اطلاعات متقاضی</div>
+          <div class="fg"><label>نام و نام خانوادگی <span style="color:#ef4444">*</span></label><input class="finput" id="cr_name" placeholder="نام کامل"/></div>
+          <div class="fg"><label>شماره موبایل</label><input class="finput" id="cr_mobile" placeholder="09xxxxxxxxx"/></div>
+          <div class="fg"><label>کد ملی</label><input class="finput" id="cr_national" placeholder="کد ملی"/></div>
+          <div class="fg"><label>شغل</label><input class="finput" id="cr_job" placeholder="شغل یا سمت"/></div>
+          <div class="fg"><label>استان</label><input class="finput" id="cr_province" placeholder="مثلاً تهران"/></div>
+          <div class="fg"><label>شهر</label><input class="finput" id="cr_city" placeholder="شهر"/></div>
+          <div class="fg full"><label>آدرس</label><input class="finput" id="cr_address" placeholder="آدرس کامل..."/></div>
+          <div class="divider"></div>
+          <div class="sec-lbl"><i class="ti ti-cash"></i>مبلغ درخواستی</div>
+          <div class="fg full">
+            <label>مبلغ اعتبار مورد نیاز</label>
+            <input type="range" class="amount-slider" min="5" max="500" value="50" id="amountSlider" oninput="updateAmount(this.value)"/>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-top:4px"><span>۵ میلیون</span><span>۵۰۰ میلیون</span></div>
+            <div class="amount-val" id="amountVal">۵۰ میلیون تومان</div>
+          </div>
+          <div class="divider"></div>
+          <div class="sec-lbl"><i class="ti ti-shield"></i>نوع ضمانت</div>
+          <div class="fg full">
+            <div class="gsel-grid">
+              <div class="gsel-item on" onclick="selectG(this,'cheque')"><input type="radio" name="g" value="cheque" checked/><div><div class="gsel-name">چک</div><div class="gsel-sub">تا ۱۰۰ میلیون تومان</div></div></div>
+              <div class="gsel-item" onclick="selectG(this,'promissory')"><input type="radio" name="g" value="promissory"/><div><div class="gsel-name">سفته</div><div class="gsel-sub">تا ۵۰ میلیون تومان</div></div></div>
+              <div class="gsel-item" onclick="selectG(this,'guarantor')"><input type="radio" name="g" value="guarantor"/><div><div class="gsel-name">ضامن</div><div class="gsel-sub">تا ۷۵ میلیون تومان</div></div></div>
+              <div class="gsel-item" onclick="selectG(this,'property')"><input type="radio" name="g" value="property"/><div><div class="gsel-name">ملک / سند</div><div class="gsel-sub">تا ۵۰۰ میلیون تومان</div></div></div>
+            </div>
+          </div>
+          <div class="fg full"><label>جزئیات ضمانت</label><textarea class="finput" id="cr_detail" rows="2" style="resize:none" placeholder="مثال: ۲ فقره چک به مبلغ ۲۵ میلیون..."></textarea></div>
+          <div class="divider"></div>
+          <div class="sec-lbl"><i class="ti ti-file-text"></i>مدارک</div>
+          <div class="fg"><label>کارت ملی</label>
+            <div class="upload-zone" onclick="document.getElementById('file_idcard').click()"><i class="ti ti-id-badge" id="icon_idcard"></i><span id="lbl_idcard">آپلود کارت ملی</span></div>
+            <input type="file" id="file_idcard" accept="image/*,.pdf" style="display:none" onchange="handleFile(this,'idcard')"/>
+          </div>
+          <div class="fg"><label>مدرک ضمانت</label>
+            <div class="upload-zone" onclick="document.getElementById('file_guarantee').click()"><i class="ti ti-file-invoice" id="icon_guarantee"></i><span id="lbl_guarantee">آپلود مدرک ضمانت</span></div>
+            <input type="file" id="file_guarantee" accept="image/*,.pdf" style="display:none" onchange="handleFile(this,'guarantee')"/>
+          </div>
+          <div class="fg"><label>مدرک شغلی (اختیاری)</label>
+            <div class="upload-zone" onclick="document.getElementById('file_job').click()"><i class="ti ti-briefcase" id="icon_job"></i><span id="lbl_job">آپلود مدرک شغلی</span></div>
+            <input type="file" id="file_job" accept="image/*,.pdf" style="display:none" onchange="handleFile(this,'job')"/>
+          </div>
+          <div class="fg"><label>سایر مدارک</label>
+            <div class="upload-zone" onclick="document.getElementById('file_other').click()"><i class="ti ti-paperclip" id="icon_other"></i><span id="lbl_other">سایر مدارک</span></div>
+            <input type="file" id="file_other" accept="image/*,.pdf" style="display:none" onchange="handleFile(this,'other')"/>
+          </div>
+          <div class="divider"></div>
+          <div class="fg full"><div class="check-row"><input type="checkbox" id="terms"/><label for="terms">شرایط و قوانین سامانه اعتباری آن‌پارت را مطالعه کرده و <a href="#">می‌پذیرم</a></label></div></div>
+        </div>
+        <button class="btn-submit" id="submitBtn" onclick="submitForm()"><i class="ti ti-send"></i>ثبت درخواست اعتبار</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="successOverlay">
+    <div class="suc-box">
+      <div class="suc-icon"><i class="ti ti-check"></i></div>
+      <div style="font-size:22px;font-weight:900;color:#111;margin-bottom:10px">درخواست ثبت شد!</div>
+      <div style="font-size:14px;color:#888;line-height:1.8">ظرف ۳ روز کاری نتیجه از طریق پیامک اعلام می‌شود.</div>
+      <button class="btn-close" onclick="window.location.href='shop.html'">متوجه شدم</button>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    const fa = n => n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    function updateAmount(v){ document.getElementById('amountVal').textContent = fa(v) + ' میلیون تومان'; }
+    function selectG(el, val){ document.querySelectorAll('.gsel-item').forEach(g=>{g.classList.remove('on');g.querySelector('input').checked=false;}); el.classList.add('on'); el.querySelector('input').checked=true; }
+    function handleFile(input, key){
+      const file = input.files[0];
+      if(file){
+        document.getElementById('icon_'+key).className='ti ti-check';
+        document.getElementById('icon_'+key).style.color='#7c3aed';
+        document.getElementById('lbl_'+key).textContent=file.name.slice(0,20)+(file.name.length>20?'...':'');
+        input.closest('.upload-zone') || input.previousElementSibling.classList.add('uploaded');
+      }
+    }
+
+    async function submitForm(){
+      if(!document.getElementById('terms').checked){ alert('لطفاً شرایط را بپذیرید'); return; }
+      const name = document.getElementById('cr_name').value.trim();
+      if(!name){ alert('نام و نام خانوادگی الزامی است'); return; }
+
+      const token = sessionStorage.getItem('op_token');
+      if(!token){ window.location.href='login.html'; return; }
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled=true; btn.textContent='در حال ارسال...';
+
+      try{
+        const fd = new FormData();
+        const amount = Number(document.getElementById('amountSlider').value) * 1000000;
+        const gType = document.querySelector('.gsel-item.on input')?.value || 'cheque';
+
+        fd.append('amount', amount);
+        fd.append('guarantee_type', gType);
+        fd.append('guarantee_detail', document.getElementById('cr_detail').value);
+        fd.append('full_name', name);
+        fd.append('mobile', document.getElementById('cr_mobile').value);
+        fd.append('national_code', document.getElementById('cr_national').value);
+        fd.append('job', document.getElementById('cr_job').value);
+        fd.append('province', document.getElementById('cr_province').value);
+        fd.append('city', document.getElementById('cr_city').value);
+        fd.append('address', document.getElementById('cr_address').value);
+
+        const files = ['idcard','guarantee','job','other'];
+        const apiKeys = ['id_card_file','guarantee_file','job_file','other_file'];
+        files.forEach((k,i)=>{
+          const f = document.getElementById('file_'+k).files[0];
+          if(f) fd.append(apiKeys[i], f);
+        });
+
+        const res = await fetch('https://onpartpadmin.liara.run/api/credit', {
+          method:'POST', headers:{'Authorization':'Bearer '+token}, body:fd
+        });
+        const data = await res.json();
+
+        if(!res.ok){ alert(data.message||'خطا در ثبت درخواست'); btn.disabled=false; btn.innerHTML='<i class="ti ti-send"></i>ثبت درخواست اعتبار'; return; }
+        document.getElementById('successOverlay').classList.add('show');
+      }catch(e){
+        alert('خطا در ارتباط با سرور');
+        btn.disabled=false; btn.innerHTML='<i class="ti ti-send"></i>ثبت درخواست اعتبار';
+      }
+    }
+  </script>
+</body>
+</html>

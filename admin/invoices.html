@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" href="/images/favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>مدیریت فاکتورها | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    body{background:#f1f5f9;}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+    .sc{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);display:flex;align-items:center;gap:14px;}
+    .sc-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+    .si-blue{background:#eff6ff;color:#1d4ed8;} .si-green{background:#dcfce7;color:#16a34a;}
+    .si-amber{background:#fef3c7;color:#d97706;} .si-red{background:#fee2e2;color:#dc2626;}
+    .sc-val{font-size:20px;font-weight:900;color:#111;} .sc-lbl{font-size:11.5px;color:#aaa;}
+    .toolbar{background:#fff;border-radius:12px;padding:14px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .fi{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-family:'Vazirmatn',sans-serif;font-size:13px;color:#333;outline:none;}
+    .fi-input{flex:1;min-width:200px;}
+    .table-card{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden;}
+    .tc-head{padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;}
+    .tc-title{font-size:14px;font-weight:800;color:#111;}
+    .tbl{width:100%;border-collapse:collapse;}
+    .tbl th{font-size:11.5px;font-weight:700;color:#888;text-align:center;padding:10px 12px;border-bottom:2px solid #f0f0f0;background:#f8fafc;white-space:nowrap;}
+    .tbl th:nth-child(3){text-align:right;}
+    .tbl td{font-size:12.5px;color:#333;padding:11px 12px;border-bottom:1px solid #f5f5f5;text-align:center;white-space:nowrap;}
+    .tbl tbody tr:hover{background:#f9fbff;}
+    .user-cell{display:flex;align-items:center;gap:8px;}
+    .u-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+    .badge{border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;}
+    .b-green{background:#dcfce7;color:#16a34a;} .b-red{background:#fee2e2;color:#dc2626;}
+    .b-amber{background:#fef3c7;color:#d97706;} .b-blue{background:#dbeafe;color:#1d4ed8;}
+    .b-purple{background:#f5f3ff;color:#7c3aed;}
+    .action-btns{display:flex;gap:5px;justify-content:center;}
+    .ab{width:28px;height:28px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;}
+    .ab-view{background:#eff6ff;color:#1d4ed8;} .ab-print{background:#f0fdf4;color:#16a34a;}
+    .ab-del{background:#fee2e2;color:#dc2626;}
+    .pager{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid #f0f0f0;}
+    .pager-info{font-size:12.5px;color:#aaa;}
+    .pager-btns{display:flex;gap:6px;}
+    .pg{width:30px;height:30px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;cursor:pointer;font-family:'Vazirmatn',sans-serif;font-size:12.5px;color:#555;display:flex;align-items:center;justify-content:center;}
+    .pg:hover,.pg.on{background:#1d4ed8;color:#fff;border-color:#1d4ed8;}
+    /* Invoice Preview */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;}
+    .modal-overlay.show{display:flex;}
+    .modal{background:#fff;border-radius:18px;width:720px;max-height:92vh;overflow-y:auto;}
+    .modal-head{padding:18px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:5;}
+    .modal-title{font-size:15px;font-weight:800;color:#111;display:flex;align-items:center;gap:8px;}
+    .modal-title i{color:#1d4ed8;}
+    .modal-close{width:30px;height:30px;background:#f3f4f6;border:none;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
+    .inv-wrap{padding:24px;}
+    .inv-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;padding-bottom:20px;border-bottom:2px solid #f0f0f0;}
+    .inv-logo-box{width:44px;height:44px;background:#1e3a8a;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;}
+    .inv-logo-name{font-size:18px;font-weight:800;color:#111;}
+    .inv-logo-name span{color:#1d4ed8;}
+    .inv-num{font-size:20px;font-weight:900;color:#1d4ed8;}
+    .inv-date{font-size:12px;color:#aaa;margin-top:2px;}
+    .inv-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+    .inv-info-box{background:#f8fafc;border-radius:10px;padding:14px 16px;}
+    .inv-info-title{font-size:11px;font-weight:700;color:#aaa;margin-bottom:8px;}
+    .inv-info-row{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px;}
+    .inv-info-lbl{color:#888;} .inv-info-val{font-weight:600;color:#111;}
+    .inv-tbl{width:100%;border-collapse:collapse;margin-bottom:20px;}
+    .inv-tbl th{background:#f8fafc;font-size:12px;font-weight:700;color:#666;padding:9px 12px;text-align:right;border-bottom:2px solid #e5e7eb;}
+    .inv-tbl td{font-size:12.5px;padding:10px 12px;border-bottom:1px solid #f0f0f0;color:#333;}
+    .inv-tbl tfoot td{font-weight:700;font-size:13px;background:#f8fafc;border-top:2px solid #e5e7eb;}
+    .inv-total{background:linear-gradient(135deg,#1e3a8a,#1d4ed8);color:#fff;border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+    .inv-total-lbl{font-size:14px;font-weight:600;}
+    .inv-total-val{font-size:22px;font-weight:900;}
+    .modal-foot{padding:16px 24px;border-top:1px solid #f0f0f0;display:flex;gap:10px;position:sticky;bottom:0;background:#fff;}
+    .btn-prim{background:#1d4ed8;color:#fff;border:none;border-radius:9px;padding:10px 22px;font-family:'Vazirmatn',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;}
+    .btn-green{background:#16a34a;color:#fff;border:none;border-radius:9px;padding:10px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;}
+    .btn-sec{background:#f3f4f6;color:#555;border:none;border-radius:9px;padding:10px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-placeholder"></div>
+  <div class="main">
+    <div id="topbar-placeholder"></div>
+    <div class="content">
+
+      <div class="stats">
+        <div class="sc"><div class="sc-icon si-blue"><i class="ti ti-receipt"></i></div><div><div class="sc-val" id="totalInv">—</div><div class="sc-lbl">کل فاکتورها</div></div></div>
+        <div class="sc"><div class="sc-icon si-green"><i class="ti ti-check"></i></div><div><div class="sc-val" id="paidInv">—</div><div class="sc-lbl">پرداخت شده</div></div></div>
+        <div class="sc"><div class="sc-icon si-amber"><i class="ti ti-clock"></i></div><div><div class="sc-val" id="pendingInv">—</div><div class="sc-lbl">در انتظار</div></div></div>
+        <div class="sc"><div class="sc-icon si-red"><i class="ti ti-x"></i></div><div><div class="sc-val" id="cancelInv">—</div><div class="sc-lbl">ابطال شده</div></div></div>
+      </div>
+
+      <div class="toolbar">
+        <input class="fi fi-input" placeholder="جستجو شماره فاکتور، نام..." id="searchInp" oninput="renderTable()" autocomplete="off"/>
+        <select class="fi" id="typeF" onchange="renderTable()">
+          <option value="">همه انواع</option>
+          <option value="pre">پیش‌فاکتور</option>
+          <option value="final">فاکتور رسمی</option>
+        </select>
+        <select class="fi" id="statusF" onchange="renderTable()">
+          <option value="">همه وضعیت‌ها</option>
+          <option value="pending">در انتظار</option>
+          <option value="paid">پرداخت شده</option>
+          <option value="cancelled">ابطال شده</option>
+        </select>
+      </div>
+
+      <div class="table-card">
+        <div class="tc-head">
+          <div class="tc-title">لیست فاکتورها (<span id="invCount">0</span>)</div>
+          <button style="background:#f0fdf4;color:#16a34a;border:none;border-radius:7px;padding:7px 14px;font-family:'Vazirmatn',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px" onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i>خروجی اکسل</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>شماره</th>
+              <th style="text-align:right">کاربر</th>
+              <th>تاریخ</th><th>نوع</th><th>اقلام</th>
+              <th>مبلغ کل (ت)</th><th>وضعیت</th><th>عملیات</th>
+            </tr></thead>
+            <tbody id="invTbody"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <div class="pager-info" id="pagerInfo">—</div>
+          <div class="pager-btns" id="pagerBtns"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INVOICE PREVIEW -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-receipt"></i>پیش‌نمایش فاکتور</div>
+      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="inv-wrap" id="invContent"></div>
+    <div class="modal-foot">
+      <button class="btn-prim" onclick="printInvoice()"><i class="ti ti-printer"></i>چاپ فاکتور</button>
+      <button class="btn-green"><i class="ti ti-download"></i>دانلود PDF</button>
+      <button class="btn-sec" onclick="closeModal()">بستن</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+
+function toJalali(dateStr){
+  if(!dateStr) return '—';
+  try{
+    const d=new Date(dateStr);if(isNaN(d))return dateStr;
+    const gy=d.getFullYear(),gm=d.getMonth()+1,gd=d.getDate();
+    let jy=gy-1600,jm=0,jd=0,g_d_no,j_d_no,j_np,i;
+    const g_d_m=[31,28,31,30,31,30,31,31,30,31,30,31];
+    const j_d_m=[31,31,31,31,31,31,30,30,30,30,30,29];
+    let gy2=gy-1600;
+    g_d_no=365*gy2+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400);
+    for(i=0;i<gm-1;i++)g_d_no+=g_d_m[i];
+    if(gm>2&&((gy2%4===0&&gy2%100!==0)||(gy2%400===0)))g_d_no++;
+    g_d_no+=gd;j_d_no=g_d_no-79;
+    j_np=Math.floor(j_d_no/12053);j_d_no%=12053;
+    jy=979+33*j_np+4*Math.floor(j_d_no/1461);j_d_no%=1461;
+    if(j_d_no>=366){jy+=Math.floor((j_d_no-1)/365);j_d_no=(j_d_no-1)%365;}
+    for(i=0;i<11&&j_d_no>=j_d_m[i];i++)j_d_no-=j_d_m[i];
+    jm=i+1;jd=j_d_no+1;
+    const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+    return fa(jy)+'/'+fa(String(jm).padStart(2,'0'))+'/'+fa(String(jd).padStart(2,'0'));
+  }catch(e){return dateStr||'—';}
+}
+
+Admin.renderSidebar('invoices');
+Admin.renderTopbar('مدیریت فاکتورها','ti-receipt');
+
+const fa=n=>n.toString().replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+const fmt=n=>fa(Number(n).toLocaleString());
+const colors=['#1d4ed8','#16a34a','#d97706','#7c3aed','#0f766e','#dc2626'];
+let invoices=[],filtered=[],page=1;const PER=15;
+
+const statusFa={
+  pending_expert:'در انتظار کارشناس',
+  pending_customer:'در انتظار تایید مشتری',
+  pending_payment:'در انتظار پرداخت',
+  preparing:'در حال آماده‌سازی',
+  shipping:'ارسال شده',
+  delivered:'تحویل داده شده',
+  cancelled:'ابطال شده',
+  pending:'در انتظار'
+};
+const statusBadge={
+  pending_expert:'b-amber',
+  pending_customer:'b-blue',
+  pending_payment:'b-purple',
+  preparing:'b-teal',
+  shipping:'b-indigo',
+  delivered:'b-green',
+  cancelled:'b-red',
+  pending:'b-amber'
+};
+
+async function loadInvoices(){
+  try {
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(API.BASE_URL+'/api/orders?admin=1&limit=500',{headers:{'Authorization':'Bearer '+token}});
+    if(res.ok){
+      const data = await res.json();
+      invoices = Array.isArray(data) ? data : (data.orders||[]);
+    }
+  } catch(e){ invoices=[]; }
+  updateStats(); renderTable();
+}
+
+function updateStats(){
+  document.getElementById('totalInv').textContent=fa(invoices.length);
+  document.getElementById('paidInv').textContent=fa(invoices.filter(v=>v.status==='delivered'||v.status==='pending_payment').length);
+  document.getElementById('pendingInv').textContent=fa(invoices.filter(v=>v.status==='pending_expert'||v.status==='pending_customer').length);
+  document.getElementById('cancelInv').textContent=fa(invoices.filter(v=>v.status==='cancelled').length);
+}
+
+const sBadge={paid:'b-green',pending:'b-amber',cancelled:'b-red'};
+const sLabel={paid:'پرداخت شده',pending:'در انتظار',cancelled:'ابطال'};
+const tBadge={final:'b-blue',pre:'b-purple'};
+const tLabel={final:'فاکتور رسمی',pre:'پیش‌فاکتور'};
+
+function renderTable(){
+  const s=document.getElementById('searchInp').value;
+  const sf=document.getElementById('statusF').value;
+  filtered=invoices.filter(v=>
+    (!s||(v.user_name?.includes(s)||String(v.id).includes(s)||v.user_phone?.includes(s)))&&
+    (!sf||v.status===sf)
+  );
+  const total=filtered.length,pages=Math.ceil(total/PER);
+  if(page>pages)page=1;
+  const start=(page-1)*PER,end=Math.min(start+PER,total);
+  document.getElementById('invCount').textContent=fa(total);
+  document.getElementById('pagerInfo').textContent=`نمایش ${fa(start+1)}–${fa(end)} از ${fa(total)}`;
+
+  document.getElementById('invTbody').innerHTML=filtered.slice(start,end).map((v,i)=>`
+    <tr>
+      <td style="font-weight:700;color:#1d4ed8">#${fa(v.id)}</td>
+      <td style="text-align:right"><div class="user-cell">
+        <div class="u-av" style="background:${colors[i%colors.length]}">${(v.user_name||'؟')[0]}</div>
+        <div><div style="font-weight:600">${v.user_name||'—'}</div><div style="font-size:11px;color:#aaa">${v.user_phone||''}</div></div>
+      </div></td>
+      <td>${toJalali(v.created_at)||'—'}</td>
+      <td>${fa(v.items_count||0)} قلم</td>
+      <td style="font-weight:700">${fmt(v.total||0)} ت</td>
+      <td><span class="badge ${statusBadge[v.status]||'b-gray'}">${statusFa[v.status]||v.status}</span></td>
+      <td><div class="action-btns">
+        <button class="ab ab-view" onclick="openModal(${i})" title="مشاهده"><i class="ti ti-eye"></i></button>
+        <button class="ab ab-print" onclick="printInvoice(${i})" title="چاپ"><i class="ti ti-printer"></i></button>
+      </div></td>
+    </tr>`).join('');
+
+  let btns='';
+  for(let i=1;i<=pages;i++) btns+=`<button class="pg${i===page?' on':''}" onclick="gotoPage(${i})">${fa(i)}</button>`;
+  document.getElementById('pagerBtns').innerHTML=btns;
+}
+
+function gotoPage(p){page=p;renderTable();}
+
+function openModal(i){
+  const v=filtered[i];
+  const items=[
+    {code:'10403004435',desc:'شمع موتور ۴۰۵',qty:2,price:203300},
+    {code:'05810600199',desc:'خار برچی پژو',qty:1,price:6200},
+    {code:'16200100754',desc:'لنت ترمز ۴۰۵',qty:1,price:3231400},
+  ].slice(0,v.items_count||2);
+  const subtotal=items.reduce((s,it)=>s+it.qty*it.price,0);
+  const tax=Math.round(subtotal*.09);
+  const total=subtotal+tax;
+
+  document.getElementById('invContent').innerHTML=`
+    <div class="inv-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="inv-logo-box">OP</div>
+        <div><div class="inv-logo-name">On<span>Part</span></div><div style="font-size:11px;color:#aaa">سامانه فروش قطعات یدکی</div></div>
+      </div>
+      <div style="text-align:left">
+        <div class="inv-num">#${fa(v.id)}</div>
+        <div class="inv-date">${toJalali(v.created_at)||'—'}</div>
+        <div style="margin-top:6px"><span class="badge ${sBadge[v.status]||'b-gray'}">${sLabel[v.status]||v.status}</span></div>
+      </div>
+    </div>
+    <div class="inv-info-grid">
+      <div class="inv-info-box">
+        <div class="inv-info-title">اطلاعات فروشنده</div>
+        <div class="inv-info-row"><span class="inv-info-lbl">شرکت</span><span class="inv-info-val">آن‌پارت</span></div>
+        <div class="inv-info-row"><span class="inv-info-lbl">تلفن</span><span class="inv-info-val">02165280448</span></div>
+        <div class="inv-info-row"><span class="inv-info-lbl">اینستاگرام</span><span class="inv-info-val">@onpart.ir</span></div>
+      </div>
+      <div class="inv-info-box">
+        <div class="inv-info-title">اطلاعات خریدار</div>
+        <div class="inv-info-row"><span class="inv-info-lbl">نام</span><span class="inv-info-val">${v.user_name||'—'}</span></div>
+        <div class="inv-info-row"><span class="inv-info-lbl">شهر</span><span class="inv-info-val">${v.user_city||'—'}</span></div>
+        <div class="inv-info-row"><span class="inv-info-lbl">نوع</span><span class="inv-info-val"><span class="badge ${tBadge[v.type]||'b-gray'}">${tLabel[v.type]||v.type}</span></span></div>
+      </div>
+    </div>
+    <table class="inv-tbl">
+      <thead><tr><th>#</th><th>کد</th><th>شرح</th><th style="text-align:center">تعداد</th><th style="text-align:center">قیمت واحد</th><th style="text-align:center">جمع</th></tr></thead>
+      <tbody>${items.map((it,j)=>`<tr>
+        <td>${fa(j+1)}</td>
+        <td style="font-family:monospace;font-size:11.5px;color:#888">${it.code}</td>
+        <td>${it.desc}</td>
+        <td style="text-align:center">${fa(it.qty)}</td>
+        <td style="text-align:center">${fmt(it.price)}</td>
+        <td style="text-align:center;font-weight:700">${fmt(it.qty*it.price)}</td>
+      </tr>`).join('')}</tbody>
+      <tfoot>
+        <tr><td colspan="5" style="text-align:left">جمع کالا</td><td style="text-align:center">${fmt(subtotal)}</td></tr>
+        <tr><td colspan="5" style="text-align:left">مالیات ۹٪</td><td style="text-align:center">${fmt(tax)}</td></tr>
+      </tfoot>
+    </table>
+    <div class="inv-total">
+      <span class="inv-total-lbl">مبلغ قابل پرداخت</span>
+      <span class="inv-total-val">${fmt(total)} تومان</span>
+    </div>`;
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+function printInvoice(){window.print();}
+function exportExcel(){
+  const rows=[['شماره','نام','تاریخ','نوع','مبلغ','وضعیت']];
+  filtered.forEach(v=>rows.push([v.id,v.user_name,toJalali(v.created_at),v.type,v.total,v.status]));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='invoices.csv';a.click();
+}
+function gotoPage(p){page=p;renderTable();}
+
+async function deleteInvoice(id, btn){
+  if(!confirm('آیا از حذف این فاکتور مطمئن هستید؟')) return;
+  try {
+    const token = sessionStorage.getItem('op_token');
+    await fetch(`${API.BASE_URL}/api/invoices/${id}`, {
+      method:'DELETE',
+      headers:{'Authorization':'Bearer '+token}
+    });
+  } catch(e){}
+  invoices = invoices.filter(v=>v.id!==id);
+  filtered = filtered.filter(v=>v.id!==id);
+  btn.closest('tr').remove();
+  Admin.toast('فاکتور حذف شد');
+}
+
+function printInvoice(i){
+  const v = filtered[i];
+  const w = window.open('','_blank');
+  w.document.write(`<html dir="rtl"><head><title>فاکتور #${v.id}</title>
+  <style>body{font-family:Tahoma;padding:20px;direction:rtl} table{width:100%;border-collapse:collapse} td,th{border:1px solid #ddd;padding:8px;text-align:right} .title{font-size:18px;font-weight:bold;margin-bottom:16px}</style></head>
+  <body><div class="title">فاکتور #${v.id}</div>
+  <p>تاریخ: ${toJalali(v.created_at)||'—'}</p>
+  <p>مشتری: ${v.user_name||'—'}</p>
+  <p>مبلغ: ${Number(v.total||0).toLocaleString()} تومان</p>
+  <script>window.print();window.close();<\/script></body></html>`);
+}
+
+loadInvoices();
+</script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="description" content="ثبت‌نام در سامانه فروش قطعات یدکی آن‌پارت و دسترسی به بهترین قیمت‌ها"/>
+  <meta name="keywords" content="ثبت‌نام, آن‌پارت, قطعات یدکی"/>
+  <meta name="robots" content="index, follow"/>
+  <meta name="author" content="آن‌پارت"/>
+  <meta property="og:title" content="ثبت‌نام | آن‌پارت"/>
+  <meta property="og:description" content="ثبت‌نام در سامانه فروش قطعات یدکی آن‌پارت و دسترسی به بهترین قیمت‌ها"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://onpart.ir/"/>
+  <meta property="og:site_name" content="آن‌پارت"/>
+  <meta property="og:locale" content="fa_IR"/>
+  <link rel="canonical" href="https://onpart.ir/"/>
+  <link rel="icon" href="/images/favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ثبت‌نام | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;font-family:'Vazirmatn',sans-serif;}
+    body{background:#efefef;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+    .wrap{background:#fff;border-radius:20px;width:100%;max-width:560px;box-shadow:0 8px 40px rgba(0,0,0,.10);overflow:hidden;animation:fadeUp .4s ease;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .header{background:#111827;padding:28px 32px;text-align:center;}
+    .header img{height:52px;object-fit:contain;}
+    .header-sub{color:rgba(255,255,255,.5);font-size:13px;margin-top:6px;}
+    .body{padding:32px;}
+    .step-ind{display:flex;align-items:center;margin-bottom:28px;gap:0;}
+    .step{display:flex;flex-direction:column;align-items:center;flex:1;position:relative;}
+    .step:not(:last-child)::after{content:'';position:absolute;top:14px;left:-50%;width:100%;height:2px;background:#e5e7eb;z-index:0;}
+    .step.done::after{background:#22c55e;}
+    .step.active::after{background:#dbeafe;}
+    .step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;z-index:1;border:2px solid #e5e7eb;background:#fff;color:#bbb;}
+    .step.done .step-dot{background:#22c55e;border-color:#22c55e;color:#fff;}
+    .step.active .step-dot{background:#1d4ed8;border-color:#1d4ed8;color:#fff;}
+    .step-lbl{font-size:10px;color:#bbb;margin-top:4px;text-align:center;}
+    .step.active .step-lbl{color:#1d4ed8;font-weight:600;}
+    .step.done .step-lbl{color:#16a34a;}
+    .flabel{font-size:12.5px;font-weight:600;color:#444;margin-bottom:6px;display:block;}
+    .req{color:#ef4444;}
+    .finput{width:100%;background:#f5f5f5;border:1.5px solid #e5e7eb;border-radius:9px;padding:11px 14px;font-family:'Vazirmatn',sans-serif;font-size:14px;color:#111;outline:none;transition:border .2s;}
+    .finput:focus{border-color:#1d4ed8;background:#fff;}
+    .fg{margin-bottom:14px;}
+    .fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .btn-submit{width:100%;background:#1d4ed8;color:#fff;border:none;border-radius:10px;padding:13px;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;}
+    .btn-submit:disabled{background:#cbd5e1;cursor:not-allowed;}
+    .err{font-size:12px;color:#dc2626;margin-top:4px;display:none;}
+    .otp-wrap{display:flex;gap:8px;direction:ltr;justify-content:center;margin:16px 0;}
+    .otp-input{width:46px;height:52px;border:1.5px solid #e5e7eb;border-radius:10px;text-align:center;font-size:20px;font-weight:700;font-family:'Vazirmatn',sans-serif;color:#111;outline:none;}
+    .otp-input:focus{border-color:#1d4ed8;}
+    .timer{text-align:center;font-size:13px;color:#888;margin-bottom:8px;}
+    .timer span{color:#1d4ed8;font-weight:700;}
+    .resend{text-align:center;font-size:12.5px;color:#bbb;margin-top:8px;}
+    .resend button{background:none;border:none;color:#1d4ed8;cursor:pointer;font-family:'Vazirmatn',sans-serif;font-size:12.5px;font-weight:600;}
+    .resend button:disabled{color:#bbb;cursor:not-allowed;}
+    .upload-box{border:2px dashed #e5e7eb;border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:border .2s;}
+    .upload-box:hover{border-color:#1d4ed8;}
+    .upload-box i{font-size:28px;color:#bbb;display:block;margin-bottom:6px;}
+    .upload-box .lbl{font-size:12px;color:#888;}
+    .upload-box .req-lbl{font-size:11px;color:#ef4444;margin-top:3px;}
+    .preview{width:100%;height:100px;object-fit:cover;border-radius:8px;display:none;margin-top:8px;}
+    .section-title{font-size:13.5px;font-weight:700;color:#1d4ed8;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #eff6ff;display:flex;align-items:center;gap:6px;}
+    .login-link{text-align:center;font-size:12.5px;color:#888;margin-top:16px;}
+    .login-link a{color:#1d4ed8;font-weight:600;text-decoration:none;}
+    .pending-card{text-align:center;padding:20px 0;}
+    .pending-card i{font-size:52px;color:#d97706;display:block;margin-bottom:12px;}
+  </style>
+  <link rel="stylesheet" href="css/responsive.css"/>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="آن‌پارت"/>
+    <div class="header-sub">سامانه فروش قطعات یدکی خودرو</div>
+  </div>
+  <div class="body">
+    <!-- Steps indicator -->
+    <div class="step-ind">
+      <div class="step active" id="stp1"><div class="step-dot">۱</div><div class="step-lbl">شماره موبایل</div></div>
+      <div class="step" id="stp2"><div class="step-dot">۲</div><div class="step-lbl">کد تایید</div></div>
+      <div class="step" id="stp3"><div class="step-dot">۳</div><div class="step-lbl">اطلاعات</div></div>
+    </div>
+
+    <!-- Step 1: Phone -->
+    <div id="step1">
+      <div class="fg">
+        <label class="flabel">شماره موبایل <span class="req">*</span></label>
+        <input class="finput" type="tel" id="phoneInput" placeholder="09..." maxlength="11" style="direction:ltr;text-align:center;font-size:16px;letter-spacing:2px"/>
+        <div class="err" id="phoneErr"></div>
+      </div>
+      <button class="btn-submit" id="sendOtpBtn" onclick="sendOtp()">دریافت کد تایید</button>
+      <div class="login-link">قبلاً ثبت‌نام کرده‌اید؟ <a href="login.html">ورود به حساب</a></div>
+    </div>
+
+    <!-- Step 2: OTP -->
+    <div id="step2" style="display:none">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:600;color:#333">کد ۵ رقمی ارسال شده به</div>
+        <div id="displayPhone" style="font-size:18px;font-weight:800;color:#1d4ed8;direction:ltr;margin-top:4px"></div>
+      </div>
+      <div class="otp-wrap">
+        <input class="otp-input" maxlength="1" id="o1" oninput="otpNext(this,'o2')"/>
+        <input class="otp-input" maxlength="1" id="o2" oninput="otpNext(this,'o3')"/>
+        <input class="otp-input" maxlength="1" id="o3" oninput="otpNext(this,'o4')"/>
+        <input class="otp-input" maxlength="1" id="o4" oninput="otpNext(this,'o5')"/>
+        <input class="otp-input" maxlength="1" id="o5" oninput="otpNext(this,null)"/>
+      </div>
+      <div class="timer" id="timerBox">کد تا <span id="timerVal">۲:۰۰</span> دقیقه معتبر است</div>
+      <div class="err" id="otpErr" style="text-align:center"></div>
+      <button class="btn-submit" id="verifyBtn" onclick="verifyOtp()">تایید کد</button>
+      <div class="resend">کد دریافت نکردید؟ <button id="resendBtn" onclick="resendOtp()" disabled>ارسال مجدد</button></div>
+    </div>
+
+    <!-- Step 3: Profile form -->
+    <div id="step3" style="display:none">
+      <div class="section-title"><i class="ti ti-user"></i>اطلاعات شخصی</div>
+      <div class="fg-grid">
+        <div class="fg">
+          <label class="flabel">نام و نام‌خانوادگی <span class="req">*</span></label>
+          <input class="finput" id="f_name" placeholder="مثلاً علی محمدی"/>
+          <div class="err" id="nameErr"></div>
+        </div>
+        <div class="fg">
+          <label class="flabel">کد ملی</label>
+          <input class="finput" id="f_national" placeholder="۱۰ رقم" maxlength="10" style="direction:ltr"/>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:4px"><i class="ti ti-building-store"></i>اطلاعات فروشگاه</div>
+      <div class="fg">
+        <label class="flabel">نام فروشگاه <span class="req">*</span></label>
+        <input class="finput" id="f_shop" placeholder="نام کسب‌وکار شما"/>
+        <div class="err" id="shopErr"></div>
+      </div>
+      <div class="fg-grid">
+        <div class="fg">
+          <label class="flabel">شماره ثابت</label>
+          <input class="finput" id="f_phone_fixed" placeholder="0۲۱XXXXXXXX" style="direction:ltr"/>
+        </div>
+        <div class="fg">
+          <label class="flabel">کد پستی</label>
+          <input class="finput" id="f_postal" placeholder="۱۰ رقم" maxlength="10" style="direction:ltr"/>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:4px"><i class="ti ti-map-pin"></i>آدرس</div>
+      <div class="fg-grid">
+        <div class="fg">
+          <label class="flabel">استان <span class="req">*</span></label>
+          <input class="finput" id="f_province" placeholder="مثلاً تهران"/>
+          <div class="err" id="provErr"></div>
+        </div>
+        <div class="fg">
+          <label class="flabel">شهر <span class="req">*</span></label>
+          <input class="finput" id="f_city" placeholder="مثلاً تهران"/>
+          <div class="err" id="cityErr"></div>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="flabel">آدرس کامل <span class="req">*</span></label>
+        <input class="finput" id="f_address" placeholder="خیابان، کوچه، پلاک"/>
+        <div class="err" id="addrErr"></div>
+      </div>
+
+      <div class="section-title" style="margin-top:4px"><i class="ti ti-lock"></i>رمز عبور</div>
+      <div class="fg-grid">
+        <div class="fg">
+          <label class="flabel">رمز عبور <span class="req">*</span></label>
+          <input class="finput" type="password" id="f_pass" placeholder="حداقل ۶ کاراکتر"/>
+          <div class="err" id="passErr"></div>
+        </div>
+        <div class="fg">
+          <label class="flabel">تکرار رمز عبور <span class="req">*</span></label>
+          <input class="finput" type="password" id="f_pass2" placeholder="تکرار رمز"/>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:4px"><i class="ti ti-photo"></i>تصاویر</div>
+      <div class="fg-grid">
+        <div class="fg">
+          <label class="flabel">تصویر کارت ملی یا پروانه کسب</label>
+          <div class="upload-box" onclick="document.getElementById('f_idcard').click()">
+            <i class="ti ti-id"></i>
+            <div class="lbl">آپلود تصویر</div>
+            <div class="req-lbl">اختیاری</div>
+          </div>
+          <input type="file" id="f_idcard" accept="image/*" style="display:none" onchange="previewImg(this,'prev_idcard')"/>
+          <img id="prev_idcard" class="preview"/>
+        </div>
+        <div class="fg">
+          <label class="flabel">عکس تابلو فروشگاه <span class="req">*</span></label>
+          <div class="upload-box" onclick="document.getElementById('f_shopimg').click()">
+            <i class="ti ti-building-store"></i>
+            <div class="lbl">آپلود عکس تابلو</div>
+            <div class="req-lbl">اجباری</div>
+          </div>
+          <input type="file" id="f_shopimg" accept="image/*" style="display:none" onchange="previewImg(this,'prev_shopimg')"/>
+          <img id="prev_shopimg" class="preview"/>
+          <div class="err" id="shopImgErr"></div>
+        </div>
+      </div>
+
+      <button class="btn-submit" id="completeBtn" onclick="completeProfile()">تکمیل ثبت‌نام</button>
+    </div>
+
+    <!-- Step 4: Pending -->
+    <div id="step4" style="display:none">
+      <div class="pending-card">
+        <i class="ti ti-clock-hour-4"></i>
+        <div style="font-size:17px;font-weight:800;color:#111;margin-bottom:8px">ثبت‌نام با موفقیت انجام شد</div>
+        <div style="font-size:13.5px;color:#888;line-height:1.8">حساب شما در انتظار تأیید مدیر است. پس از تأیید، می‌توانید با شماره موبایل خود وارد سامانه شوید.</div>
+        <a href="login.html" style="display:inline-block;margin-top:20px;background:#1d4ed8;color:#fff;border-radius:10px;padding:12px 32px;font-weight:700;text-decoration:none">بازگشت به ورود</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentPhone = '';
+let timerInterval = null;
+let timerSeconds = 120;
+
+// Replace history so back button goes to index, not back into registration
+history.replaceState(null, '', 'register.html');
+window.addEventListener('popstate', function() {
+  window.location.replace('index.html');
+});
+
+// Check if registration is open
+fetch('https://onpartpadmin.liara.run/api/settings').then(r=>r.json()).then(s=>{
+  if(s.open_register === '0'){
+    document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:20px;font-family:Vazirmatn,sans-serif"><div><i class="ti ti-lock" style="font-size:60px;color:#1d4ed8;display:block;margin-bottom:16px"></i><div style="font-size:18px;font-weight:800;color:#111;margin-bottom:8px">ثبت‌نام غیرفعال است</div><div style="font-size:14px;color:#888">ثبت‌نام کاربران جدید موقتاً بسته است.</div></div></div>`;
+  }
+}).catch(()=>{});
+
+function showStep(n){
+  [1,2,3,4].forEach(i=>document.getElementById('step'+i).style.display = i===n?'block':'none');
+  const steps = document.querySelectorAll('.step');
+  steps.forEach((s,i)=>{
+    s.classList.remove('active','done');
+    if(i+1 < n) s.classList.add('done');
+    else if(i+1 === n) s.classList.add('active');
+  });
+  if(n===4) document.querySelector('.step-ind').style.display='none';
+}
+
+function showErr(id, msg){ const e=document.getElementById(id); if(e){e.textContent=msg; e.style.display='block';} }
+function hideErr(id){ const e=document.getElementById(id); if(e) e.style.display='none'; }
+
+function startTimer(){
+  clearInterval(timerInterval);
+  timerSeconds = 120;
+  document.getElementById('resendBtn').disabled = true;
+  updateTimerDisplay();
+  timerInterval = setInterval(()=>{
+    timerSeconds--;
+    updateTimerDisplay();
+    if(timerSeconds <= 0){
+      clearInterval(timerInterval);
+      document.getElementById('timerBox').innerHTML = 'کد منقضی شده — کد جدید درخواست کنید';
+      document.getElementById('resendBtn').disabled = false;
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay(){
+  const m = Math.floor(timerSeconds/60);
+  const s = timerSeconds % 60;
+  const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  document.getElementById('timerVal').textContent = `${fa(m)}:${fa(s).padStart(2,'0')}`;
+  document.getElementById('timerBox').innerHTML = `کد تا <span id="timerVal">${fa(m)}:${fa(s).padStart(2,'0')}</span> دقیقه معتبر است`;
+}
+
+async function sendOtp(){
+  const phone = document.getElementById('phoneInput').value.trim();
+  hideErr('phoneErr');
+  if(!/^09\d{9}$/.test(phone)){ showErr('phoneErr','شماره موبایل معتبر نیست'); return; }
+  currentPhone = phone;
+  const btn = document.getElementById('sendOtpBtn');
+  btn.disabled = true; btn.textContent = 'در حال ارسال...';
+  try{
+    const res = await fetch('https://onpartpadmin.liara.run/api/auth/send-otp',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({phone})
+    });
+    const data = await res.json();
+    btn.disabled = false; btn.textContent = 'دریافت کد تایید';
+    if(!res.ok){ showErr('phoneErr', data.message||'خطا در ارسال کد'); return; }
+    document.getElementById('displayPhone').textContent = phone;
+    ['o1','o2','o3','o4','o5'].forEach(id=>document.getElementById(id).value='');
+    hideErr('otpErr');
+    showStep(2);
+    startTimer();
+    setTimeout(()=>document.getElementById('o1').focus(), 100);
+  }catch(e){
+    btn.disabled = false; btn.textContent = 'دریافت کد تایید';
+    showErr('phoneErr','خطا در ارتباط با سرور');
+  }
+}
+
+async function resendOtp(){ await sendOtp(); }
+
+function otpNext(el, nextId){
+  el.value = el.value.replace(/[^0-9]/g,'');
+  if(el.value && nextId) document.getElementById(nextId).focus();
+  if(!nextId){
+    const allFilled = ['o1','o2','o3','o4','o5'].every(id=>document.getElementById(id).value);
+    if(allFilled) verifyOtp();
+  }
+}
+
+async function verifyOtp(){
+  const code = ['o1','o2','o3','o4','o5'].map(id=>document.getElementById(id).value).join('');
+  hideErr('otpErr');
+  if(code.length < 5){ showErr('otpErr','کد ۵ رقمی را کامل وارد کنید'); return; }
+  const btn = document.getElementById('verifyBtn');
+  btn.disabled = true; btn.textContent = 'در حال بررسی...';
+  try{
+    const res = await fetch('https://onpartpadmin.liara.run/api/auth/verify-otp',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({phone:currentPhone, code})
+    });
+    const data = await res.json();
+    btn.disabled = false; btn.textContent = 'تایید کد';
+    if(!res.ok){ showErr('otpErr', data.message||'کد نامعتبر است'); return; }
+    clearInterval(timerInterval);
+    sessionStorage.setItem('op_token', data.token);
+    sessionStorage.setItem('op_user', JSON.stringify(data.user));
+    // If user already has a name, they're already registered - redirect to login
+    if(!data.isNewUser && data.user.name){
+      alert('این شماره قبلاً ثبت‌نام کرده. به صفحه ورود هدایت می‌شوید.');
+      window.location.href = 'login.html';
+      return;
+    }
+    showStep(3);
+  }catch(e){
+    btn.disabled = false; btn.textContent = 'تایید کد';
+    showErr('otpErr','خطا در ارتباط با سرور');
+  }
+}
+
+function previewImg(input, previewId){
+  const file = input.files[0];
+  const prev = document.getElementById(previewId);
+  if(file){ prev.src = URL.createObjectURL(file); prev.style.display='block'; }
+  else prev.style.display='none';
+}
+
+async function completeProfile(){
+  const name = document.getElementById('f_name').value.trim();
+  const shop = document.getElementById('f_shop').value.trim();
+  const province = document.getElementById('f_province').value.trim();
+  const city = document.getElementById('f_city').value.trim();
+  const address = document.getElementById('f_address').value.trim();
+  const pw1 = document.getElementById('f_pass').value;
+  const pw2 = document.getElementById('f_pass2').value;
+  const shopImg = document.getElementById('f_shopimg').files[0];
+
+  let valid = true;
+  ['nameErr','shopErr','provErr','cityErr','addrErr','passErr','shopImgErr'].forEach(id=>hideErr(id));
+
+  if(!name){ showErr('nameErr','نام و نام‌خانوادگی الزامی است'); valid=false; }
+  if(!shop){ showErr('shopErr','نام فروشگاه الزامی است'); valid=false; }
+  if(!province){ showErr('provErr','استان الزامی است'); valid=false; }
+  if(!city){ showErr('cityErr','شهر الزامی است'); valid=false; }
+  if(!address){ showErr('addrErr','آدرس کامل الزامی است'); valid=false; }
+  if(pw1.length < 6){ showErr('passErr','رمز عبور حداقل ۶ کاراکتر'); valid=false; }
+  if(pw1 !== pw2){ showErr('passErr','رمز عبور و تکرار آن یکسان نیستند'); valid=false; }
+  if(!shopImg){ showErr('shopImgErr','عکس تابلو فروشگاه اجباری است'); valid=false; }
+  if(!valid) return;
+
+  const btn = document.getElementById('completeBtn');
+  btn.disabled = true; btn.textContent = 'در حال ثبت...';
+
+  try{
+    const token = sessionStorage.getItem('op_token');
+
+    // Step 1: Save text fields first (fast)
+    const jsonData = {
+      name, shop_name: shop, province, city, address,
+      password: pw1, isRegistration: 'true'
+    };
+    const national = document.getElementById('f_national').value.trim();
+    const phoneFixed = document.getElementById('f_phone_fixed').value.trim();
+    const postal = document.getElementById('f_postal').value.trim();
+    if(national) jsonData.national_code = national;
+    if(phoneFixed) jsonData.phone_fixed = phoneFixed;
+    if(postal) jsonData.postal_code = postal;
+
+    const res = await fetch('https://onpartpadmin.liara.run/api/users/me',{
+      method:'PUT',
+      headers:{'Authorization':'Bearer '+token, 'Content-Type':'application/json'},
+      body: JSON.stringify(jsonData)
+    });
+    const data = await res.json();
+    btn.disabled = false; btn.textContent = 'تکمیل ثبت‌نام';
+    if(!res.ok){ alert(data.message||'خطا در ذخیره اطلاعات'); return; }
+
+    // Step 2: Upload files in background (non-blocking)
+    const idCard = document.getElementById('f_idcard').files[0];
+    if(idCard || shopImg){
+      const fd = new FormData();
+      if(idCard) fd.append('id_card_image', idCard);
+      if(shopImg) fd.append('shop_image', shopImg);
+      fetch('https://onpartpadmin.liara.run/api/users/me',{
+        method:'PUT', headers:{'Authorization':'Bearer '+token}, body:fd
+      }).catch(()=>{});
+    }
+
+    // Always show success page
+    sessionStorage.removeItem('op_token');
+    sessionStorage.removeItem('op_user');
+    showStep(4);
+  }catch(e){
+    btn.disabled = false; btn.textContent = 'تکمیل ثبت‌نام';
+    alert('خطا در ارتباط با سرور');
+  }
+}
+</script>
+</body>
+</html>

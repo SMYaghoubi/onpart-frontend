@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="google-site-verification" content="7BEd5yUYdtqU01SkhLSGSe8Q3xViT2v6JFuUWMYF6RI"/>
+  <meta name="description" content="آن‌پارت بزرگترین سامانه فروش عمده قطعات یدکی خودرو در ایران. خرید آنلاین قطعات یدکی با بهترین قیمت و کیفیت تضمین شده."/>
+  <meta name="keywords" content="قطعات یدکی خودرو, فروش قطعات یدکی, قطعات یدکی عمده, آن‌پارت"/>
+  <meta name="robots" content="index, follow"/>
+  <meta name="author" content="آن‌پارت"/>
+  <meta property="og:title" content="آن‌پارت | سامانه فروش قطعات یدکی خودرو"/>
+  <meta property="og:description" content="آن‌پارت بزرگترین سامانه فروش عمده قطعات یدکی خودرو در ایران. خرید آنلاین قطعات یدکی با بهترین قیمت و کیفیت تضمین شده."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://onpart.ir/"/>
+  <meta property="og:site_name" content="آن‌پارت"/>
+  <meta property="og:locale" content="fa_IR"/>
+  <link rel="canonical" href="https://onpart.ir/"/>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "آن‌پارت",
+    "url": "https://onpart.ir",
+    "description": "سامانه فروش عمده قطعات یدکی خودرو",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+982165280448",
+      "contactType": "customer service",
+      "availableLanguage": "Persian"
+    }
+  }
+  </script>
+  <link rel="icon" href="/images/favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>آن‌پارت | سامانه فروش قطعات یدکی خودرو</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <style>
+    :root {
+      --primary: #1d4ed8;
+      --primary-dark: #1e3a8a;
+      --dark: #0f172a;
+      --gray: #f3f4f6;
+      --border: #e5e7eb;
+      --text: #111827;
+      --muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Vazirmatn', sans-serif; }
+
+    body {
+      background: #e8e8e8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.45;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob-1 { width: 380px; height: 380px; background: #1e40af; top: -120px; right: -80px; }
+    .blob-2 { width: 300px; height: 300px; background: #1e3a8a; bottom: -80px; left: -60px; }
+    .blob-3 { width: 200px; height: 200px; background: #2563eb; top: 40%; left: 5%; opacity: 0.3; }
+
+    .wrap {
+      display: flex;
+      gap: 18px;
+      max-width: 820px;
+      width: 100%;
+      position: relative;
+      z-index: 2;
+      animation: fadeUp 0.5s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Contact Card ── */
+    .contact-card {
+      background: var(--dark);
+      border-radius: 20px;
+      padding: 32px 24px;
+      width: 220px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      justify-content: center;
+    }
+
+    .contact-title {
+      color: rgba(255,255,255,0.5);
+      font-size: 12.5px;
+      line-height: 1.9;
+      text-align: center;
+    }
+    .contact-title strong {
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      display: block;
+      margin-top: 4px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 11px 13px;
+      gap: 8px;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .contact-item:hover { background: rgba(255,255,255,0.12); }
+    .contact-item-text {
+      color: rgba(255,255,255,0.85);
+      font-size: 13.5px;
+      font-weight: 600;
+      direction: ltr;
+    }
+    .contact-item i { font-size: 20px; flex-shrink: 0; }
+    .i-phone  { color: #60a5fa; }
+    .i-wa     { color: #4ade80; }
+    .i-insta  { color: #f472b6; }
+
+    /* ── Main Card ── */
+    .main-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px 36px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logo-box {
+      width: 62px; height: 62px;
+      background: var(--primary-dark);
+      border-radius: 15px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 900; color: #fff;
+      margin-bottom: 10px;
+    }
+    .logo-name { font-size: 25px; font-weight: 800; color: #111; }
+    .logo-name span { color: var(--primary); }
+    .logo-sub  { font-size: 15px; font-weight: 700; color: #111; margin-top: 10px; }
+    .logo-desc { font-size: 12.5px; color: #999; margin-top: 4px; margin-bottom: 28px; }
+
+    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+
+    .btn-entry {
+      border: none;
+      border-radius: 13px;
+      padding: 22px 12px;
+      font-family: 'Vazirmatn', sans-serif;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 8px;
+      transition: all 0.18s;
+      text-decoration: none;
+    }
+    .btn-entry:hover { transform: translateY(-3px); filter: brightness(1.1); }
+    .btn-entry i { font-size: 26px; }
+    .btn-sub { font-size: 10.5px; font-weight: 400; opacity: 0.72; margin-top: 1px; }
+
+    .c-shop   { background: #1d4ed8; color: #fff; }
+    .c-panel  { background: #111827; color: #fff; }
+    .c-hamk   { background: #0f766e; color: #fff; }
+    .c-etebar { background: #7c3aed; color: #fff; }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      body{overflow-y:auto;min-height:100svh;min-height:100vh;}
+      .wrap{flex-direction:column;gap:10px;padding:14px 14px 20px;justify-content:flex-start;}
+      .main-card{padding:18px 14px;gap:12px;order:1;flex:none!important;}
+      .contact-card{order:2;width:100%;border-radius:14px;}
+      .logo-sub{font-size:11px;}
+      .logo-desc{display:none;}
+      .btn-grid{grid-template-columns:1fr 1fr;gap:10px;}
+      .btn-entry{padding:14px 8px;gap:5px;}
+      .btn-entry i{font-size:22px;}
+      .btn-entry{font-size:12.5px;}
+      .btn-sub{font-size:9.5px;}
+      .contact-card{flex-direction:row;flex-wrap:wrap;padding:12px 14px;gap:8px;}
+      .contact-title{width:100%;font-size:11px;margin-bottom:0;}
+      .contact-item{flex:1;min-width:100px;padding:8px 10px;border-radius:10px;}
+      .contact-item-text{font-size:10px;}
+      .contact-item i{font-size:16px;}
+      img[style*="height:72px"]{height:50px!important;margin-bottom:0!important;}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="wrap">
+
+    <!-- Contact Card -->
+    <div class="contact-card">
+      <div class="contact-title">
+        می‌توانید از طریق راه‌های ارتباطی زیر
+        <strong>با ما در تماس باشید</strong>
+      </div>
+
+      <a class="contact-item" id="contactPhone" href="tel:02165280448">
+        <span class="contact-item-text">02165280448</span>
+        <i class="ti ti-phone-call i-phone"></i>
+      </a>
+
+      <a class="contact-item" id="contactWhatsapp" href="https://wa.me/982165280448" target="_blank">
+        <span class="contact-item-text">02165280448</span>
+        <i class="ti ti-brand-whatsapp i-wa"></i>
+      </a>
+
+      <a class="contact-item" id="contactInsta" href="https://instagram.com/onpart.ir" target="_blank">
+        <span class="contact-item-text">onpart.ir</span>
+        <i class="ti ti-brand-instagram i-insta"></i>
+      </a>
+
+      <a class="contact-item" id="contactEmail" href="mailto:info@onpart.ir" style="display:none">
+        <span class="contact-item-text">info@onpart.ir</span>
+        <i class="ti ti-mail i-phone"></i>
+      </a>
+
+      <div class="contact-item" id="contactAddress" style="display:none;cursor:default">
+        <span class="contact-item-text"></span>
+        <i class="ti ti-map-pin i-phone"></i>
+      </div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="main-card">
+      <img src="images/logo.png" style="height:72px;object-fit:contain;margin-bottom:4px"/>
+      <div class="logo-sub">سامانه فروش قطعات یدکی خودرو</div>
+      <div class="logo-desc">توزیع قطعات یدکی خودرو به سراسر کشور</div>
+
+      <div class="btn-grid">
+        <a class="btn-entry c-shop" href="login.html">
+          <i class="ti ti-shopping-cart"></i>
+          فروشگاه قطعات
+          <span class="btn-sub">مشاهده و خرید قطعات</span>
+        </a>
+
+
+        <a class="btn-entry c-panel" href="admin/login.html">
+          <i class="ti ti-layout-dashboard"></i>
+          سامانه بازاریابان
+          <span class="btn-sub">ورود به پنل مدیریت</span>
+        </a>
+
+        <a class="btn-entry c-hamk" href="cooperation.html">
+          <i class="ti ti-users"></i>
+          سامانه تامین‌کنندگان
+          <span class="btn-sub">ثبت‌نام و همکاری</span>
+        </a>
+
+        <div class="btn-entry c-etebar" style="position:relative;opacity:.7;cursor:not-allowed">
+          <span style="position:absolute;top:-8px;right:-8px;background:#f59e0b;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;font-family:'Vazirmatn',sans-serif">به‌زودی</span>
+          <i class="ti ti-credit-card"></i>
+          سامانه اعتباری
+          <span class="btn-sub">به‌زودی راه‌اندازی می‌شود</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Check maintenance mode first
+    fetch('https://onpartpadmin.liara.run/api/settings').then(function(r){return r.json();}).then(function(s){
+      if(s.maintenance_mode === '1'){
+        document.body.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:20px;font-family:Vazirmatn,sans-serif">
+            <div>
+              <i class="ti ti-tool" style="font-size:60px;color:#1d4ed8;display:block;margin-bottom:16px"></i>
+              <div style="font-size:18px;font-weight:800;color:#111;margin-bottom:8px">سایت در حال به‌روزرسانی است</div>
+              <div style="font-size:14px;color:#888">به زودی برمی‌گردیم. از صبر شما متشکریم.</div>
+            </div>
+          </div>`;
+        return;
+      }
+      loadContactInfo(s);
+    }).catch(function(){});
+
+    function loadContactInfo(s){
+      if(s.site_phone){
+        var phoneEl = document.getElementById('contactPhone');
+        var waEl = document.getElementById('contactWhatsapp');
+        if(phoneEl){
+          phoneEl.href = 'tel:'+s.site_phone;
+          phoneEl.querySelector('.contact-item-text').textContent = s.site_phone;
+        }
+        if(waEl){
+          waEl.href = 'https://wa.me/98'+s.site_phone.replace(/^0/,'');
+          waEl.querySelector('.contact-item-text').textContent = s.site_whatsapp || s.site_phone;
+        }
+      }
+      if(s.site_instagram){
+        var instaEl = document.getElementById('contactInsta');
+        if(instaEl){
+          var handle = s.site_instagram.replace('@','');
+          instaEl.href = 'https://instagram.com/'+handle;
+          instaEl.querySelector('.contact-item-text').textContent = handle;
+        }
+      }
+      if(s.site_email){
+        var emailEl = document.getElementById('contactEmail');
+        if(emailEl){
+          emailEl.href = 'mailto:'+s.site_email;
+          emailEl.querySelector('.contact-item-text').textContent = s.site_email;
+          emailEl.style.display = 'flex';
+        }
+      }
+      if(s.site_address){
+        var addrEl = document.getElementById('contactAddress');
+        if(addrEl){
+          addrEl.querySelector('.contact-item-text').textContent = s.site_address;
+          addrEl.style.display = 'flex';
+        }
+      }
+    }
+  </script>
+</body>
+</html>

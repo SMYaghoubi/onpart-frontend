@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>سفارشات من | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/responsive.css"/>
+  <style>
+    body{background:#f4f6f9;min-height:100vh;}
+    .page{padding:20px 24px 40px;}
+    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+    .page-title{font-size:18px;font-weight:800;color:#111;display:flex;align-items:center;gap:8px;}
+
+    /* Filter bar */
+    .filter-bar{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.05);display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .fi{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:8px 12px;font-family:Vazirmatn,sans-serif;font-size:13px;color:#111;outline:none;transition:border .2s;}
+    .fi:focus{border-color:#1d4ed8;background:#fff;}
+    .fi-search{flex:1;min-width:160px;}
+    .fi-select{min-width:150px;}
+    .btn-reset{background:#f5f5f5;color:#666;border:none;border-radius:9px;padding:8px 14px;font-family:Vazirmatn,sans-serif;font-size:13px;cursor:pointer;white-space:nowrap;}
+    .btn-reset:hover{background:#e5e7eb;}
+
+    /* Table */
+    .table-card{background:#fff;border-radius:14px;box-shadow:0 1px 6px rgba(0,0,0,.06);overflow:hidden;}
+    .tc-head{padding:14px 18px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;}
+    .tc-title{font-size:13.5px;font-weight:700;color:#111;}
+    .tbl{width:100%;border-collapse:collapse;}
+    .tbl thead tr{background:#f8fafc;}
+    .tbl th{padding:11px 12px;font-size:11.5px;font-weight:700;color:#555;border-bottom:2px solid #e5e7eb;text-align:center;white-space:nowrap;}
+    .tbl td{padding:11px 12px;font-size:12.5px;color:#333;border-bottom:1px solid #f5f5f5;text-align:center;vertical-align:middle;}
+    .tbl tbody tr:hover{background:#f9fbff;}
+    .badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block;white-space:nowrap;}
+    .st-pending_expert{background:#fef3c7;color:#d97706;}
+    .st-pending_customer{background:#ede9fe;color:#7c3aed;}
+    .st-pending_payment{background:#fce7f3;color:#db2777;}
+    .st-preparing{background:#dbeafe;color:#1d4ed8;}
+    .st-shipping{background:#ccfbf1;color:#0f766e;}
+    .st-delivered{background:#dcfce7;color:#16a34a;}
+    .st-cancelled{background:#fee2e2;color:#dc2626;}
+    .ab{height:30px;border-radius:7px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;padding:0 10px;gap:4px;font-family:Vazirmatn,sans-serif;white-space:nowrap;}
+    .ab-blue{background:#eff6ff;color:#1d4ed8;}
+    .ab-green{background:#f0fdf4;color:#16a34a;}
+
+    /* Modals */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:16px;}
+    .modal-overlay.show{display:flex;}
+    .modal{background:#fff;border-radius:16px;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.15);}
+    .modal-head{padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;}
+    .modal-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;}
+    .modal-close{background:none;border:none;cursor:pointer;font-size:22px;color:#aaa;padding:0;}
+    .modal-body{padding:20px;}
+    .itbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+    .itbl th{background:#f8fafc;padding:9px 10px;font-size:11.5px;font-weight:700;color:#555;border-bottom:2px solid #e5e7eb;text-align:center;}
+    .itbl td{padding:9px 10px;border-bottom:1px solid #f5f5f5;text-align:center;color:#333;}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .info-box{background:#f8fafc;border-radius:10px;padding:12px 14px;}
+    .info-lbl{font-size:11px;color:#aaa;margin-bottom:3px;}
+    .info-val{font-size:13px;font-weight:600;color:#111;}
+    .delivery-code-box{background:#f0fdf4;border:2px dashed #16a34a;border-radius:12px;padding:16px;text-align:center;margin-top:12px;}
+
+    /* Confirm */
+    .confirm-row{background:#fef9ff;border:1.5px solid #e9d5ff;border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .btn-approve{background:#16a34a;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:Vazirmatn,sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;}
+    .btn-reject{background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:8px 14px;font-family:Vazirmatn,sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;}
+
+    @media(max-width:640px){
+      .page{padding:12px 10px 32px;}
+      .tbl th:nth-child(3),.tbl td:nth-child(3){display:none;}
+      .tbl th:nth-child(5),.tbl td:nth-child(5){display:none;}
+      .info-grid{grid-template-columns:1fr;}
+      .fi-select{min-width:120px;}
+      .modal{max-width:100%;margin:0;}
+      .modal-overlay{padding:0;align-items:flex-end;}
+      .modal{border-radius:20px 20px 0 0;max-height:85vh;}
+    }
+  </style>
+</head>
+<body>
+<script src="js/components.js"></script>
+<div id="navbar-placeholder"></div>
+<script>OnPart.renderNavbar('orders');</script>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-title"><i class="ti ti-shopping-bag" style="color:#1d4ed8"></i>سفارشات من</div>
+    <div style="font-size:12.5px;color:#aaa" id="orderCount"></div>
+  </div>
+
+  <div id="confirmArea"></div>
+
+  <div class="filter-bar">
+    <input class="fi fi-search" id="searchInp" placeholder="جستجو شماره سفارش..." oninput="renderOrders()" type="number"/>
+    <select class="fi fi-select" id="statusF" onchange="renderOrders()">
+      <option value="">همه وضعیت‌ها</option>
+      <option value="pending_expert">منتظر کارشناس</option>
+      <option value="pending_customer">منتظر تایید</option>
+      <option value="pending_payment">منتظر پرداخت</option>
+      <option value="preparing">آماده‌سازی</option>
+      <option value="shipping">ارسال شده</option>
+      <option value="delivered">تحویل شده</option>
+      <option value="cancelled">ابطال شده</option>
+    </select>
+    <div style="position:relative">
+      <input class="fi" id="dateFromInp" placeholder="از تاریخ" readonly onclick="openDp('from')" style="min-width:120px;cursor:pointer"/>
+      <div id="dpFrom" style="display:none;position:absolute;top:42px;right:0;z-index:100;background:#fff;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.12);overflow:hidden;min-width:280px"></div>
+    </div>
+    <div style="position:relative">
+      <input class="fi" id="dateToInp" placeholder="تا تاریخ" readonly onclick="openDp('to')" style="min-width:120px;cursor:pointer"/>
+      <div id="dpTo" style="display:none;position:absolute;top:42px;right:0;z-index:100;background:#fff;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.12);overflow:hidden;min-width:280px"></div>
+    </div>
+    <button class="btn-reset" onclick="resetFilters()"><i class="ti ti-refresh"></i> پاک‌سازی</button>
+  </div>
+
+  <div class="table-card">
+    <div class="tc-head">
+      <div class="tc-title">لیست سفارشات (<span id="filteredCount">۰</span>)</div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>ردیف</th>
+          <th>شماره سفارش</th>
+          <th>تاریخ و ساعت</th>
+          <th>وضعیت</th>
+          <th>مبلغ کل</th>
+          <th>جزئیات</th>
+          <th>مرسوله</th>
+        </tr></thead>
+        <tbody id="ordersTbody">
+          <tr><td colspan="7" style="padding:40px;text-align:center;color:#bbb"><i class="ti ti-loader"></i> در حال بارگذاری...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ITEMS MODAL -->
+<div class="modal-overlay" id="itemsModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-list" style="color:#1d4ed8"></i>جزئیات سفارش</div>
+      <button class="modal-close" onclick="document.getElementById('itemsModal').classList.remove('show')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="itemsModalBody"></div>
+  </div>
+</div>
+
+<!-- SHIPPING MODAL -->
+<div class="modal-overlay" id="shipModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-truck" style="color:#0f766e"></i>جزئیات مرسوله</div>
+      <button class="modal-close" onclick="document.getElementById('shipModal').classList.remove('show')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="shipModalBody"></div>
+  </div>
+</div>
+
+<script>
+function toJalali(d,withTime){
+  if(!d)return'—';
+  try{
+    const dt=new Date(d);if(isNaN(dt))return d;
+    const gy=dt.getFullYear(),gm=dt.getMonth()+1,gd=dt.getDate();
+    let jy,jm,jd,gdn,jdn,jnp,i;
+    const gdm=[31,28,31,30,31,30,31,31,30,31,30,31],jdm=[31,31,31,31,31,31,30,30,30,30,30,29];
+    let gy2=gy-1600;
+    gdn=365*gy2+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400);
+    for(i=0;i<gm-1;i++)gdn+=gdm[i];
+    if(gm>2&&((gy2%4===0&&gy2%100!==0)||(gy2%400===0)))gdn++;
+    gdn+=gd;jdn=gdn-79;jnp=Math.floor(jdn/12053);jdn%=12053;
+    jy=979+33*jnp+4*Math.floor(jdn/1461);jdn%=1461;
+    if(jdn>=366){jy+=Math.floor((jdn-1)/365);jdn=(jdn-1)%365;}
+    for(i=0;i<11&&jdn>=jdm[i];i++)jdn-=jdm[i];
+    jm=i+1;jd=jdn+1;
+    const fa=n=>String(n).replace(/\d/g,x=>'۰۱۲۳۴۵۶۷۸۹'[x]);
+    const date=fa(jy)+'/'+fa(String(jm).padStart(2,'0'))+'/'+fa(String(jd).padStart(2,'0'));
+    if(!withTime)return date;
+    const h=dt.getHours(),mn=dt.getMinutes();
+    return date+' '+fa(String(h).padStart(2,'0'))+':'+fa(String(mn).padStart(2,'0'));
+  }catch(e){return d;}
+}
+
+const statusLabels={pending_expert:'منتظر کارشناس',pending_customer:'منتظر تایید شما',pending_payment:'منتظر پرداخت',preparing:'آماده‌سازی',shipping:'ارسال شده',delivered:'تحویل شده',cancelled:'ابطال شده'};
+const methodFa={post:'پست',tipax:'تیپاکس',snap:'خودرو سواری',motorbike:'موتورسیکلت',van:'وانت',truck:'کامیونت'};
+
+let myOrders=[];
+
+async function loadMyOrders(){
+  const token=sessionStorage.getItem('op_token');
+  if(!token){window.location.href='login.html';return;}
+  try{
+    const res=await fetch('https://onpartpadmin.liara.run/api/orders/my',{headers:{'Authorization':'Bearer '+token}});
+    if(!res.ok){window.location.href='login.html';return;}
+    myOrders=await res.json();
+    renderOrders();
+    renderConfirms();
+  }catch(e){
+    document.getElementById('ordersTbody').innerHTML='<tr><td colspan="7" style="padding:40px;text-align:center;color:#bbb">خطا در اتصال</td></tr>';
+  }
+}
+
+function resetFilters(){
+  document.getElementById('searchInp').value='';
+  document.getElementById('statusF').value='';
+  document.getElementById('dateFromInp').value='';
+  document.getElementById('dateToInp').value='';
+  dpFromVal=null; dpToVal=null;
+  renderOrders();
+}
+
+// ── Jalali Datepicker ──
+const dpMonths=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+const dpMDays=[31,31,31,31,31,31,30,30,30,30,30,29];
+const dpWd=['ش','ی','د','س','چ','پ','ج'];
+let dpActive=null,dpY=1403,dpM=1,dpFromVal=null,dpToVal=null;
+
+function toFa(n){return String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);}
+
+function jToG(jy,jm,jd){
+  let gy=jy+621,leap,g_d_no,j_d_no,j_np,i;
+  const g_d_m=[31,28,31,30,31,30,31,31,30,31,30,31];
+  const j_d_m=[31,31,31,31,31,31,30,30,30,30,30,29];
+  j_d_no=365*(jy-979)+Math.floor((jy-979)/4)-Math.floor((jy-979)/100)+Math.floor((jy-979)/400);
+  for(i=0;i<jm-1;i++)j_d_no+=j_d_m[i];
+  j_d_no+=jd;
+  g_d_no=j_d_no+79;
+  gy=1600+400*Math.floor(g_d_no/146097);g_d_no=g_d_no%146097;
+  leap=true;
+  if(g_d_no>=36525){g_d_no--;gy+=100*Math.floor(g_d_no/36524);g_d_no=g_d_no%36524;if(g_d_no>=365)g_d_no++;else leap=false;}
+  gy+=4*Math.floor(g_d_no/1461);g_d_no%=1461;
+  if(g_d_no>=366){leap=false;g_d_no--;gy+=Math.floor(g_d_no/365);g_d_no=g_d_no%365;}
+  for(i=0;g_d_no>=g_d_m[i]+((i===1&&leap)?1:0);i++)g_d_no-=g_d_m[i]+((i===1&&leap)?1:0);
+  return new Date(gy,i,g_d_no+1);
+}
+
+function dpDow(jy,jm,jd){return(jToG(jy,jm,jd).getDay()+1)%7;}
+
+function renderDp(which){
+  const el=document.getElementById(which==='from'?'dpFrom':'dpTo');
+  const first=dpDow(dpY,dpM,1),days=dpMDays[dpM-1];
+  const selVal=which==='from'?dpFromVal:dpToVal;
+  let html=`<div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);padding:12px 14px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <button class="dp-prev" data-which="${which}" style="background:rgba(255,255,255,.15);border:none;border-radius:7px;width:28px;height:28px;color:#fff;cursor:pointer;font-size:16px;font-family:Vazirmatn,sans-serif">›</button>
+      <span style="font-size:14px;font-weight:600;color:#fff">${dpMonths[dpM-1]} ${toFa(dpY)}</span>
+      <button class="dp-next" data-which="${which}" style="background:rgba(255,255,255,.15);border:none;border-radius:7px;width:28px;height:28px;color:#fff;cursor:pointer;font-size:16px;font-family:Vazirmatn,sans-serif">‹</button>
+    </div>
+  </div>
+  <div style="padding:8px">
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">
+      ${dpWd.map(w=>`<div style="text-align:center;font-size:11px;color:#aaa;padding:4px 0">${w}</div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">
+      ${Array(first).fill('<div></div>').join('')}
+      ${Array.from({length:days},(_,i)=>{
+        const d=i+1;
+        const key=`${dpY}/${String(dpM).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+        const isSel=selVal===key;
+        return `<div onclick="dpSel('${which}','${key}',${d})" style="text-align:center;padding:6px 2px;border-radius:7px;cursor:pointer;font-size:12.5px;font-weight:500;${isSel?'background:#1d4ed8;color:#fff;':'hover:background:#eff6ff;'}">${toFa(d)}</div>`;
+      }).join('')}
+    </div>
+    <div style="border-top:1px solid #f0f0f0;padding-top:8px;margin-top:4px;text-align:center">
+      <button class="dp-clear" data-which="${which}" style="font-size:12px;color:#dc2626;background:none;border:none;cursor:pointer;font-family:Vazirmatn,sans-serif">پاک کردن</button>
+    </div>
+  </div>`;
+  el.innerHTML=html;
+}
+
+function openDp(which){
+  const fromEl=document.getElementById('dpFrom');
+  const toEl=document.getElementById('dpTo');
+  if(dpActive===which){
+    fromEl.style.display='none'; toEl.style.display='none'; dpActive=null; return;
+  }
+  dpActive=which;
+  fromEl.style.display='none'; toEl.style.display='none';
+  const el=document.getElementById(which==='from'?'dpFrom':'dpTo');
+  renderDp(which);
+  el.style.display='block';
+}
+
+function dpSel(which,key,d){
+  if(which==='from'){
+    dpFromVal=key;
+    document.getElementById('dateFromInp').value=toFa(d)+' '+dpMonths[dpM-1]+' '+toFa(dpY);
+  } else {
+    dpToVal=key;
+    document.getElementById('dateToInp').value=toFa(d)+' '+dpMonths[dpM-1]+' '+toFa(dpY);
+  }
+  document.getElementById(which==='from'?'dpFrom':'dpTo').style.display='none';
+  dpActive=null;
+  renderOrders();
+}
+
+function dpClear(which){
+  if(which==='from'){dpFromVal=null;document.getElementById('dateFromInp').value='';}
+  else{dpToVal=null;document.getElementById('dateToInp').value='';}
+  document.getElementById(which==='from'?'dpFrom':'dpTo').style.display='none';
+  dpActive=null; renderOrders();
+}
+
+function dpPrev(which){dpM--;if(dpM<1){dpM=12;dpY--;}renderDp(which);}
+function dpNext(which){dpM++;if(dpM>12){dpM=1;dpY++;}renderDp(which);}
+
+document.addEventListener('click',function(e){
+  // Datepicker event delegation
+  const prev=e.target.closest('.dp-prev');
+  const next=e.target.closest('.dp-next');
+  const day=e.target.closest('.dp-day');
+  const clear=e.target.closest('.dp-clear');
+
+  if(prev){ dpPrev(prev.dataset.which); e.stopPropagation(); return; }
+  if(next){ dpNext(next.dataset.which); e.stopPropagation(); return; }
+  if(day){ dpSel(day.dataset.which, day.dataset.key, day.dataset.d); e.stopPropagation(); return; }
+  if(clear){ dpClear(clear.dataset.which); e.stopPropagation(); return; }
+
+  // Close datepickers when clicking outside
+  if(!e.target.closest('#dpFrom')&&!e.target.closest('#dateFromInp')&&!e.target.closest('#dpTo')&&!e.target.closest('#dateToInp')){
+    document.getElementById('dpFrom').style.display='none';
+    document.getElementById('dpTo').style.display='none';
+    dpActive=null;
+  }
+});
+
+function renderOrders(){
+  const q=(document.getElementById('searchInp').value||'').trim();
+  const sf=document.getElementById('statusF').value;
+
+  let filtered=myOrders.filter(o=>{
+    if(q && !String(o.id).includes(q)) return false;
+    if(sf && o.status!==sf) return false;
+    if(dpFromVal && o.created_at){
+      const j=toJalali(o.created_at,false).replace(/\//g,'/');
+      // Compare YYYY/MM/DD
+      const jKey=toJalali(o.created_at,false);
+      if(jKey<dpFromVal) return false;
+    }
+    if(dpToVal && o.created_at){
+      const jKey=toJalali(o.created_at,false);
+      if(jKey>dpToVal) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('filteredCount').textContent=OnPart.fa(filtered.length);
+  document.getElementById('orderCount').textContent=`${OnPart.fa(myOrders.length)} سفارش`;
+
+  const tbody=document.getElementById('ordersTbody');
+  if(!filtered.length){
+    tbody.innerHTML='<tr><td colspan="7" style="padding:50px;text-align:center;color:#bbb"><i class="ti ti-package-off" style="font-size:28px;display:block;margin-bottom:8px"></i>سفارشی یافت نشد</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML=filtered.map((o,i)=>{
+    const hasShip=o.shipping_method&&(o.status==='shipping'||o.status==='delivered');
+    const idx=myOrders.indexOf(o);
+    return `<tr>
+      <td style="font-weight:600;color:#aaa">${OnPart.fa(i+1)}</td>
+      <td style="font-weight:700;color:#1d4ed8">#${OnPart.fa(o.id)}</td>
+      <td style="font-size:11.5px;color:#555">${toJalali(o.created_at,true)}</td>
+      <td><span class="badge st-${o.status}">${statusLabels[o.status]||o.status}</span></td>
+      <td style="font-weight:700">
+        ${OnPart.fmt(o.total)} ت
+        ${o.discount_percent>0?`<div style="font-size:10px;color:#16a34a">${OnPart.fa(o.discount_percent)}٪ تخفیف</div>`:''}
+        ${o.discount_percent<0?`<div style="font-size:10px;color:#dc2626">${OnPart.fa(Math.abs(o.discount_percent))}٪ اضافه</div>`:''}
+      </td>
+      <td><button class="ab ab-blue" onclick="openItems(${idx})"><i class="ti ti-list"></i><span> جزئیات</span></button></td>
+      <td>${hasShip?`<button class="ab ab-green" onclick="openShip(${idx})"><i class="ti ti-truck"></i><span> مرسوله</span></button>`:'<span style="color:#ddd">—</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderConfirms(){
+  const area=document.getElementById('confirmArea');
+  const pending=myOrders.filter(o=>o.status==='pending_customer');
+  if(!pending.length){area.innerHTML='';return;}
+  area.innerHTML=pending.map(o=>`
+    <div class="confirm-row">
+      <i class="ti ti-alert-circle" style="font-size:20px;color:#7c3aed;flex-shrink:0"></i>
+      <div style="flex:1;font-size:13px;color:#555">فاکتور سفارش <strong>#${OnPart.fa(o.id)}</strong> آماده تایید است</div>
+      <button class="btn-approve" onclick="confirmInvoice(${o.id})"><i class="ti ti-check"></i>تایید</button>
+      <button class="btn-reject" onclick="rejectInvoice(${o.id})"><i class="ti ti-x"></i>رد</button>
+    </div>`).join('');
+}
+
+function openItems(i){
+  const o=myOrders[i];
+  const items=o.items||[];
+  const subtotal=items.reduce((s,it)=>s+(it.price*it.quantity),0);
+  document.getElementById('itemsModalBody').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+      <div style="font-size:13px;color:#555">سفارش <strong style="color:#1d4ed8">#${OnPart.fa(o.id)}</strong> — ${toJalali(o.created_at,true)}</div>
+      <span class="badge st-${o.status}">${statusLabels[o.status]||o.status}</span>
+    </div>
+    ${items.length?`<div style="overflow-x:auto">
+      <table class="itbl">
+        <thead><tr>
+          <th>کد محصول</th>
+          <th style="text-align:right;min-width:160px">شرح کالا</th>
+          <th>خودرو</th>
+          <th>تعداد</th>
+          <th>قیمت واحد</th>
+          <th>تخفیف</th>
+          <th>مبلغ کل</th>
+        </tr></thead>
+        <tbody>
+          ${items.map(it=>`<tr>
+            <td style="direction:ltr;font-family:monospace;font-size:11.5px">${it.code||'—'}</td>
+            <td style="text-align:right;font-weight:500">${it.description||'—'}</td>
+            <td style="font-size:11.5px">${it.car||'—'}</td>
+            <td>${OnPart.fa(it.quantity)}</td>
+            <td>${OnPart.fmt(it.price)} ت</td>
+            <td>${it.discount?`<span style="color:#16a34a;font-weight:600">${OnPart.fa(it.discount)}٪</span>`:'—'}</td>
+            <td style="font-weight:700">${OnPart.fmt(it.total)} ت</td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot>
+          <tr><td colspan="6" style="text-align:left;color:#aaa;font-size:12px">جمع اقلام:</td><td style="font-weight:700">${OnPart.fmt(subtotal)} ت</td></tr>
+          ${o.discount_percent?`<tr><td colspan="6" style="text-align:left;color:${o.discount_percent>0?'#16a34a':'#dc2626'};font-size:12px">${o.discount_percent>0?'تخفیف':'اضافه‌بها'}:</td><td style="color:${o.discount_percent>0?'#16a34a':'#dc2626'};font-weight:700">${OnPart.fa(Math.abs(o.discount_percent))}٪</td></tr>`:''}
+          <tr><td colspan="6" style="text-align:left;font-weight:800;color:#1d4ed8">مبلغ نهایی:</td><td style="font-weight:800;color:#1d4ed8">${OnPart.fmt(o.total)} ت</td></tr>
+        </tfoot>
+      </table>
+    </div>`:`<div style="text-align:center;padding:30px;color:#bbb">اطلاعات اقلام موجود نیست</div>`}`;
+  document.getElementById('itemsModal').classList.add('show');
+}
+
+function openShip(i){
+  const o=myOrders[i];
+  const isPost=o.shipping_method==='post'||o.shipping_method==='tipax';
+  document.getElementById('shipModalBody').innerHTML=`
+    <div class="info-grid">
+      <div class="info-box"><div class="info-lbl">روش ارسال</div><div class="info-val">${methodFa[o.shipping_method]||o.shipping_method||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">تاریخ ارسال</div><div class="info-val">${toJalali(o.updated_at,true)}</div></div>
+      ${isPost?`<div class="info-box" style="grid-column:1/-1"><div class="info-lbl">کد رهگیری</div><div class="info-val" style="direction:ltr;font-size:18px;letter-spacing:2px;font-family:monospace">${o.shipping_tracking||'—'}</div></div>`:`
+      <div class="info-box"><div class="info-lbl">نام راننده</div><div class="info-val">${o.shipping_driver_name||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">موبایل راننده</div><div class="info-val" style="direction:ltr">${o.shipping_driver_phone||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">نوع وسیله</div><div class="info-val">${methodFa[o.shipping_vehicle]||o.shipping_vehicle||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">شماره پلاک</div><div class="info-val" style="direction:ltr">${o.shipping_plate||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">تعداد بسته</div><div class="info-val">${OnPart.fa(o.shipping_packages||1)} بسته</div></div>`}
+    </div>
+    ${o.delivery_code?`<div class="delivery-code-box">
+      <div style="font-size:12px;color:#16a34a;font-weight:600;margin-bottom:6px">کد تحویل مرسوله</div>
+      <div style="font-size:28px;font-weight:900;color:#16a34a;letter-spacing:5px">${OnPart.fa(o.delivery_code)}</div>
+      <div style="font-size:11px;color:#aaa;margin-top:6px">این کد را هنگام تحویل به راننده بدهید</div>
+    </div>`:''}`;
+  document.getElementById('shipModal').classList.add('show');
+}
+
+async function confirmInvoice(id){
+  const token=sessionStorage.getItem('op_token');
+  const res=await fetch(`https://onpartpadmin.liara.run/api/orders/${id}/customer-approve`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
+  if(res.ok)loadMyOrders(); else alert('خطا در تایید');
+}
+
+async function rejectInvoice(id){
+  const token=sessionStorage.getItem('op_token');
+  const res=await fetch(`https://onpartpadmin.liara.run/api/orders/${id}/customer-reject`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
+  if(res.ok)loadMyOrders(); else alert('خطا در رد');
+}
+
+loadMyOrders();
+setInterval(loadMyOrders,60000);
+</script>
+</body>
+</html>

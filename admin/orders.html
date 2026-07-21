@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>مدیریت سفارشات | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    body{background:#f1f5f9;}
+    .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px;}
+    .sc{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.05);cursor:pointer;border:2px solid transparent;transition:all .15s;}
+    .sc:hover,.sc.on{border-color:#1d4ed8;background:#f8faff;}
+    .sc-val{font-size:20px;font-weight:900;color:#111;margin-bottom:2px;}
+    .sc-lbl{font-size:11px;color:#aaa;}
+    .toolbar{background:#fff;border-radius:12px;padding:14px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .fi{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-family:'Vazirmatn',sans-serif;font-size:13px;color:#333;outline:none;}
+    .fi-input{flex:1;min-width:160px;}
+    .btn-search{background:#1d4ed8;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+    .table-card{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden;}
+    .tc-head{padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;}
+    .tc-title{font-size:14px;font-weight:800;color:#111;}
+    .tc-actions{display:flex;gap:8px;}
+    .btn-sm{display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;border:none;font-family:'Vazirmatn',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;}
+    .tbl{width:100%;border-collapse:collapse;}
+    .tbl th{font-size:11.5px;font-weight:700;color:#888;text-align:center;padding:10px 12px;border-bottom:2px solid #f0f0f0;background:#f8fafc;white-space:nowrap;}
+    .tbl th:nth-child(3){text-align:right;}
+    .tbl td{font-size:12.5px;color:#333;padding:11px 12px;border-bottom:1px solid #f5f5f5;text-align:center;white-space:nowrap;}
+    .tbl tbody tr:hover{background:#f9fbff;}
+    .u-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+    .badge{border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;}
+    .b-amber{background:#fef3c7;color:#d97706;} .b-blue{background:#dbeafe;color:#1d4ed8;}
+    .b-green{background:#dcfce7;color:#16a34a;} .b-red{background:#fee2e2;color:#dc2626;}
+    .b-purple{background:#f5f3ff;color:#7c3aed;} .b-teal{background:#f0fdfa;color:#0f766e;}
+    .action-btns{display:flex;gap:5px;justify-content:center;}
+    .ab{width:28px;height:28px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;}
+    .ab-view{background:#eff6ff;color:#1d4ed8;} .ab-edit{background:#fef3c7;color:#d97706;}
+    .ab-sms{background:#f0fdf4;color:#16a34a;} .ab-del{background:#fee2e2;color:#dc2626;}
+    .pager{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid #f0f0f0;}
+    .pager-info{font-size:12.5px;color:#aaa;}
+    .pager-btns{display:flex;gap:6px;}
+    .pg{width:30px;height:30px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;cursor:pointer;font-family:'Vazirmatn',sans-serif;font-size:12.5px;color:#555;display:flex;align-items:center;justify-content:center;}
+    .pg:hover,.pg.on{background:#1d4ed8;color:#fff;border-color:#1d4ed8;}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;}
+    .modal-overlay.show{display:flex;}
+    .modal{background:#fff;border-radius:18px;max-height:92vh;overflow-y:auto;}
+    .modal-head{padding:18px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:5;}
+    .modal-title{font-size:15px;font-weight:800;color:#111;display:flex;align-items:center;gap:8px;}
+    .modal-title i{color:#1d4ed8;}
+    .modal-close{width:30px;height:30px;background:#f3f4f6;border:none;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
+    .modal-body{padding:22px;}
+    .modal-foot{padding:14px 22px;border-top:1px solid #f0f0f0;display:flex;gap:10px;position:sticky;bottom:0;background:#fff;}
+    .btn-prim{background:#1d4ed8;color:#fff;border:none;border-radius:9px;padding:10px 22px;font-family:'Vazirmatn',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;}
+    .btn-sec{background:#f3f4f6;color:#555;border:none;border-radius:9px;padding:10px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+    .btn-danger{background:#dc2626;color:#fff;border:none;border-radius:9px;padding:10px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;}
+    .fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+    .fg label{font-size:12px;font-weight:600;color:#555;}
+    .finput{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:8px;padding:9px 12px;font-family:'Vazirmatn',sans-serif;font-size:13px;color:#111;outline:none;width:100%;}
+    .finput:focus{border-color:#1d4ed8;}
+    .fselect{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:8px;padding:9px 12px;font-family:'Vazirmatn',sans-serif;font-size:13px;color:#333;outline:none;width:100%;}
+    .item-row{display:grid;grid-template-columns:2.5fr 0.7fr 1fr 0.7fr 1fr auto;gap:6px;align-items:center;margin-bottom:8px;background:#f8fafc;border-radius:9px;padding:8px 10px;}
+    .item-inp{border:1.5px solid #e5e7eb;border-radius:7px;padding:6px 9px;font-family:'Vazirmatn',sans-serif;font-size:12px;width:100%;outline:none;text-align:center;}
+    .item-inp:focus{border-color:#1d4ed8;}
+    .prod-dropdown{display:none;position:fixed;background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;z-index:9999;max-height:200px;overflow-y:auto;min-width:320px;box-shadow:0 8px 24px rgba(0,0,0,.15);}
+    .prod-opt{padding:9px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;}
+    .prod-opt:hover{background:#f0f4ff;}
+    .inv-tbl{width:100%;border-collapse:collapse;}
+    .inv-tbl th{background:#f8fafc;font-size:12px;font-weight:700;color:#666;padding:9px 12px;text-align:right;border-bottom:2px solid #f0f0f0;}
+    .inv-tbl td{font-size:12.5px;padding:9px 12px;border-bottom:1px solid #f5f5f5;}
+    .inv-total-bar{background:linear-gradient(135deg,#1e3a8a,#1d4ed8);color:#fff;border-radius:12px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-top:16px;}
+    .sms-modal-inner{background:#fff;border-radius:16px;width:420px;padding:24px;}
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:600;display:none;align-items:center;gap:10px;z-index:9999;}
+    .toast.show{display:flex;}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-placeholder"></div>
+  <div class="main">
+    <div id="topbar-placeholder"></div>
+    <div class="content">
+
+      <div class="stats" id="statsBar">
+        <div class="sc on" onclick="filterStat('',this)"><div class="sc-val">۰</div><div class="sc-lbl">همه</div></div>
+        <div class="sc" onclick="filterStat('pending_expert',this)"><div class="sc-val" style="color:#d97706">۰</div><div class="sc-lbl">منتظر تایید</div></div>
+        <div class="sc" onclick="filterStat('pending_payment',this)"><div class="sc-val" style="color:#7c3aed">۰</div><div class="sc-lbl">منتظر پرداخت</div></div>
+        <div class="sc" onclick="filterStat('preparing',this)"><div class="sc-val" style="color:#1d4ed8">۰</div><div class="sc-lbl">آماده‌سازی</div></div>
+        <div class="sc" onclick="filterStat('shipping',this)"><div class="sc-val" style="color:#0f766e">۰</div><div class="sc-lbl">در ارسال</div></div>
+        <div class="sc" onclick="filterStat('delivered',this)"><div class="sc-val" style="color:#16a34a">۰</div><div class="sc-lbl">تحویل شده</div></div>
+      </div>
+
+      <div class="toolbar">
+        <input class="fi fi-input" id="searchInp" placeholder="جستجو شماره، نام..." oninput="renderTable()"/>
+        <select class="fi" id="statusFilter" onchange="renderTable()">
+          <option value="">همه وضعیت‌ها</option>
+          <option value="pending_expert">منتظر تایید کارشناس</option>
+          <option value="pending_payment">منتظر پرداخت</option>
+          <option value="preparing">آماده‌سازی</option>
+          <option value="shipping">در ارسال</option>
+          <option value="delivered">تحویل شده</option>
+          <option value="cancelled">ابطال شده</option>
+        </select>
+        <button class="btn-search" onclick="renderTable()"><i class="ti ti-search" style="font-size:14px;margin-left:4px"></i>جستجو</button>
+      </div>
+
+      <div class="table-card">
+        <div class="tc-head">
+          <div class="tc-title" id="tableTitle">لیست سفارشات</div>
+          <div class="tc-actions">
+            <button class="btn-sm" style="background:#dcfce7;color:#16a34a;font-weight:700" onclick="openNewOrderModal()"><i class="ti ti-plus"></i>سفارش جدید</button>
+            <button class="btn-sm" style="background:#eff6ff;color:#1d4ed8" onclick="openGroupSms()"><i class="ti ti-message-2"></i>پیامک گروهی</button>
+            <button class="btn-sm" style="background:#f0fdf4;color:#16a34a" onclick="exportOrders()"><i class="ti ti-file-spreadsheet"></i>اکسل</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>شماره</th>
+              <th style="text-align:right">مشتری</th>
+              <th>تاریخ</th><th>اقلام</th>
+              <th>مبلغ (تومان)</th><th>وضعیت</th><th>عملیات</th>
+            </tr></thead>
+            <tbody id="orderTbody"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <div class="pager-info" id="pagerInfo">—</div>
+          <div class="pager-btns" id="pagerBtns"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ NEW ORDER MODAL ═══ -->
+<div class="modal-overlay" id="newOrderModal">
+  <div class="modal" style="width:780px">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-shopping-bag-plus"></i>ثبت سفارش جدید</div>
+      <button class="modal-close" onclick="closeNewOrder()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Customer Search -->
+      <div style="background:#f0f4ff;border:1.5px solid #dbeafe;border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:700;color:#1d4ed8;margin-bottom:12px;display:flex;align-items:center;gap:7px"><i class="ti ti-user-search"></i>انتخاب مشتری</div>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+          <input id="customerSearch" class="finput" placeholder="جستجو نام یا موبایل مشتری..." oninput="searchCustomer(this.value)" style="flex:1"/>
+          <button onclick="showAddCustomer()" style="background:#1d4ed8;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:Vazirmatn,sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px"><i class="ti ti-user-plus"></i>مشتری جدید</button>
+        </div>
+        <div id="customerResults" style="display:none;background:#fff;border:1.5px solid #e5e7eb;border-radius:9px;overflow:hidden;margin-bottom:8px"></div>
+        <div id="selectedCustomer" style="display:none;background:#dcfce7;border:1.5px solid #bbf7d0;border-radius:9px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:30px;height:30px;background:#16a34a;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px" id="custAvatar">؟</div>
+            <div><div style="font-size:13px;font-weight:700" id="custName">—</div><div style="font-size:11.5px;color:#666" id="custInfo">—</div></div>
+          </div>
+          <button onclick="clearCustomer()" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:4px 10px;font-family:Vazirmatn,sans-serif;font-size:12px;cursor:pointer">تغییر</button>
+        </div>
+
+        <!-- Add New Customer Form -->
+        <div id="addCustomerForm" style="display:none;background:#fff;border:1.5px solid #dbeafe;border-radius:9px;padding:14px;margin-top:8px">
+          <div style="font-size:12px;font-weight:700;color:#1d4ed8;margin-bottom:10px">اطلاعات مشتری جدید</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="fg"><label>نام و نام خانوادگی *</label><input class="finput" id="new_cust_name" placeholder="نام کامل"/></div>
+            <div class="fg"><label>شماره موبایل *</label><input class="finput" id="new_cust_phone" placeholder="09xxxxxxxxx" style="direction:ltr"/></div>
+            <div class="fg"><label>شهر</label><input class="finput" id="new_cust_city" placeholder="شهر"/></div>
+            <div class="fg"><label>استان</label><input class="finput" id="new_cust_state" placeholder="استان"/></div>
+            <div class="fg" style="grid-column:1/-1"><label>آدرس کامل</label><input class="finput" id="new_cust_addr" placeholder="آدرس..."/></div>
+            <div class="fg"><label>کد پستی</label><input class="finput" id="new_cust_postal" placeholder="کد پستی" style="direction:ltr"/></div>
+            <div class="fg"><label>ایمیل</label><input class="finput" id="new_cust_email" placeholder="email@..." style="direction:ltr"/></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button onclick="confirmAddCustomer()" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-family:Vazirmatn,sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="ti ti-check"></i>ثبت مشتری</button>
+            <button onclick="hideAddCustomer()" style="background:#f3f4f6;color:#555;border:none;border-radius:8px;padding:8px 14px;font-family:Vazirmatn,sans-serif;font-size:13px;cursor:pointer">انصراف</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items -->
+      <div style="background:#f8fafc;border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:700;color:#1d4ed8;margin-bottom:12px;display:flex;align-items:center;gap:7px"><i class="ti ti-packages"></i>اقلام سفارش</div>
+        <div style="display:grid;grid-template-columns:2.5fr 0.7fr 1fr 0.7fr 1fr auto;gap:6px;margin-bottom:8px;padding:0 2px">
+          <div style="font-size:10.5px;color:#888;font-weight:700">محصول</div>
+          <div style="font-size:10.5px;color:#888;font-weight:700;text-align:center">تعداد</div>
+          <div style="font-size:10.5px;color:#888;font-weight:700;text-align:center">قیمت واحد</div>
+          <div style="font-size:10.5px;color:#888;font-weight:700;text-align:center">تخفیف%</div>
+          <div style="font-size:10.5px;color:#888;font-weight:700;text-align:center">جمع</div>
+          <div></div>
+        </div>
+        <div id="noItems"></div>
+        <button onclick="addNoItem()" style="background:#f0fdf4;color:#16a34a;border:1.5px dashed #bbf7d0;border-radius:8px;padding:8px;font-family:Vazirmatn,sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-plus"></i>افزودن قلم</button>
+      </div>
+
+      <!-- Summary -->
+      <div style="background:#f8fafc;border-radius:12px;padding:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:end">
+          <div class="fg"><label>وضعیت اولیه</label>
+            <select class="fselect" id="no_status">
+              <option value="pending_expert">منتظر تایید کارشناس</option>
+              <option value="pending_payment">منتظر پرداخت</option>
+              <option value="preparing">آماده‌سازی</option>
+              <option value="delivered">تحویل شده</option>
+            </select>
+          </div>
+          <div class="fg"><label>تخفیف کلی (%)</label><input class="finput" id="no_discount" type="number" min="0" max="100" value="0" oninput="calcNoTotal()"/></div>
+          <div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);border-radius:10px;padding:12px 16px;color:#fff;text-align:center">
+            <div style="font-size:11px;color:rgba(255,255,255,.7)">مبلغ نهایی</div>
+            <div style="font-size:18px;font-weight:900" id="noGrandTotal">۰ تومان</div>
+          </div>
+        </div>
+        <div class="fg" style="margin-top:12px;margin-bottom:0"><label>یادداشت</label><input class="finput" id="no_note" placeholder="یادداشت اختیاری..."/></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-prim" onclick="submitNewOrder()"><i class="ti ti-check"></i>ثبت سفارش</button>
+      <button class="btn-sec" onclick="closeNewOrder()">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ORDER DETAIL MODAL ═══ -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="width:720px">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-shopping-bag"></i>جزئیات سفارش <span id="detailNum"></span></div>
+      <button class="modal-close" onclick="closeDetail()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-foot" id="detailFoot"></div>
+  </div>
+</div>
+
+<!-- ═══ INVOICE EDIT MODAL ═══ -->
+<div class="modal-overlay" id="invoiceModal">
+  <div class="modal" style="width:720px">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-file-invoice"></i>ویرایش فاکتور <span id="invoiceNum"></span></div>
+      <button class="modal-close" onclick="closeInvoice()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="invoiceBody"></div>
+    <div class="modal-foot" id="invoiceFoot"></div>
+  </div>
+</div>
+
+<!-- ═══ SMS MODAL ═══ -->
+<div class="modal-overlay" id="smsModal">
+  <div class="sms-modal-inner">
+    <h3 style="font-size:15px;font-weight:800;color:#111;margin-bottom:14px;display:flex;align-items:center;gap:8px"><i class="ti ti-message-2" style="color:#1d4ed8"></i>ارسال پیامک</h3>
+    <div style="font-size:12.5px;color:#888;margin-bottom:10px">گیرنده: <strong id="smsRecipient"></strong></div>
+    <textarea id="smsText" rows="4" style="width:100%;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:10px;font-family:Vazirmatn,sans-serif;font-size:13px;outline:none;resize:none;margin-bottom:12px"></textarea>
+    <div style="display:flex;gap:10px">
+      <button class="btn-prim" style="flex:1;justify-content:center" onclick="sendSmsNow()"><i class="ti ti-send"></i>ارسال</button>
+      <button class="btn-sec" onclick="closeSms()">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<!-- Product search dropdown -->
+<div id="prodDropdown" class="prod-dropdown"></div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+
+function toJalali(dateStr){
+  if(!dateStr) return '—';
+  try{
+    const d=new Date(dateStr);if(isNaN(d))return dateStr;
+    const gy=d.getFullYear(),gm=d.getMonth()+1,gd=d.getDate();
+    let jy=gy-1600,jm=0,jd=0,g_d_no,j_d_no,j_np,i;
+    const g_d_m=[31,28,31,30,31,30,31,31,30,31,30,31];
+    const j_d_m=[31,31,31,31,31,31,30,30,30,30,30,29];
+    let gy2=gy-1600;
+    g_d_no=365*gy2+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400);
+    for(i=0;i<gm-1;i++)g_d_no+=g_d_m[i];
+    if(gm>2&&((gy2%4===0&&gy2%100!==0)||(gy2%400===0)))g_d_no++;
+    g_d_no+=gd;j_d_no=g_d_no-79;
+    j_np=Math.floor(j_d_no/12053);j_d_no%=12053;
+    jy=979+33*j_np+4*Math.floor(j_d_no/1461);j_d_no%=1461;
+    if(j_d_no>=366){jy+=Math.floor((j_d_no-1)/365);j_d_no=(j_d_no-1)%365;}
+    for(i=0;i<11&&j_d_no>=j_d_m[i];i++)j_d_no-=j_d_m[i];
+    jm=i+1;jd=j_d_no+1;
+    const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+    return fa(jy)+'/'+fa(String(jm).padStart(2,'0'))+'/'+fa(String(jd).padStart(2,'0'));
+  }catch(e){return dateStr||'—';}
+}
+
+Admin.renderSidebar('orders');
+Admin.renderTopbar('مدیریت سفارشات','ti-shopping-bag');
+
+const fa=n=>n.toString().replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+const fmt=n=>fa(Number(n).toLocaleString());
+const colors=['#1d4ed8','#16a34a','#d97706','#7c3aed','#0f766e','#dc2626'];
+const statusLabels={pending_expert:'منتظر تایید کارشناس',pending_customer:'منتظر تایید مشتری',pending_payment:'منتظر پرداخت',preparing:'آماده‌سازی',shipping:'در ارسال',delivered:'تحویل شده',cancelled:'ابطال شده'};
+const statusBadge={pending_expert:'b-amber',pending_customer:'b-purple',pending_payment:'b-purple',preparing:'b-blue',shipping:'b-teal',delivered:'b-green',cancelled:'b-red'};
+
+let orders=[],filtered=[],allProducts=[],curOrderId=null,curSmsPhone='',noItemCount=0;
+const PER=15;let page=1;
+
+function toast(msg,ok=true){
+  const t=document.getElementById('toast');
+  t.innerHTML=`<i class="ti ti-${ok?'check':'x'}" style="color:${ok?'#4ade80':'#f87171'};font-size:18px"></i>${msg}`;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ── LOAD ──
+async function loadOrders(){
+  try{
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/orders?limit=200&admin=1`,{headers:{'Authorization':'Bearer '+token}});
+    if(res.ok)orders=await res.json();
+  }catch(e){}
+  filtered=[...orders];
+  updateStats();
+  renderTable();
+}
+
+async function loadProducts(){
+  try{
+    const res=await fetch(`${API.BASE_URL}/api/products?limit=500`);
+    const data=await res.json();
+    allProducts=data.products||data||[];
+  }catch(e){allProducts=[];}
+}
+
+// ── STATS ──
+function updateStats(){
+  const statuses=['','pending_expert','pending_payment','preparing','shipping','delivered'];
+  document.querySelectorAll('.sc').forEach((el,i)=>{
+    const st=statuses[i];
+    const count=st?orders.filter(o=>o.status===st).length:orders.length;
+    el.querySelector('.sc-val').textContent=fa(count);
+  });
+}
+
+function filterStat(status,el){
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('statusFilter').value=status;
+  renderTable();
+}
+
+// ── TABLE ──
+function renderTable(){
+  const s=document.getElementById('searchInp').value;
+  const sf=document.getElementById('statusFilter').value;
+  filtered=orders.filter(o=>(!s||(o.user_name?.includes(s)||String(o.id).includes(s)))&&(!sf||o.status===sf));
+  const total=filtered.length,pages=Math.ceil(total/PER)||1;
+  if(page>pages)page=1;
+  const start=(page-1)*PER,end=Math.min(start+PER,total);
+  document.getElementById('pagerInfo').textContent=`نمایش ${fa(start+1)}–${fa(end)} از ${fa(total)} سفارش`;
+  document.getElementById('orderTbody').innerHTML=filtered.slice(start,end).map((o,i)=>`
+    <tr>
+      <td style="font-weight:700">#${fa(o.id)}</td>
+      <td style="text-align:right"><div style="display:flex;align-items:center;gap:8px">
+        <div class="u-av" style="background:${colors[i%colors.length]}">${(o.user_name||'؟')[0]}</div>
+        <div><div style="font-weight:600">${o.user_name||'—'}</div><div style="font-size:11px;color:#aaa">${o.user_phone||''}</div></div>
+      </div></td>
+      <td>${toJalali(o.created_at)||'—'}</td>
+      <td>${fa(o.items_count||0)} قلم</td>
+      <td style="font-weight:700">${fmt(o.total||0)}</td>
+      <td><span class="badge ${statusBadge[o.status]||'b-amber'}">${statusLabels[o.status]||o.status}</span></td>
+      <td><div class="action-btns">
+        <button class="ab ab-view" onclick="openDetail(${i})" title="مشاهده"><i class="ti ti-eye"></i></button>
+        <button class="ab ab-edit" onclick="openInvoiceEdit(${i})" title="ویرایش فاکتور"><i class="ti ti-file-invoice"></i></button>
+        <button class="ab ab-sms" onclick="openSms('${o.user_phone||''}','${o.user_name||''}')" title="پیامک"><i class="ti ti-message-2"></i></button>
+        <button class="ab ab-del" onclick="deleteOrder(${o.id},this)" title="حذف"><i class="ti ti-trash"></i></button>
+      </div></td>
+    </tr>`).join('');
+  let btns='';for(let i=1;i<=Math.min(pages,7);i++)btns+=`<button class="pg${i===page?' on':''}" onclick="gotoPage(${i})">${fa(i)}</button>`;
+  document.getElementById('pagerBtns').innerHTML=btns;
+}
+
+function gotoPage(p){page=p;renderTable();}
+
+// ── DELETE ──
+async function deleteOrder(id,btn){
+  if(!confirm('آیا مطمئن هستید می‌خواهید این سفارش را برای همیشه حذف کنید؟\nاین عمل قابل بازگشت نیست و از پنل کاربر هم حذف می‌شود.'))return;
+  try{
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/orders/${id}`,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+    if(!res.ok){ const d=await res.json(); throw new Error(d.message||'خطا در حذف'); }
+  }catch(e){ toast(e.message||'خطا در حذف سفارش',false); return; }
+  orders=orders.filter(o=>o.id!==id);
+  filtered=filtered.filter(o=>o.id!==id);
+  btn.closest('tr').remove();
+  updateStats();
+  toast('سفارش با موفقیت حذف شد');
+}
+
+// ── DETAIL ──
+async function openDetail(i){
+  const o=filtered[i];
+  document.getElementById('detailNum').textContent=`#${fa(o.id)}`;
+  const statusList=['pending_expert','pending_customer','pending_payment','preparing','shipping','delivered'];
+  const idx=statusList.indexOf(o.status);
+  document.getElementById('detailBody').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div style="background:#f8fafc;border-radius:9px;padding:12px"><div style="font-size:11px;color:#aaa;margin-bottom:3px">مشتری</div><div style="font-weight:700">${o.user_name||'—'}</div></div>
+      <div style="background:#f8fafc;border-radius:9px;padding:12px"><div style="font-size:11px;color:#aaa;margin-bottom:3px">موبایل</div><div style="font-weight:700;direction:ltr">${o.user_phone||'—'}</div></div>
+      <div style="background:#f8fafc;border-radius:9px;padding:12px"><div style="font-size:11px;color:#aaa;margin-bottom:3px">تاریخ</div><div style="font-weight:700">${toJalali(o.created_at)||'—'}</div></div>
+      <div style="background:#f8fafc;border-radius:9px;padding:12px"><div style="font-size:11px;color:#aaa;margin-bottom:3px">مبلغ</div><div style="font-weight:700;color:#1d4ed8">${fmt(o.total||0)} تومان</div></div>
+    </div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:12.5px;font-weight:700;color:#555;margin-bottom:8px">مرحله سفارش</div>
+      <div style="display:flex;align-items:center">
+        ${statusList.map((s,j)=>`
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;position:relative">
+            ${j<statusList.length-1?`<div style="position:absolute;top:13px;left:0;width:100%;height:2px;background:${j<idx?'#22c55e':'#e5e7eb'};z-index:0"></div>`:''}
+            <div style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;z-index:1;background:${j<idx?'#22c55e':j===idx?'#1d4ed8':'#f3f4f6'};color:${j<=idx?'#fff':'#bbb'};box-shadow:${j===idx?'0 0 0 4px rgba(29,78,216,.15)':'none'}">
+              ${j<idx?'<i class="ti ti-check" style="font-size:11px"></i>':fa(j+1)}
+            </div>
+            <div style="font-size:9px;color:${j===idx?'#1d4ed8':j<idx?'#16a34a':'#aaa'};margin-top:4px;text-align:center;max-width:56px;font-weight:${j===idx?700:400}">${statusLabels[s]}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    ${o.status==='pending_expert'?`
+    <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:12px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <span style="font-size:13px;font-weight:700;color:#1d4ed8"><i class="ti ti-user-check"></i> این سفارش منتظر تایید کارشناس است</span>
+      <button class="btn-prim" style="padding:8px 18px;font-size:12.5px;background:#16a34a" onclick="approveOrder(${o.id})"><i class="ti ti-check"></i>تایید کارشناس</button>
+    </div>`:''}
+    <div style="margin-bottom:14px">
+      <div style="font-size:12.5px;font-weight:700;color:#555;margin-bottom:8px">اقلام سفارش</div>
+      <div id="detailItems" style="background:#f8fafc;border-radius:10px;padding:4px 12px">
+        <div style="text-align:center;padding:16px;color:#bbb;font-size:12px"><i class="ti ti-loader"></i> در حال بارگذاری...</div>
+      </div>
+    </div>
+    <div style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-size:13px;font-weight:600;color:#444">تغییر وضعیت:</span>
+      <select class="fselect" id="detailStatus" style="width:auto;flex:1">
+        ${[...statusList,'cancelled'].map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${statusLabels[s]}</option>`).join('')}
+      </select>
+      <button class="btn-prim" style="padding:8px 16px;font-size:12.5px" onclick="updateOrderStatus(${o.id})"><i class="ti ti-check"></i>ثبت</button>
+    </div>`;
+  document.getElementById('detailFoot').innerHTML=`
+    <button class="btn-prim" onclick="openInvoiceEdit(${i});closeDetail()"><i class="ti ti-file-invoice"></i>ویرایش فاکتور</button>
+    <button class="btn-prim" style="background:#16a34a" onclick="window.print()"><i class="ti ti-printer"></i>چاپ</button>
+    <button class="btn-sec" onclick="closeDetail()">بستن</button>`;
+  document.getElementById('detailModal').classList.add('show');
+  loadDetailItems(o.id);
+}
+
+async function loadDetailItems(orderId){
+  try{
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/orders/${orderId}`,{headers:{'Authorization':'Bearer '+token}});
+    const data=await res.json();
+    const items=data.items||[];
+    const el=document.getElementById('detailItems');
+    if(!el) return;
+    if(!items.length){ el.innerHTML='<div style="text-align:center;padding:16px;color:#bbb;font-size:12px">قلمی یافت نشد</div>'; return; }
+    el.innerHTML=items.map(it=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eef0f3;font-size:12.5px">
+        <div style="flex:1">
+          <div style="font-weight:600;color:#222">${it.description||'محصول حذف‌شده'}</div>
+          <div style="font-size:10.5px;color:#aaa;font-family:monospace;margin-top:2px">کد: ${it.code||'—'}${it.brand?' · '+it.brand:''}</div>
+        </div>
+        <div style="color:#888;white-space:nowrap;margin:0 10px">${fa(it.quantity)} × ${fmt(it.price)}${it.discount?` (${fa(it.discount)}٪-)`:''}</div>
+        <div style="font-weight:700;color:#1d4ed8;white-space:nowrap">${fmt(it.total)} ت</div>
+      </div>
+    `).join('');
+  }catch(e){
+    const el=document.getElementById('detailItems');
+    if(el) el.innerHTML='<div style="text-align:center;padding:16px;color:#dc2626;font-size:12px">خطا در بارگذاری اقلام</div>';
+  }
+}
+
+async function approveOrder(id){
+  try{
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/orders/${id}/approve`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
+    if(!res.ok) throw new Error();
+    const o=orders.find(x=>x.id===id);if(o)o.status='pending_customer';
+    toast('سفارش تایید شد — فاکتور برای تایید مشتری ارسال شد');
+    closeDetail();renderTable();updateStats();
+  }catch(e){ toast('خطا در تایید سفارش',false); }
+}
+
+function closeDetail(){document.getElementById('detailModal').classList.remove('show');}
+
+async function updateOrderStatus(id){
+  const statusEl = document.getElementById('detailStatus');
+  const status = statusEl ? statusEl.value : '';
+  if(!status){ toast('وضعیت را انتخاب کنید',false); return; }
+  if(status === 'shipping'){
+    document.getElementById('shipOrderId').value = id;
+    document.getElementById('shipModal').classList.add('show');
+    return;
+  }
+  if(status === 'delivered'){
+    document.getElementById('deliverOrderId').value = id;
+    document.getElementById('deliverModal').classList.add('show');
+    return;
+  }
+  try{
+    const token=sessionStorage.getItem('op_token');
+    await fetch(`${API.BASE_URL}/api/orders/${id}/status`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({status})});
+  }catch(e){}
+  const o=orders.find(x=>x.id===id);if(o)o.status=status;
+  toast(`وضعیت به "${statusLabels[status]}" تغییر کرد`);
+  closeDetail();renderTable();updateStats();
+}
+
+async function submitShipping(){
+  const id = document.getElementById('shipOrderId').value;
+  const method = document.getElementById('shipMethod').value;
+  if(!method){ toast('روش ارسال را انتخاب کنید',false); return; }
+
+  const data = { shipping_method: method, shipping_packages: parseInt(document.getElementById('shipPackages')?.value||1) };
+
+  if(method === 'post' || method === 'tipax'){
+    data.shipping_tracking = document.getElementById('shipTracking').value;
+  } else {
+    data.shipping_driver_name = document.getElementById('shipDriverName').value;
+    data.shipping_driver_phone = document.getElementById('shipDriverPhone').value;
+    data.shipping_vehicle = method;
+    data.shipping_plate = document.getElementById('shipPlateInput').value;
+  }
+
+  try{
+    const token=sessionStorage.getItem('op_token');
+    const res = await fetch(`${API.BASE_URL}/api/orders/${id}/ship`,{
+      method:'PATCH', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify(data)
+    });
+    const d = await res.json();
+    if(res.ok){
+      toast(`ارسال شد — کد تحویل: ${d.delivery_code}`);
+      document.getElementById('shipModal').classList.remove('show');
+      closeDetail(); loadOrders();
+    } else { toast(d.message||'خطا',false); }
+  }catch(e){ toast('خطا در ثبت اطلاعات ارسال',false); }
+}
+
+async function submitDelivery(){
+  const id = document.getElementById('deliverOrderId').value;
+  const code = document.getElementById('deliverCode').value.trim();
+  if(!code){ toast('کد تحویل را وارد کنید',false); return; }
+  try{
+    const token=sessionStorage.getItem('op_token');
+    const res = await fetch(`${API.BASE_URL}/api/orders/${id}/deliver`,{
+      method:'PATCH', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({delivery_code: code})
+    });
+    const d = await res.json();
+    if(res.ok){
+      toast('سفارش تحویل داده شد و پیامک ارسال شد');
+      document.getElementById('deliverModal').classList.remove('show');
+      closeDetail(); loadOrders();
+    } else { toast(d.message||'خطا',false); }
+  }catch(e){ toast('خطا در ثبت تحویل',false); }
+}
+
+function movePlate(inp, nextId){ if(inp.value.length>=inp.maxLength){ const n=document.getElementById(nextId); if(n) n.focus(); } }
+function getPlateValue(){ return document.getElementById('shipPlateInput')?.value||''; }
+function formatPlate(inp){}
+function updatePlateFormat(){}
+
+function onShipMethodChange(){
+  const m = document.getElementById('shipMethod').value;
+  const isPost = m === 'post' || m === 'tipax';
+  document.getElementById('shipTrackRow').style.display = isPost ? 'block' : 'none';
+  document.getElementById('shipDriverRow').style.display = (!isPost && m) ? 'block' : 'none';
+}
+
+// ── INVOICE EDIT ──
+let invItemCount=0;
+async function openInvoiceEdit(i){
+  const o=filtered[i];curOrderId=o.id;invItemCount=0;
+  document.getElementById('invoiceNum').textContent=`#${fa(o.id)}`;
+  document.getElementById('invoiceBody').innerHTML=`
+    <div style="background:#fff3cd;border-radius:9px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#856404;display:flex;align-items:center;gap:8px"><i class="ti ti-edit"></i>ویرایش فاکتور — ${o.user_name||''}</div>
+    <div style="display:grid;grid-template-columns:2.5fr 0.7fr 1fr 0.7fr 1fr auto;gap:6px;margin-bottom:6px;padding:0 2px">
+      <div style="font-size:10.5px;color:#888;font-weight:700">محصول</div>
+      <div style="font-size:10.5px;color:#888;font-weight:700;text-align:center">تعداد</div>
+      <div style="font-size:10.5px;color:#888;font-weight:700;text-align:center">قیمت</div>
+      <div style="font-size:10.5px;color:#888;font-weight:700;text-align:center">تخفیف%</div>
+      <div style="font-size:10.5px;color:#888;font-weight:700;text-align:center">جمع</div>
+      <div></div>
+    </div>
+    <div id="invItems"><div style="text-align:center;padding:20px;color:#bbb;font-size:12.5px"><i class="ti ti-loader"></i> در حال بارگذاری اقلام...</div></div>
+    <button onclick="addInvItem()" style="background:#f0fdf4;color:#16a34a;border:1.5px dashed #bbf7d0;border-radius:8px;padding:8px;font-family:Vazirmatn,sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin:8px 0;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-plus"></i>افزودن قلم</button>
+    <div style="display:flex;align-items:center;gap:10px;background:#f8fafc;border-radius:9px;padding:12px">
+      <span style="font-size:13px;font-weight:600;color:#444">تخفیف کلی:</span>
+      <input type="number" id="invDiscount" min="0" max="100" value="0" style="border:1.5px solid #e5e7eb;border-radius:7px;padding:7px 10px;font-family:Vazirmatn,sans-serif;font-size:13px;width:70px;text-align:center;outline:none" oninput="calcInvTotal()"/>
+      <span style="font-size:12px;color:#aaa">%</span>
+      <div style="margin-right:auto;text-align:left">
+        <div style="font-size:11px;color:#aaa">مبلغ نهایی</div>
+        <div style="font-size:20px;font-weight:900;color:#1d4ed8" id="invGrandTotal">۰ تومان</div>
+      </div>
+    </div>`;
+  document.getElementById('invoiceFoot').innerHTML=`
+    <button class="btn-prim" onclick="saveInvoice()"><i class="ti ti-check"></i>ذخیره فاکتور</button>
+    <button class="btn-prim" style="background:#16a34a" onclick="window.print()"><i class="ti ti-printer"></i>چاپ</button>
+    <button class="btn-sec" onclick="closeInvoice()">بستن</button>`;
+  document.getElementById('invoiceModal').classList.add('show');
+  await loadProducts();
+  await loadOrderItemsForEdit(o.id);
+}
+
+async function loadOrderItemsForEdit(orderId){
+  document.getElementById('invItems').innerHTML='';
+  invItemCount=0;
+  try{
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/orders/${orderId}`,{headers:{'Authorization':'Bearer '+token}});
+    const data=await res.json();
+    const items=data.items||[];
+    if(!items.length){ addInvItem(); return; }
+    items.forEach(it=>{
+      const j=invItemCount++;
+      document.getElementById('invItems').insertAdjacentHTML('beforeend',makeItemRow('inv',j));
+      document.getElementById(`invrow_${j}`).dataset.productId=it.product_id;
+      const inp=document.querySelector(`#invrow_${j} .prod-inp`);
+      if(inp) inp.value=it.description||'';
+      document.getElementById(`invqty_${j}`).value=it.quantity;
+      document.getElementById(`invprice_${j}`).value=it.price;
+      document.getElementById(`invdisc_${j}`).value=it.discount||0;
+      calcItemRow('inv',j);
+    });
+  }catch(e){
+    addInvItem();
+  }
+}
+function closeInvoice(){document.getElementById('invoiceModal').classList.remove('show');}
+
+async function saveInvoice(){
+  const rows=document.querySelectorAll('#invItems .item-row');
+  const items=[];
+  rows.forEach(row=>{
+    const productId=row.dataset.productId;
+    const j=row.id.replace('invrow_','');
+    const qty=Number(document.getElementById(`invqty_${j}`)?.value)||0;
+    const price=Number(document.getElementById(`invprice_${j}`)?.value)||0;
+    const disc=Number(document.getElementById(`invdisc_${j}`)?.value)||0;
+    if(productId && qty>0){
+      items.push({product_id:Number(productId), quantity:qty, price, discount:disc});
+    }
+  });
+  if(!items.length){ toast('حداقل یک قلم با محصول انتخاب‌شده الزامی است',false); return; }
+
+  const overallDiscount=Number(document.getElementById('invDiscount')?.value)||0;
+
+  try{
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/orders/${curOrderId}/items`,{
+      method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({items, overall_discount:overallDiscount})
+    });
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.message||'خطا در ذخیره');
+    toast('فاکتور با موفقیت ذخیره شد');
+    closeInvoice();
+    loadOrders();
+  }catch(e){
+    toast(e.message||'خطا در ذخیره فاکتور',false);
+  }
+}
+
+function makeItemRow(prefix,j){
+  return `<div id="${prefix}row_${j}" class="item-row">
+    <div style="position:relative">
+      <input class="item-inp prod-inp" data-prefix="${prefix}" data-j="${j}" style="text-align:right" placeholder="کد یا نام محصول..." oninput="searchProd(this)" autocomplete="off"/>
+    </div>
+    <input type="number" id="${prefix}qty_${j}" class="item-inp" value="1" min="1" oninput="calcItemRow('${prefix}',${j})"/>
+    <input type="number" id="${prefix}price_${j}" class="item-inp" value="0" oninput="calcItemRow('${prefix}',${j})"/>
+    <input type="number" id="${prefix}disc_${j}" class="item-inp" value="0" min="0" max="100" oninput="calcItemRow('${prefix}',${j})"/>
+    <input type="number" id="${prefix}total_${j}" class="item-inp" value="0" readonly style="background:#eff6ff;font-weight:700"/>
+    <button onclick="removeItemRow('${prefix}',${j})" style="background:#fee2e2;color:#dc2626;border:none;border-radius:7px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-trash" style="font-size:13px"></i></button>
+  </div>`;
+}
+
+function addInvItem(){
+  document.getElementById('invItems').insertAdjacentHTML('beforeend',makeItemRow('inv',invItemCount++));
+}
+function addNoItem(){
+  document.getElementById('noItems').insertAdjacentHTML('beforeend',makeItemRow('no',noItemCount++));
+}
+function removeItemRow(prefix,j){
+  const el=document.getElementById(`${prefix}row_${j}`);
+  if(el){el.remove();prefix==='inv'?calcInvTotal():calcNoTotal();}
+}
+
+function calcItemRow(prefix,j){
+  const qty=Number(document.getElementById(`${prefix}qty_${j}`)?.value)||0;
+  const price=Number(document.getElementById(`${prefix}price_${j}`)?.value)||0;
+  const disc=Number(document.getElementById(`${prefix}disc_${j}`)?.value)||0;
+  const el=document.getElementById(`${prefix}total_${j}`);
+  if(el)el.value=Math.round(qty*price*(1-disc/100));
+  prefix==='inv'?calcInvTotal():calcNoTotal();
+}
+
+function calcInvTotal(){
+  let sum=0;document.querySelectorAll('[id^=invtotal_]').forEach(el=>sum+=Number(el.value)||0);
+  const disc=Number(document.getElementById('invDiscount')?.value)||0;
+  const el=document.getElementById('invGrandTotal');
+  if(el)el.textContent=fmt(Math.round(sum*(1-disc/100)))+' تومان';
+}
+
+function calcNoTotal(){
+  let sum=0;document.querySelectorAll('[id^=nototal_]').forEach(el=>sum+=Number(el.value)||0);
+  const disc=Number(document.getElementById('no_discount')?.value)||0;
+  const el=document.getElementById('noGrandTotal');
+  if(el)el.textContent=fmt(Math.round(sum*(1-disc/100)))+' تومان';
+}
+
+// ── PRODUCT SEARCH ──
+let activeProdInp=null,activeProdPrefix='',activeProdJ=0;
+function searchProd(inp){
+  activeProdInp=inp;
+  activeProdPrefix=inp.dataset.prefix;
+  activeProdJ=Number(inp.dataset.j);
+  const q=inp.value.trim();
+  const dd=document.getElementById('prodDropdown');
+  if(!q){dd.style.display='none';return;}
+  const results=allProducts.filter(p=>p.description?.includes(q)||p.code?.includes(q)).slice(0,8);
+  if(!results.length){dd.style.display='none';return;}
+  const rect=inp.getBoundingClientRect();
+  dd.style.cssText=`display:block;position:fixed;top:${rect.bottom+2}px;right:${window.innerWidth-rect.right}px;min-width:320px`;
+  dd.innerHTML=results.map(p=>`<div class="prod-opt" onclick="pickProd('${(p.description||'').replace(/'/g,'&apos;')}',${p.price},${p.id})">
+    <div><div style="font-size:12.5px;font-weight:600">${(p.description||'').slice(0,40)}</div><div style="font-size:11px;color:#aaa">${p.code||''}</div></div>
+    <div style="font-size:12px;font-weight:700;color:#1d4ed8;white-space:nowrap">${fmt(p.price)} ت</div>
+  </div>`).join('');
+}
+
+function pickProd(desc,price,productId){
+  if(activeProdInp)activeProdInp.value=desc;
+  const priceEl=document.getElementById(`${activeProdPrefix}price_${activeProdJ}`);
+  if(priceEl){priceEl.value=price;calcItemRow(activeProdPrefix,activeProdJ);}
+  const row=document.getElementById(`${activeProdPrefix}row_${activeProdJ}`);
+  if(row) row.dataset.productId=productId;
+  document.getElementById('prodDropdown').style.display='none';
+}
+
+document.addEventListener('click',e=>{
+  if(!e.target.classList.contains('prod-inp'))document.getElementById('prodDropdown').style.display='none';
+});
+
+// ── NEW ORDER ──
+let selectedCustomer=null, allCustomers=[];
+
+function openNewOrderModal(){
+  noItemCount=0; selectedCustomer=null;
+  document.getElementById('customerSearch').value='';
+  document.getElementById('customerResults').style.display='none';
+  document.getElementById('selectedCustomer').style.display='none';
+  document.getElementById('addCustomerForm').style.display='none';
+  document.getElementById('noItems').innerHTML='';
+  document.getElementById('noGrandTotal').textContent='۰ تومان';
+  const di=document.getElementById('no_discount');if(di)di.value='0';
+  const ni=document.getElementById('no_note');if(ni)ni.value='';
+  addNoItem();
+  document.getElementById('newOrderModal').classList.add('show');
+  loadProducts(); loadCustomers();
+}
+function closeNewOrder(){document.getElementById('newOrderModal').classList.remove('show');}
+
+async function loadCustomers(){
+  try{
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/users?limit=500`,{headers:{'Authorization':'Bearer '+token}});
+    if(res.ok)allCustomers=await res.json();
+  }catch(e){}
+}
+
+function searchCustomer(q){
+  const cr=document.getElementById('customerResults');
+  if(!q||q.length<1){cr.style.display='none';return;}
+  const results=allCustomers.filter(u=>u.name?.includes(q)||u.phone?.includes(q)).slice(0,6);
+  if(!results.length){
+    cr.innerHTML=`<div style="padding:12px 14px;font-size:13px;color:#aaa;text-align:center">مشتری یافت نشد</div>`;
+    cr.style.display='block';return;
+  }
+  cr.innerHTML=results.map(u=>`
+    <div onclick="selectCustomerById(${u.id})" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:10px" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background=''">
+      <div style="width:30px;height:30px;background:#1d4ed8;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;flex-shrink:0">${(u.name||'؟')[0]}</div>
+      <div><div style="font-size:13px;font-weight:600">${u.name||'—'}</div><div style="font-size:11.5px;color:#aaa">${u.phone||''} ${u.city?'— '+u.city:''}</div></div>
+    </div>`).join('');
+  cr.style.display='block';
+}
+
+function selectCustomerById(id){
+  const u=allCustomers.find(x=>x.id===id);
+  if(u) selectCustomer(u);
+}
+
+function selectCustomer(u){
+  selectedCustomer=u;
+  document.getElementById('customerSearch').value='';
+  document.getElementById('customerResults').style.display='none';
+  document.getElementById('custAvatar').textContent=(u.name||'؟')[0];
+  document.getElementById('custName').textContent=u.name||'—';
+  document.getElementById('custInfo').textContent=`${u.phone||''} ${u.city?'— '+u.city:''}`;
+  document.getElementById('selectedCustomer').style.cssText='display:flex';
+}
+function clearCustomer(){
+  selectedCustomer=null;
+  document.getElementById('selectedCustomer').style.display='none';
+}
+
+function showAddCustomer(){
+  document.getElementById('addCustomerForm').style.display='block';
+  ['new_cust_name','new_cust_phone','new_cust_city','new_cust_state','new_cust_addr','new_cust_postal','new_cust_email'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+}
+function hideAddCustomer(){document.getElementById('addCustomerForm').style.display='none';}
+
+async function confirmAddCustomer(){
+  const name=document.getElementById('new_cust_name').value.trim();
+  const phone=document.getElementById('new_cust_phone').value.trim();
+  if(!name||!phone){toast('نام و موبایل الزامی است',false);return;}
+  try{
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/users`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({name,phone,
+        city:document.getElementById('new_cust_city').value,
+        state:document.getElementById('new_cust_state').value,
+        address:document.getElementById('new_cust_addr').value,
+        postal_code:document.getElementById('new_cust_postal').value,
+        email:document.getElementById('new_cust_email').value,
+        role:'user',status:'active'})
+    });
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.message);
+    const newUser={id:data.id,name,phone,city:document.getElementById('new_cust_city').value};
+    allCustomers.unshift(newUser);
+    selectCustomer(newUser);
+    hideAddCustomer();
+    toast(`${name} به کاربران اضافه شد ✓`);
+  }catch(e){toast(e.message||'خطا در ثبت مشتری',false);}
+}
+
+async function submitNewOrder(){
+  if(!selectedCustomer){toast('ابتدا مشتری را انتخاب کنید',false);return;}
+  const items=[];
+  document.querySelectorAll('[id^=norow_]').forEach(row=>{
+    const j=row.id.replace('norow_','');
+    const desc=row.querySelector('.prod-inp')?.value||'';
+    const qty=Number(document.getElementById('noqty_'+j)?.value)||0;
+    const price=Number(document.getElementById('noprice_'+j)?.value)||0;
+    const disc=Number(document.getElementById('nodisc_'+j)?.value)||0;
+    if(desc&&qty>0)items.push({desc,qty,price,discount:disc,total:Math.round(qty*price*(1-disc/100))});
+  });
+  if(!items.length){toast('حداقل یک قلم اضافه کنید',false);return;}
+  const disc=Number(document.getElementById('no_discount').value)||0;
+  const total=Math.round(items.reduce((s,it)=>s+it.total,0)*(1-disc/100));
+  const token=sessionStorage.getItem('op_token');
+  try{
+    const res=await fetch(`${API.BASE_URL}/api/orders/manual`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({user_id:selectedCustomer.id,user_name:selectedCustomer.name,user_phone:selectedCustomer.phone,items,total,status:document.getElementById('no_status').value,note:document.getElementById('no_note').value})
+    });
+    const data=await res.json();
+    orders.unshift({id:data.id||Date.now(),user_name:selectedCustomer.name,user_phone:selectedCustomer.phone,created_at:new Date().toISOString().slice(0,10),items_count:items.length,total,status:document.getElementById('no_status').value});
+    filtered=[...orders];renderTable();updateStats();closeNewOrder();
+    toast(`سفارش ${selectedCustomer.name} ثبت شد ✓`);
+  }catch(e){toast('خطا در ثبت سفارش',false);}
+}
+
+
+// ── SMS ──
+function openSms(phone,name){
+  curSmsPhone=phone;
+  document.getElementById('smsRecipient').textContent=`${name} (${phone})`;
+  document.getElementById('smsText').value=`${name} عزیز، `;
+  document.getElementById('smsModal').classList.add('show');
+}
+function openGroupSms(){
+  curSmsPhone='all';
+  document.getElementById('smsRecipient').textContent='همه مشتریان';
+  document.getElementById('smsText').value='';
+  document.getElementById('smsModal').classList.add('show');
+}
+function closeSms(){document.getElementById('smsModal').classList.remove('show');}
+async function sendSmsNow(){
+  const text=document.getElementById('smsText').value.trim();
+  if(!text){toast('متن پیامک خالی است',false);return;}
+  try{
+    const token=sessionStorage.getItem('op_token');
+    await fetch(`${API.BASE_URL}/api/sms/send`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({message:text,recipients:[curSmsPhone]})});
+  }catch(e){}
+  toast('پیامک ارسال شد');closeSms();
+}
+
+// ── EXPORT ──
+function exportOrders(){
+  const rows=[['شماره','مشتری','موبایل','تاریخ','مبلغ','وضعیت']];
+  filtered.forEach(o=>rows.push([o.id,o.user_name,o.user_phone,toJalali(o.created_at),o.total,statusLabels[o.status]]));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='orders.csv';a.click();
+}
+
+loadOrders();
+</script>
+<!-- DELIVERY MODAL -->
+<div class="modal-overlay" id="deliverModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-package-check"></i>تایید تحویل سفارش</div>
+      <button class="modal-close" onclick="document.getElementById('deliverModal').classList.remove('show')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="deliverOrderId"/>
+      <div style="font-size:13px;color:#666;margin-bottom:14px">کد تحویل را که مشتری دریافت کرده وارد کنید:</div>
+      <div class="fg">
+        <label style="font-size:12.5px;font-weight:600;color:#444;display:block;margin-bottom:6px">کد تحویل <span style="color:#ef4444">*</span></label>
+        <input class="finput" id="deliverCode" placeholder="کد ۶ رقمی" maxlength="6" style="direction:ltr;font-size:20px;font-weight:700;letter-spacing:4px;text-align:center"/>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-prim" style="background:#16a34a" onclick="submitDelivery()"><i class="ti ti-check"></i>تایید تحویل</button>
+      <button class="btn-sec" onclick="document.getElementById('deliverModal').classList.remove('show')">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHIPPING MODAL -->
+<div class="modal-overlay" id="shipModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-truck"></i>اطلاعات ارسال سفارش</div>
+      <button class="modal-close" onclick="document.getElementById('shipModal').classList.remove('show')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="shipOrderId"/>
+      <div class="fg" style="margin-bottom:14px">
+        <label style="font-size:12.5px;font-weight:600;color:#444;display:block;margin-bottom:6px">روش ارسال <span style="color:#ef4444">*</span></label>
+        <select class="fselect" id="shipMethod" onchange="onShipMethodChange()" style="width:100%">
+          <option value="">انتخاب روش ارسال...</option>
+          <option value="post">پست</option>
+          <option value="tipax">تیپاکس</option>
+          <option value="snap">خودرو سواری</option>
+          <option value="motorbike">موتورسیکلت</option>
+          <option value="van">وانت</option>
+          <option value="truck">کامیونت</option>
+        </select>
+      </div>
+
+      <!-- پست / تیپاکس -->
+      <div id="shipTrackRow" style="display:none">
+        <div class="fg">
+          <label style="font-size:12.5px;font-weight:600;color:#444;display:block;margin-bottom:6px">کد رهگیری</label>
+          <input class="finput" id="shipTracking" placeholder="کد رهگیری مرسوله" style="direction:ltr"/>
+        </div>
+      </div>
+
+      <!-- وسایل نقلیه -->
+      <div id="shipDriverRow" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="fg">
+            <label style="font-size:12.5px;font-weight:600;color:#444;display:block;margin-bottom:6px">نام راننده <span style="color:#ef4444">*</span></label>
+            <input class="finput" id="shipDriverName" placeholder="نام و نام‌خانوادگی"/>
+          </div>
+          <div class="fg">
+            <label style="font-size:12.5px;font-weight:600;color:#444;display:block;margin-bottom:6px">موبایل راننده <span style="color:#ef4444">*</span></label>
+            <input class="finput" id="shipDriverPhone" placeholder="09xxxxxxxxx" style="direction:ltr"/>
+          </div>
+          <div class="fg">
+            <label style="font-size:12.5px;font-weight:600;color:#444;display:block;margin-bottom:6px">تعداد بسته‌ها</label>
+            <input class="finput" id="shipPackages" type="number" min="1" value="1" style="width:100%"/>
+          </div>
+          <div class="fg">
+            <label style="font-size:12.5px;font-weight:600;color:#444;display:block;margin-bottom:6px">شماره پلاک <span style="color:#ef4444">*</span></label>
+            <input class="finput" id="shipPlateInput" placeholder="مثال: ایران ۷۸-۳۴۵ الف ۱۲" style="direction:ltr"/>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-prim" onclick="submitShipping()"><i class="ti ti-truck"></i>ثبت و ارسال</button>
+      <button class="btn-sec" onclick="document.getElementById('shipModal').classList.remove('show')">انصراف</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" href="/images/favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>مدیریت مدیران | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    body{background:#f1f5f9;}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+    .sc{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);display:flex;align-items:center;gap:14px;}
+    .sc-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+    .si-blue{background:#eff6ff;color:#1d4ed8;} .si-green{background:#dcfce7;color:#16a34a;} .si-amber{background:#fef3c7;color:#d97706;}
+    .sc-val{font-size:22px;font-weight:900;color:#111;} .sc-lbl{font-size:11.5px;color:#aaa;}
+    .toolbar{background:#fff;border-radius:12px;padding:14px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+    .fi{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-family:'Vazirmatn',sans-serif;font-size:13px;color:#333;outline:none;}
+    .fi-input{flex:1;}
+    .btn-add{background:#1d4ed8;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;margin-right:auto;}
+    .table-card{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden;}
+    .tc-head{padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;}
+    .tc-title{font-size:14px;font-weight:800;color:#111;}
+    .tbl{width:100%;border-collapse:collapse;}
+    .tbl th{font-size:11.5px;font-weight:700;color:#888;text-align:center;padding:10px 12px;border-bottom:2px solid #f0f0f0;background:#f8fafc;white-space:nowrap;}
+    .tbl th:nth-child(2){text-align:right;}
+    .tbl td{font-size:12.5px;color:#333;padding:11px 12px;border-bottom:1px solid #f5f5f5;text-align:center;white-space:nowrap;}
+    .tbl tbody tr:hover{background:#f9fbff;}
+    .user-cell{display:flex;align-items:center;gap:8px;}
+    .u-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+    .badge{border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;}
+    .b-green{background:#dcfce7;color:#16a34a;} .b-red{background:#fee2e2;color:#dc2626;}
+    .b-blue{background:#dbeafe;color:#1d4ed8;} .b-purple{background:#f5f3ff;color:#7c3aed;}
+    .b-gray{background:#f3f4f6;color:#666;} .b-amber{background:#fef3c7;color:#d97706;}
+    .perm-chips{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;}
+    .perm-chip{background:#eff6ff;color:#1d4ed8;border-radius:5px;padding:2px 7px;font-size:10.5px;font-weight:600;}
+    .perm-chip.all{background:#dcfce7;color:#16a34a;}
+    .action-btns{display:flex;gap:5px;justify-content:center;}
+    .ab{width:28px;height:28px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;}
+    .ab-edit{background:#fef3c7;color:#d97706;} .ab-del{background:#fee2e2;color:#dc2626;}
+    .ab-pw{background:#f0fdf4;color:#16a34a;}
+    /* Modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;}
+    .modal-overlay.show{display:flex;}
+    .modal{background:#fff;border-radius:18px;width:640px;max-height:92vh;overflow-y:auto;}
+    .modal-head{padding:20px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:5;}
+    .modal-title{font-size:16px;font-weight:800;color:#111;display:flex;align-items:center;gap:8px;}
+    .modal-title i{color:#1d4ed8;}
+    .modal-close{width:32px;height:32px;background:#f3f4f6;border:none;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+    .modal-body{padding:24px;}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .fg{display:flex;flex-direction:column;gap:6px;} .fg.full{grid-column:1/-1;}
+    .fg label{font-size:12.5px;font-weight:600;color:#444;}
+    .finput{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:10px 13px;font-family:'Vazirmatn',sans-serif;font-size:13.5px;color:#111;outline:none;transition:border .2s;width:100%;}
+    .finput:focus{border-color:#1d4ed8;background:#fff;}
+    .fselect{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:10px 13px;font-family:'Vazirmatn',sans-serif;font-size:13px;color:#333;outline:none;width:100%;}
+    .sec-lbl{grid-column:1/-1;font-size:12px;font-weight:700;color:#1d4ed8;padding:6px 0 0;display:flex;align-items:center;gap:6px;}
+    .divider{grid-column:1/-1;height:1px;background:#f0f0f0;}
+    /* Permissions Grid */
+    .perm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px;}
+    .perm-item{display:flex;align-items:center;gap:9px;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:10px;padding:11px 14px;cursor:pointer;transition:all .15s;user-select:none;}
+    .perm-item:hover{border-color:#1d4ed8;background:#f0f4ff;}
+    .perm-item.checked{border-color:#1d4ed8;background:#eff6ff;}
+    .perm-item input[type=checkbox]{accent-color:#1d4ed8;width:15px;height:15px;flex-shrink:0;}
+    .perm-item-icon{font-size:18px;color:#1d4ed8;flex-shrink:0;}
+    .perm-item-name{font-size:13px;font-weight:600;color:#333;}
+    .perm-item-desc{font-size:11px;color:#aaa;}
+    .select-all-btn{background:#f0f4ff;color:#1d4ed8;border:1.5px solid #dbeafe;border-radius:8px;padding:7px 16px;font-family:'Vazirmatn',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
+    .modal-foot{padding:16px 24px;border-top:1px solid #f0f0f0;display:flex;gap:10px;position:sticky;bottom:0;background:#fff;}
+    .btn-prim{background:#1d4ed8;color:#fff;border:none;border-radius:9px;padding:11px 24px;font-family:'Vazirmatn',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;}
+    .btn-sec{background:#f3f4f6;color:#555;border:none;border-radius:9px;padding:11px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:600;display:none;align-items:center;gap:10px;z-index:999;}
+    .toast.show{display:flex;}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-placeholder"></div>
+  <div class="main">
+    <div id="topbar-placeholder"></div>
+    <div class="content">
+
+      <div class="stats">
+        <div class="sc"><div class="sc-icon si-blue"><i class="ti ti-shield-lock"></i></div><div><div class="sc-val" id="totalAdmins">—</div><div class="sc-lbl">کل مدیران</div></div></div>
+        <div class="sc"><div class="sc-icon si-green"><i class="ti ti-crown"></i></div><div><div class="sc-val" id="superAdmins">—</div><div class="sc-lbl">ادمین کل</div></div></div>
+        <div class="sc"><div class="sc-icon si-amber"><i class="ti ti-user-shield"></i></div><div><div class="sc-val" id="limitedAdmins">—</div><div class="sc-lbl">دسترسی محدود</div></div></div>
+      </div>
+
+      <div class="toolbar">
+        <input class="fi fi-input" placeholder="جستجو نام، موبایل..." id="searchInp" oninput="renderTable()" autocomplete="off"/>
+        <button class="btn-add" onclick="openModal('add',null)"><i class="ti ti-user-plus"></i>افزودن مدیر جدید</button>
+      </div>
+
+      <div class="table-card">
+        <div class="tc-head">
+          <div class="tc-title">لیست مدیران و بازاریابان</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th style="text-align:right">نام</th>
+              <th>موبایل</th>
+              <th>نوع</th>
+              <th>دسترسی‌ها</th>
+              <th>آخرین ورود</th>
+              <th>وضعیت</th>
+              <th>عملیات</th>
+            </tr></thead>
+            <tbody id="adminTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-shield-lock"></i><span id="modalTitle">افزودن مدیر جدید</span></div>
+      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="sec-lbl"><i class="ti ti-user"></i>اطلاعات شخصی</div>
+        <div class="fg"><label>نام *</label><input class="finput" id="f_name" placeholder="نام"/></div>
+        <div class="fg"><label>نام خانوادگی</label><input class="finput" id="f_lname" placeholder="نام خانوادگی"/></div>
+        <div class="fg"><label>شماره موبایل *</label><input class="finput" id="f_phone" placeholder="09xxxxxxxxx"/></div>
+        <div class="fg"><label>رمز عبور *</label><input class="finput" type="password" id="f_pass" placeholder="رمز عبور"/></div>
+        <div class="fg"><label>نوع</label>
+          <select class="fselect" id="f_type" onchange="togglePerms()">
+            <option value="super">ادمین کل (همه دسترسی‌ها)</option>
+            <option value="limited">بازاریاب (دسترسی محدود)</option>
+          </select>
+        </div>
+        <div class="fg"><label>وضعیت</label>
+          <select class="fselect" id="f_status">
+            <option value="active">فعال</option>
+            <option value="inactive">غیرفعال</option>
+          </select>
+        </div>
+
+        <div class="divider"></div>
+        <div class="sec-lbl" id="permSection"><i class="ti ti-key"></i>سطح دسترسی</div>
+        <div class="fg full" id="permSectionBody">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <span style="font-size:12.5px;color:#666">بخش‌هایی که این مدیر می‌تواند دسترسی داشته باشد:</span>
+            <button class="select-all-btn" onclick="toggleAll()"><i class="ti ti-select-all"></i>انتخاب همه</button>
+          </div>
+          <div class="perm-grid" id="permGrid"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-prim" onclick="saveAdmin()"><i class="ti ti-check"></i>ذخیره</button>
+      <button class="btn-sec" onclick="closeModal()">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+Admin.renderSidebar('admins');
+Admin.renderTopbar('مدیریت مدیران','ti-shield-lock');
+
+const fa = n => n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+const colors = ['#1d4ed8','#16a34a','#d97706','#7c3aed','#0f766e'];
+
+const PERMS = [
+  {key:'orders',   icon:'ti-shopping-bag',  name:'سفارشات',  desc:'مدیریت سفارشات'},
+  {key:'products', icon:'ti-packages',      name:'محصولات',  desc:'افزودن و ویرایش'},
+  {key:'invoices', icon:'ti-receipt',       name:'فاکتورها', desc:'مشاهده فاکتورها'},
+  {key:'payments', icon:'ti-credit-card',   name:'پرداخت‌ها', desc:'تأیید پرداخت'},
+  {key:'users',    icon:'ti-users',         name:'کاربران',  desc:'مدیریت کاربران'},
+  {key:'partners', icon:'ti-building-store',name:'همکاران',  desc:'درخواست همکاری'},
+  {key:'credit',   icon:'ti-id-badge',      name:'اعتباری',  desc:'درخواست اعتبار'},
+  {key:'sms',      icon:'ti-message-2',     name:'پیامک',    desc:'ارسال پیامک'},
+  {key:'reports',  icon:'ti-chart-bar',     name:'گزارشات',  desc:'آمار و گزارش'},
+  {key:'settings', icon:'ti-settings',      name:'تنظیمات',  desc:'تنظیمات سایت'},
+];
+
+let admins = [], filtered = [], currentId = null;
+
+// Sample data
+const sampleAdmins = [
+  {id:1, name:'مدیر سیستم', phone:'09000000000', type:'super', permissions:null, status:'active', last_login:'2024-06-05'},
+  {id:2, name:'علی احمدی',  phone:'09121234567', type:'limited', permissions:['orders','payments','reports'], status:'active', last_login:'2024-06-04'},
+  {id:3, name:'مریم رستمی', phone:'09151234567', type:'limited', permissions:['products','invoices'], status:'active', last_login:'2024-06-03'},
+];
+
+function toast(msg, ok=true){
+  const t=document.getElementById('toast');
+  t.innerHTML=`<i class="ti ti-${ok?'check':'x'}" style="color:${ok?'#4ade80':'#f87171'};font-size:18px"></i>${msg}`;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+async function loadAdmins(){
+  try {
+    const token = sessionStorage.getItem('op_token');
+    const res = await fetch(`${API.BASE_URL}/api/users?role=admin&limit=100`, {headers:{'Authorization':'Bearer '+token}});
+    if(res.ok) admins = await res.json();
+    else admins = sampleAdmins;
+  } catch(e){ admins = sampleAdmins; }
+  updateStats(); renderTable();
+}
+
+function updateStats(){
+  document.getElementById('totalAdmins').textContent = fa(admins.length);
+  document.getElementById('superAdmins').textContent = fa(admins.filter(a=>a.type==='super'||!a.permissions).length);
+  document.getElementById('limitedAdmins').textContent = fa(admins.filter(a=>a.type==='limited'&&a.permissions).length);
+}
+
+function renderTable(){
+  const s = document.getElementById('searchInp').value;
+  filtered = admins.filter(a => !s || a.name?.includes(s) || a.phone?.includes(s));
+
+  document.getElementById('adminTbody').innerHTML = filtered.map((a,i) => {
+    const isSuper = a.type==='super' || !a.permissions;
+    const perms = a.permissions || [];
+    return `<tr>
+      <td style="text-align:right"><div class="user-cell">
+        <div class="u-av" style="background:${colors[i%colors.length]}">${(a.name||'؟')[0]}</div>
+        <div><div style="font-weight:600">${a.name||'—'}</div><div style="font-size:11px;color:#aaa">${a.phone||''}</div></div>
+      </div></td>
+      <td style="direction:ltr">${a.phone||'—'}</td>
+      <td><span class="badge ${isSuper?'b-purple':'b-blue'}">${isSuper?'ادمین کل':'بازاریاب'}</span></td>
+      <td>
+        ${isSuper ? '<span class="perm-chip all">همه دسترسی‌ها</span>' :
+          `<div class="perm-chips">${perms.map(p=>{
+            const perm=PERMS.find(x=>x.key===p);
+            return `<span class="perm-chip">${perm?.name||p}</span>`;
+          }).join('')}</div>`}
+      </td>
+      <td style="font-size:11.5px;color:#888">${a.last_login?.slice(0,10)||'—'}</td>
+      <td><span class="badge ${a.status==='active'?'b-green':'b-red'}">${a.status==='active'?'فعال':'غیرفعال'}</span></td>
+      <td><div class="action-btns">
+        <button class="ab ab-edit" onclick="editAdmin(${a.id})" title="ویرایش"><i class="ti ti-edit"></i></button>
+        <button class="ab ab-pw" onclick="resetPw(${a.id})" title="تغییر رمز"><i class="ti ti-lock"></i></button>
+        ${a.id!==1?`<button class="ab ab-del" onclick="deleteAdmin(${a.id})" title="حذف"><i class="ti ti-trash"></i></button>`:''}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPermGrid(selected = []){
+  document.getElementById('permGrid').innerHTML = PERMS.map(p => `
+    <div class="perm-item ${selected.includes(p.key)?'checked':''}" onclick="togglePerm(this,'${p.key}')">
+      <input type="checkbox" ${selected.includes(p.key)?'checked':''} onchange="this.closest('.perm-item').classList.toggle('checked',this.checked)"/>
+      <i class="ti ${p.icon} perm-item-icon"></i>
+      <div><div class="perm-item-name">${p.name}</div><div class="perm-item-desc">${p.desc}</div></div>
+    </div>`).join('');
+}
+
+function togglePerm(el, key){
+  const cb = el.querySelector('input');
+  cb.checked = !cb.checked;
+  el.classList.toggle('checked', cb.checked);
+}
+
+function toggleAll(){
+  const items = document.querySelectorAll('.perm-item');
+  const allChecked = [...items].every(i=>i.classList.contains('checked'));
+  items.forEach(item=>{
+    item.classList.toggle('checked', !allChecked);
+    item.querySelector('input').checked = !allChecked;
+  });
+}
+
+function togglePerms(){
+  const type = document.getElementById('f_type').value;
+  const section = document.getElementById('permSectionBody');
+  section.style.display = type==='super' ? 'none' : 'block';
+  document.getElementById('permSection').style.display = type==='super' ? 'none' : 'flex';
+}
+
+function editAdmin(id){
+  const a=admins.find(x=>x.id===id);
+  if(a) openModal('edit',a);
+}
+
+function openModal(mode, a){
+  currentId = a?.id || null;
+  document.getElementById('modalTitle').textContent = mode==='add' ? 'افزودن مدیر جدید' : 'ویرایش مدیر';
+  if(a){
+    const nameParts = (a.name||'').split(' ');
+    document.getElementById('f_name').value = nameParts[0]||'';
+    document.getElementById('f_lname').value = nameParts.slice(1).join(' ')||'';
+    document.getElementById('f_phone').value = a.phone||'';
+    document.getElementById('f_pass').value = '';
+    document.getElementById('f_type').value = a.type||'limited';
+    document.getElementById('f_status').value = a.status||'active';
+    renderPermGrid(a.permissions||[]);
+  } else {
+    ['f_name','f_lname','f_phone','f_pass'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('f_type').value = 'limited';
+    document.getElementById('f_status').value = 'active';
+    renderPermGrid([]);
+  }
+  togglePerms();
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+
+async function saveAdmin(){
+  const name = (document.getElementById('f_name').value + ' ' + document.getElementById('f_lname').value).trim();
+  const phone = document.getElementById('f_phone').value.trim();
+  const pass = document.getElementById('f_pass').value.trim();
+  if(!name||!phone){toast('نام و موبایل اجباری است',false);return;}
+
+  const type = document.getElementById('f_type').value;
+  let permissions = null;
+  if(type === 'limited'){
+    permissions = [...document.querySelectorAll('.perm-item.checked')].map(el=>{
+      return el.querySelector('input').closest('.perm-item').querySelector('.perm-item-name').textContent;
+    });
+    // Get key from checked items
+    permissions = PERMS.filter(p=>{
+      const items = document.querySelectorAll('.perm-item');
+      for(const item of items){
+        if(item.querySelector('.perm-item-name').textContent === p.name && item.classList.contains('checked')) return true;
+      }
+      return false;
+    }).map(p=>p.key);
+  }
+
+  const data = {
+    name, phone, role:'admin',
+    status: document.getElementById('f_status').value
+  };
+  if(pass) data.password = pass;
+  if(permissions) data.permissions = JSON.stringify(permissions);
+  if(type) data.type = type;
+
+  try {
+    const token = sessionStorage.getItem('op_token');
+    const url = currentId ? `${API.BASE_URL}/api/users/${currentId}` : `${API.BASE_URL}/api/users`;
+    const method = currentId ? 'PUT' : 'POST';
+    const res = await fetch(url,{method,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(data)});
+    if(!res.ok){const d=await res.json();throw new Error(d.message);}
+    toast(currentId?'مدیر ویرایش شد':'مدیر جدید اضافه شد');
+    closeModal(); loadAdmins();
+  } catch(e){ toast(e.message||'خطا',false); }
+}
+
+async function resetPw(id){
+  const pw = prompt('رمز عبور جدید:');
+  if(!pw) return;
+  try {
+    const token = sessionStorage.getItem('op_token');
+    await fetch(`${API.BASE_URL}/api/users/${id}`,{
+      method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({password:pw})
+    });
+    toast('رمز عبور تغییر کرد');
+  } catch(e){ toast('خطا',false); }
+}
+
+async function deleteAdmin(id){
+  if(!confirm('حذف این مدیر؟')) return;
+  try {
+    const token = sessionStorage.getItem('op_token');
+    await fetch(`${API.BASE_URL}/api/users/${id}/block`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
+    toast('مدیر غیرفعال شد');
+    loadAdmins();
+  } catch(e){ toast('خطا',false); }
+}
+
+loadAdmins();
+</script>
+</body>
+</html>

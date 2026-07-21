@@ -1,0 +1,8 @@
+{
+  "app": "onpart",
+  "platform": "static",
+  "port": 80,
+  "build": {
+    "location": "germany"
+  }
+}

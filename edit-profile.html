@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>ویرایش پروفایل | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    body{background:#f4f6f9;min-height:100vh;}
+    .page{max-width:560px;margin:0 auto;padding:20px 16px 40px;}
+    .card{background:#fff;border-radius:14px;padding:24px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+    .card-title{font-size:16px;font-weight:800;color:#111;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+    .fg{margin-bottom:14px;}
+    .flabel{font-size:12.5px;font-weight:600;color:#444;display:block;margin-bottom:5px;}
+    .finput{width:100%;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:11px 13px;font-family:Vazirmatn,sans-serif;font-size:13.5px;color:#111;outline:none;box-sizing:border-box;}
+    .finput:focus{border-color:#1d4ed8;background:#fff;}
+    .fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .btn-save{width:100%;background:#1d4ed8;color:#fff;border:none;border-radius:10px;padding:14px;font-family:Vazirmatn,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;}
+    .btn-back{display:flex;align-items:center;gap:6px;color:#666;text-decoration:none;font-size:13px;font-weight:600;margin-bottom:16px;}
+    @media(max-width:640px){.fg-grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<script src="js/components.js"></script>
+<div id="navbar-placeholder"></div>
+<script>OnPart.renderNavbar('profile');</script>
+
+<div class="page">
+  <a href="profile.html" class="btn-back"><i class="ti ti-arrow-right"></i>بازگشت به پروفایل</a>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-edit" style="color:#1d4ed8"></i>ویرایش پروفایل</div>
+    <div class="fg-grid">
+      <div class="fg"><label class="flabel">نام و نام‌خانوادگی</label><input class="finput" id="e_name" placeholder="نام کامل"/></div>
+      <div class="fg"><label class="flabel">نام فروشگاه</label><input class="finput" id="e_shop" placeholder="نام کسب‌وکار"/></div>
+      <div class="fg"><label class="flabel">کد ملی</label><input class="finput" id="e_national" placeholder="کد ملی" style="direction:ltr"/></div>
+      <div class="fg"><label class="flabel">ایمیل</label><input class="finput" id="e_email" placeholder="example@email.com" style="direction:ltr"/></div>
+      <div class="fg"><label class="flabel">استان</label><input class="finput" id="e_province" placeholder="استان"/></div>
+      <div class="fg"><label class="flabel">شهر</label><input class="finput" id="e_city" placeholder="شهر"/></div>
+      <div class="fg"><label class="flabel">تلفن ثابت</label><input class="finput" id="e_phone_fixed" placeholder="02112345678" style="direction:ltr"/></div>
+      <div class="fg"><label class="flabel">کد پستی</label><input class="finput" id="e_postal" placeholder="کد پستی" style="direction:ltr"/></div>
+    </div>
+    <div class="fg"><label class="flabel">آدرس</label><input class="finput" id="e_address" placeholder="آدرس کامل"/></div>
+    <button class="btn-save" id="saveBtn" onclick="saveProfile()"><i class="ti ti-check"></i> ذخیره تغییرات</button>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+const BASE = 'https://onpartpadmin.liara.run';
+
+async function loadUser(){
+  const token = sessionStorage.getItem('op_token');
+  if(!token){ window.location.href='login.html'; return; }
+  const res = await fetch(BASE+'/api/users/me', {headers:{'Authorization':'Bearer '+token}});
+  if(!res.ok){ window.location.href='login.html'; return; }
+  const u = await res.json();
+  document.getElementById('e_name').value = u.name||'';
+  document.getElementById('e_shop').value = u.shop_name||'';
+  document.getElementById('e_national').value = u.national_code||'';
+  document.getElementById('e_email').value = u.email||'';
+  document.getElementById('e_province').value = u.province||'';
+  document.getElementById('e_city').value = u.city||'';
+  document.getElementById('e_phone_fixed').value = u.phone_fixed||'';
+  document.getElementById('e_postal').value = u.postal_code||'';
+  document.getElementById('e_address').value = u.address||'';
+}
+
+async function saveProfile(){
+  const token = sessionStorage.getItem('op_token');
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'در حال ذخیره...';
+  try{
+    const res = await fetch(BASE+'/api/users/me', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({
+        name: document.getElementById('e_name').value,
+        shop_name: document.getElementById('e_shop').value,
+        national_code: document.getElementById('e_national').value,
+        email: document.getElementById('e_email').value,
+        province: document.getElementById('e_province').value,
+        city: document.getElementById('e_city').value,
+        phone_fixed: document.getElementById('e_phone_fixed').value,
+        postal_code: document.getElementById('e_postal').value,
+        address: document.getElementById('e_address').value,
+      })
+    });
+    if(res.ok){
+      alert('پروفایل با موفقیت ذخیره شد');
+      window.location.href = 'profile.html';
+    } else {
+      const d = await res.json();
+      alert(d.message||'خطا در ذخیره');
+    }
+  }catch(e){ alert('خطا در اتصال'); }
+  finally{ btn.disabled=false; btn.innerHTML='<i class="ti ti-check"></i> ذخیره تغییرات'; }
+}
+
+loadUser();
+</script>
+</body>
+</html>

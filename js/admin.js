@@ -1,0 +1,438 @@
+// Admin Sidebar & Shared Components
+const API_BASE = 'https://onpartpadmin.liara.run';
+
+const Admin = {
+
+  // All pages with permission keys
+  pages: [
+    { id:'dashboard', label:'داشبورد',       icon:'ti-layout-dashboard', href:'index.html',    perm:null },
+    { id:'orders',    label:'سفارشات',        icon:'ti-shopping-bag',     href:'orders.html',   perm:'orders',   badge:'orders' },
+    { id:'products',  label:'محصولات',        icon:'ti-packages',         href:'products.html', perm:'products' },
+    { id:'invoices',  label:'فاکتورها',        icon:'ti-receipt',          href:'invoices.html', perm:'invoices' },
+    { id:'payments',  label:'پرداخت‌ها',       icon:'ti-credit-card',      href:'payments.html', perm:'payments', badge:'payments' },
+    { id:'users',     label:'کاربران',         icon:'ti-users',            href:'users.html',    perm:'users' },
+    { id:'partners',  label:'تامین‌کنندگان',   icon:'ti-building-store',   href:'partners.html', perm:'partners' },
+    { id:'admins',    label:'مدیران',          icon:'ti-shield-lock',      href:'admins.html',   perm:'admins' },
+    { id:'shipping',  label:'حمل و نقل',        icon:'ti-truck',            href:'shipping.html', perm:'orders' },
+    { id:'sms',       label:'پیامک',           icon:'ti-message-2',        href:'sms.html',      perm:'sms' },
+    { id:'announcements', label:'اعلان‌ها',    icon:'ti-speakerphone',     href:'announcements.html', perm:null },
+    { id:'reports',   label:'گزارشات',         icon:'ti-chart-bar',        href:'reports.html',  perm:'reports' },
+    { id:'settings',  label:'تنظیمات',         icon:'ti-settings',         href:'settings.html', perm:'settings' },
+  ],
+
+  sections: [
+    { label:'داشبورد',    items:['dashboard'] },
+    { label:'فروش',       items:['orders','products','payments','shipping'] },
+    { label:'کاربران',    items:['users','partners','admins','credit'] },
+    { label:'ارتباطات',   items:['sms','announcements','reports'] },
+    { label:'تنظیمات',    items:['settings'] },
+  ],
+
+  getUser() {
+    return JSON.parse(sessionStorage.getItem('op_user') || '{}');
+  },
+
+  getPerms() {
+    const user = this.getUser();
+    // Super admin has all perms
+    if (user.role === 'admin' && !user.permissions) return null;
+    return user.permissions || null;
+  },
+
+  hasPerm(perm) {
+    if (!perm) return true;
+    const perms = this.getPerms();
+    if (!perms) return true; // super admin
+    return perms.includes(perm);
+  },
+
+  renderSidebar(active = '') {
+    // Security check: only admin/partner roles can access the admin panel
+    if (!this.protect()) return;
+
+    const user = this.getUser();
+    let html = `
+    <div class="sidebar">
+      <div class="sb-logo" style="justify-content:center;padding:22px 16px">
+        <img src="../images/logo.png" style="height:54px;object-fit:contain"/>
+      </div>`;
+
+    this.sections.forEach(sec => {
+      const visibleItems = sec.items.filter(id => {
+        const p = this.pages.find(x => x.id === id);
+        return p && this.hasPerm(p.perm);
+      });
+
+    // Load notification badge after render
+    setTimeout(() => {
+      this.loadNotifs();
+      // Poll every 30 seconds for new notifications
+      if(!this._notifInterval) {
+        this._notifInterval = setInterval(() => this.loadNotifs(), 60000);
+      }
+    }, 500);
+      if (!visibleItems.length) return;
+
+      html += `<div class="sb-section"><div class="sb-lbl">${sec.label}</div>`;
+      visibleItems.forEach(id => {
+        const p = this.pages.find(x => x.id === id);
+        if (!p) return;
+        const isActive = active === id;
+        if(p.disabled){
+          html += `<div class="sb-item" style="opacity:.5;cursor:not-allowed;position:relative">
+            <i class="ti ${p.icon}"></i>
+            <span>${p.label}</span>
+            <span style="margin-right:auto;background:#f59e0b;color:#fff;border-radius:10px;padding:1px 7px;font-size:9px;font-weight:700">به‌زودی</span>
+          </div>`;
+        } else {
+          html += `<a class="sb-item${isActive?' active':''}" href="${p.href}">
+            <i class="ti ${p.icon}"></i>
+            <span>${p.label}</span>
+            ${p.badge ? `<div class="sb-badge-dot" id="sb_badge_${p.badge}" style="display:none;margin-right:auto;background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700">۰</div>` : ''}
+          </a>`;
+        }
+      });
+      html += `</div>`;
+    });
+
+    html += `
+      <div class="sb-user">
+        <div class="sb-av"><i class="ti ti-user"></i></div>
+        <div>
+          <div class="sb-un">${user.name || 'مدیر سیستم'}</div>
+          <div class="sb-ur">${user.role === 'admin' ? 'Super Admin' : 'بازاریاب'}</div>
+        </div>
+        <i class="ti ti-logout sb-logout" onclick="Admin.logout()" title="خروج"></i>
+      </div>
+    </div>`;
+
+    document.getElementById('sidebar-placeholder').innerHTML = html;
+
+    // Create overlay only (the blue hamburger button is in topbar)
+    if(!document.getElementById('sidebarOverlay')){
+      const overlay = document.createElement('div');
+      overlay.className = 'sidebar-overlay';
+      overlay.id = 'sidebarOverlay';
+      document.body.appendChild(overlay);
+      overlay.onclick = () => {
+        document.querySelector('.sidebar').classList.remove('open');
+        overlay.classList.remove('show');
+        document.body.style.overflow = '';
+      };
+    }
+  },
+
+  async loadBadges() {
+    try {
+      const token = sessionStorage.getItem('op_token');
+      const h = {'Authorization':'Bearer '+token};
+      const BASE = 'https://onpartpadmin.liara.run';
+      const setBadge = (id, n) => {
+        const el = document.getElementById('sb_badge_'+id);
+        if(el){ if(n>0){el.textContent=this.fa(n);el.style.display='block';}else el.style.display='none'; }
+      };
+      const [oRes,pRes] = await Promise.all([
+        fetch(BASE+'/api/orders?limit=200',{headers:h}).catch(()=>null),
+        fetch(BASE+'/api/payments',{headers:h}).catch(()=>null),
+      ]);
+      if(oRes&&oRes.ok){ const d=await oRes.json(); setBadge('orders',d.filter(o=>o.status==='pending_expert').length); }
+      if(pRes&&pRes.ok){ const d=await pRes.json(); setBadge('payments',d.filter(p=>p.status==='pending').length); }
+    } catch(e){}
+  },
+
+  renderTopbar(title = '', icon = 'ti-layout-dashboard') {
+    document.getElementById('topbar-placeholder').innerHTML = `
+    <div class="topbar">
+      <div class="topbar-title"><i class="ti ${icon}"></i>${title}</div>
+      <div class="topbar-right">
+        <a href="/shop.html" onclick="sessionStorage.setItem('allow_shop','1')" style="display:flex;align-items:center;gap:5px;background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0;border-radius:8px;padding:6px 12px;text-decoration:none;font-size:12px;font-weight:600;font-family:Vazirmatn,sans-serif" title="مشاهده فروشگاه"><i class="ti ti-external-link" style="font-size:14px"></i>فروشگاه</a>
+        <div class="sb-burger" onclick="Admin.toggleSidebar()" title="منو"><i class="ti ti-menu-2"></i></div>
+        <div class="search-box">
+          <i class="ti ti-search" style="color:#aaa;font-size:16px"></i>
+          <input placeholder="جستجو..."/>
+        </div>
+        <div class="notif-btn" onclick="Admin.toggleNotifPanel()" id="notifBtnTop" style="position:relative">
+          <i class="ti ti-bell" style="font-size:18px;color:#555"></i>
+          <div class="notif-dot" id="notifDot" style="display:none"></div>
+          <span id="notifCount" style="position:absolute;top:-4px;left:-4px;background:#ef4444;color:#fff;font-size:9px;font-weight:700;border-radius:50%;width:16px;height:16px;display:none;align-items:center;justify-content:center;font-family:Vazirmatn,sans-serif"></span>
+        </div>
+        <div id="notifPanel" style="display:none;position:absolute;top:calc(100% + 8px);left:0;width:340px;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);border:1px solid #f0f0f0;z-index:1000;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #f5f5f5">
+            <span style="font-size:13px;font-weight:700;color:#111">اعلان‌ها</span>
+            <div style="display:flex;gap:8px">
+              <button onclick="Admin.readAllNotifs()" style="font-size:11px;color:#1d4ed8;background:none;border:none;cursor:pointer;font-family:Vazirmatn,sans-serif">همه خوانده</button>
+              <button onclick="Admin.clearNotifs()" style="font-size:11px;color:#dc2626;background:none;border:none;cursor:pointer;font-family:Vazirmatn,sans-serif">پاک کردن</button>
+            </div>
+          </div>
+          <div id="notifList" style="max-height:360px;overflow-y:auto"></div>
+        </div>
+      </div>
+    </div>`;
+    // Close notif panel when clicking outside
+    setTimeout(() => {
+      document.addEventListener('click', function(e) {
+        const panel = document.getElementById('notifPanel');
+        const btn = document.getElementById('notifBtnTop');
+        if (panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
+          panel.style.display = 'none';
+        }
+      });
+    }, 100);
+  },
+
+  toast(msg, type = 'success') {
+    const colors = { success: '#4ade80', error: '#f87171', info: '#60a5fa' };
+    const t = document.createElement('div');
+    t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+      background:#0f172a;color:#fff;border-radius:12px;padding:12px 24px;
+      font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px;
+      z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.3);white-space:nowrap;`;
+    t.innerHTML = `<i class="ti ti-${type==='success'?'check':'x'}" style="color:${colors[type]||colors.success};font-size:18px"></i>${msg}`;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  },
+
+  fa(n) { return n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); },
+  fmt(n) { return this.fa(Number(n).toLocaleString()); },
+
+  logout() {
+    if (confirm('آیا می‌خواهید از سیستم خارج شوید؟')) {
+      sessionStorage.removeItem('op_token');
+      sessionStorage.removeItem('op_user');
+      window.location.href = 'login.html';
+    }
+  },
+
+  protect(requiredPerm = null) {
+    const token = sessionStorage.getItem('op_token');
+    const user = this.getUser();
+    if (!token) { window.location.replace('login.html'); return false; }
+
+    // Block regular shop users (role 'user') from accessing admin panel entirely
+    if (user.role !== 'admin' && user.role !== 'partner') {
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Vazirmatn,sans-serif;direction:rtl"><div style="text-align:center"><div style="font-size:48px;color:#dc2626">⛔</div><div style="font-size:20px;font-weight:700;margin-top:16px">دسترسی غیرمجاز</div><div style="color:#aaa;margin-top:8px">شما اجازه ورود به پنل مدیریت را ندارید</div><a href="/shop.html" style="margin-top:20px;display:inline-block;background:#1d4ed8;color:#fff;border-radius:9px;padding:10px 24px;text-decoration:none;font-weight:700">بازگشت به فروشگاه</a></div></div>';
+      return false;
+    }
+
+    if (requiredPerm && !this.hasPerm(requiredPerm)) {
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Vazirmatn,sans-serif;direction:rtl"><div style="text-align:center"><div style="font-size:48px;color:#dc2626">⛔</div><div style="font-size:20px;font-weight:700;margin-top:16px">دسترسی غیرمجاز</div><div style="color:#aaa;margin-top:8px">شما به این بخش دسترسی ندارید</div><a href="index.html" style="margin-top:20px;display:inline-block;background:#1d4ed8;color:#fff;border-radius:9px;padding:10px 24px;text-decoration:none;font-weight:700">بازگشت</a></div></div>';
+      return false;
+    }
+    return true;
+  },
+
+  async loadNotifs() {
+    const token = sessionStorage.getItem('op_token');
+    if (!token) return;
+    try {
+      const API_URL = (typeof API !== 'undefined') ? API.BASE_URL : 'https://onpartpadmin.liara.run';
+      const res = await fetch(`${API_URL}/api/notifications`, {headers: {'Authorization': 'Bearer ' + token}});
+      if (!res.ok) return;
+      const data = await res.json();
+      const count = data.unreadCount || 0;
+      const dot = document.getElementById('notifDot');
+      const badge = document.getElementById('notifCount');
+      if (dot) dot.style.display = count > 0 ? 'block' : 'none';
+      if (badge) {
+        badge.style.display = count > 0 ? 'flex' : 'none';
+        badge.textContent = count > 9 ? '9+' : String(count);
+      }
+      const list = document.getElementById('notifList');
+      if (!list) return;
+      const notifs = data.notifications || [];
+      const typeIcon = {order: 'ti-shopping-bag', payment: 'ti-cash', user: 'ti-user-plus', credit: 'ti-credit-card'};
+      const typeColor = {order: '#1d4ed8', payment: '#16a34a', user: '#9333ea', credit: '#d97706'};
+      if (!notifs.length) {
+        list.innerHTML = '<div style="text-align:center;padding:32px;color:#aaa;font-size:13px">هیچ اعلانی وجود ندارد</div>';
+        return;
+      }
+      list.innerHTML = notifs.map(n => `
+        <div onclick="Admin.goNotif(${n.id},'${n.link||''}')" style="display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-bottom:1px solid #f7f7f7;cursor:pointer;background:${n.is_read?'#fff':'#f0f7ff'};transition:background .15s">
+          <div style="width:34px;height:34px;border-radius:50%;background:${typeColor[n.type]||'#888'}22;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ${typeIcon[n.type]||'ti-bell'}" style="color:${typeColor[n.type]||'#888'};font-size:15px"></i>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12.5px;font-weight:${n.is_read?600:700};color:#111">${n.title}</div>
+            <div style="font-size:11.5px;color:#888;margin-top:2px">${n.body||''}</div>
+            <div style="font-size:10.5px;color:#bbb;margin-top:3px">${new Date(n.created_at).toLocaleString('fa-IR')}</div>
+          </div>
+          ${!n.is_read ? '<div style="width:7px;height:7px;background:#1d4ed8;border-radius:50%;margin-top:5px;flex-shrink:0"></div>' : ''}
+        </div>`).join('');
+    } catch(e) {}
+  },
+
+  toggleSidebar() {
+    const sb = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if(sb) sb.classList.toggle('open');
+    if(overlay) overlay.classList.toggle('show');
+    document.body.style.overflow = (sb && sb.classList.contains('open')) ? 'hidden' : '';
+  },
+
+  toggleNotifPanel() {
+    const panel = document.getElementById('notifPanel');
+    if (!panel) return;
+    const isOpen = panel.style.display !== 'none';
+    panel.style.display = isOpen ? 'none' : 'block';
+    if (!isOpen) this.loadNotifs();
+  },
+
+  async goNotif(id, link) {
+    const token = sessionStorage.getItem('op_token');
+    const API_URL = (typeof API !== 'undefined') ? API.BASE_URL : 'https://onpartpadmin.liara.run';
+    await fetch(`${API_URL}/api/notifications/${id}/read`, {method:'PATCH', headers:{'Authorization':'Bearer '+token}});
+    if (link) window.location.href = link;
+    else document.getElementById('notifPanel').style.display = 'none';
+    this.loadNotifs();
+  },
+
+  async readAllNotifs() {
+    const token = sessionStorage.getItem('op_token');
+    const API_URL = (typeof API !== 'undefined') ? API.BASE_URL : 'https://onpartpadmin.liara.run';
+    await fetch(`${API_URL}/api/notifications/read-all`, {method:'PATCH', headers:{'Authorization':'Bearer '+token}});
+    this.loadNotifs();
+  },
+
+  async clearNotifs() {
+    if (!confirm('همه اعلان‌ها پاک شوند؟')) return;
+    const token = sessionStorage.getItem('op_token');
+    const API_URL = (typeof API !== 'undefined') ? API.BASE_URL : 'https://onpartpadmin.liara.run';
+    await fetch(`${API_URL}/api/notifications`, {method:'DELETE', headers:{'Authorization':'Bearer '+token}});
+    this.loadNotifs();
+  }
+};
+
+
+function toJalali(dateStr){
+  if(!dateStr) return '—';
+  try{
+    const d = new Date(dateStr);
+    if(isNaN(d)) return dateStr;
+    const gy=d.getFullYear(),gm=d.getMonth()+1,gd=d.getDate();
+    let jy=gy-1600,jm=0,jd=0,g_d_no,j_d_no,j_np,i;
+    const g_d_m=[31,28,31,30,31,30,31,31,30,31,30,31];
+    const j_d_m=[31,31,31,31,31,31,30,30,30,30,30,29];
+    let gy2=gy-1600;
+    g_d_no=365*gy2+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400);
+    for(i=0;i<gm-1;i++) g_d_no+=g_d_m[i];
+    if(gm>2&&((gy2%4===0&&gy2%100!==0)||(gy2%400===0))) g_d_no++;
+    g_d_no+=gd;
+    j_d_no=g_d_no-79;
+    j_np=Math.floor(j_d_no/12053); j_d_no%=12053;
+    jy=979+33*j_np+4*Math.floor(j_d_no/1461); j_d_no%=1461;
+    if(j_d_no>=366){jy+=Math.floor((j_d_no-1)/365);j_d_no=(j_d_no-1)%365;}
+    for(i=0;i<11&&j_d_no>=j_d_m[i];i++) j_d_no-=j_d_m[i];
+    jm=i+1; jd=j_d_no+1;
+    const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+    return `${fa(jy)}/${fa(String(jm).padStart(2,'0'))}/${fa(String(jd).padStart(2,'0'))}`;
+  }catch(e){return dateStr||'—';}
+}
+
+// Inject styles
+const adminStyle = document.createElement('style');
+adminStyle.textContent = `
+  .layout{display:flex;min-height:100vh;background:#f1f5f9;}
+  .sidebar{width:220px;background:#0f172a;display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;z-index:100;overflow-y:auto;}
+  .sb-logo{padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+  .sb-logo-box{width:34px;height:34px;background:#1d4ed8;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;flex-shrink:0;}
+  .sb-logo-text{font-size:15px;font-weight:800;color:#fff;}
+  .sb-logo-text span{color:#60a5fa;}
+  .sb-logo-sub{font-size:10px;color:rgba(255,255,255,.4);}
+  .sb-section{padding:12px 10px 2px;}
+  .sb-lbl{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:1px;padding:0 8px;margin-bottom:4px;}
+  .sb-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:all .15s;margin-bottom:2px;text-decoration:none;}
+  .sb-item:hover{background:rgba(255,255,255,.06);}
+  .sb-item.active{background:#1d4ed8;}
+  .sb-item i{font-size:17px;color:rgba(255,255,255,.45);flex-shrink:0;}
+  .sb-item.active i,.sb-item.active span{color:#fff;}
+  .sb-item span{font-size:12.5px;color:rgba(255,255,255,.55);font-weight:500;}
+  .sb-user{margin-top:auto;padding:12px 10px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:9px;}
+  .sb-av{width:32px;height:32px;background:#1d4ed8;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0;}
+  .sb-un{font-size:12px;color:#fff;font-weight:600;}
+  .sb-ur{font-size:10.5px;color:rgba(255,255,255,.4);}
+  .sb-logout{margin-right:auto;color:rgba(255,255,255,.3);cursor:pointer;font-size:18px;}
+  .sb-logout:hover{color:#ef4444;}
+  .main{margin-right:220px;flex:1;}
+  .topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+  .topbar-title{font-size:16px;font-weight:800;color:#111;display:flex;align-items:center;gap:8px;}
+  .topbar-title i{color:#1d4ed8;}
+  .topbar-right{display:flex;align-items:center;gap:12px;}
+  .search-box{display:flex;align-items:center;gap:8px;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:7px 14px;}
+  .search-box input{border:none;background:transparent;font-family:'Vazirmatn',sans-serif;font-size:13px;outline:none;width:160px;}
+  .notif-btn{position:relative;width:34px;height:34px;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .notif-dot{position:absolute;top:5px;left:5px;width:7px;height:7px;background:#ef4444;border-radius:50%;border:2px solid #fff;}
+  .content{padding:20px 24px;}
+  .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;}
+  .sidebar-overlay.show{display:block;}
+  @media(max-width:768px){
+    .sidebar{transform:translateX(100%);transition:transform .3s ease;}
+    .sidebar.open{transform:translateX(0);}
+    .main{margin-right:0!important;}
+    .topbar{padding:0 14px;}
+    .search-box{display:none!important;}
+    .content{padding:12px 10px;}
+    .sb-burger{display:flex!important;}
+
+    /* Stats cards - 2 per row, compact */
+    .stats{grid-template-columns:1fr 1fr!important;gap:8px!important;}
+    .sc{padding:12px 14px!important;}
+    .sc-val{font-size:14px!important;word-break:break-word;}
+    .sc-lbl{font-size:10.5px!important;}
+    .sc-icon{width:34px!important;height:34px!important;font-size:16px!important;}
+
+    /* Table to card layout */
+    .table-card{border-radius:10px!important;}
+    .tc-head{padding:12px 14px!important;}
+    .tbl{display:block;}
+    .tbl thead{display:none;}
+    .tbl tbody{display:block;}
+    .tbl tbody tr{display:block;padding:12px 14px;border-bottom:1px solid #f0f0f0;background:#fff;}
+    .tbl tbody tr td{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border:none;text-align:left;font-size:12px;}
+    .tbl tbody tr td:empty{display:none;}
+    .tbl tbody tr td::before{content:attr(data-label);font-weight:600;color:#888;font-size:11px;flex-shrink:0;margin-left:10px;}
+    .tbl tbody tr td:first-child{font-weight:700;}
+
+    /* Toolbar */
+    .toolbar{flex-direction:column;align-items:stretch!important;}
+    .toolbar > *{width:100%!important;}
+    .fi-input{min-width:0!important;}
+
+    /* Forms */
+    .fg-grid{grid-template-columns:1fr!important;}
+    .info-grid{grid-template-columns:1fr!important;}
+
+    /* Modal */
+    .modal{max-width:100%!important;margin:0;border-radius:16px 16px 0 0!important;}
+    .modal-overlay{align-items:flex-end!important;padding:0!important;}
+
+    /* Settings tabs */
+    .settings-tabs{flex-wrap:wrap!important;}
+  }
+  .sb-burger{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:8px;cursor:pointer;font-size:20px;color:#333;}
+`;
+document.head.appendChild(adminStyle);
+
+// Auto-add data-label to table cells for mobile card view
+function addTableLabels(){
+  document.querySelectorAll('.tbl').forEach(tbl => {
+    const headers = [...tbl.querySelectorAll('thead th')].map(th => th.textContent.trim());
+    tbl.querySelectorAll('tbody tr').forEach(tr => {
+      [...tr.children].forEach((td, i) => {
+        if(headers[i] && !td.dataset.label) td.dataset.label = headers[i];
+      });
+    });
+  });
+}
+// Debounced observer to avoid performance issues with frequently re-rendering tables
+let _tableLabelTimeout;
+function debouncedAddLabels(){
+  clearTimeout(_tableLabelTimeout);
+  _tableLabelTimeout = setTimeout(addTableLabels, 150);
+}
+const tableObserver = new MutationObserver(debouncedAddLabels);
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.table-card, .table-wrap').forEach(el => {
+    tableObserver.observe(el, { childList: true, subtree: false });
+  });
+  addTableLabels();
+});

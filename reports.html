@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <link rel="icon" href="/images/favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>گزارشات | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .page { padding: 28px; max-width: 1000px; margin: 0 auto; }
+    .page-title { font-size: 20px; font-weight: 800; color: #111; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 20px; }
+    .stat-card { background: #fff; border-radius: 14px; padding: 18px 20px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+    .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
+    .si-blue { background: #eff6ff; color: #1d4ed8; }
+    .si-green { background: #dcfce7; color: #16a34a; }
+    .si-amber { background: #fef3c7; color: #d97706; }
+    .stat-val { font-size: 22px; font-weight: 800; color: #111; }
+    .stat-lbl { font-size: 12px; color: #aaa; margin-top: 3px; }
+    .card { background: #fff; border-radius: 14px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.05); margin-bottom: 16px; }
+    .card-title { font-size: 14px; font-weight: 700; color: #111; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .status-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+    .status-row:last-child { border: none; }
+    .status-name { font-size: 13px; color: #444; }
+    .status-count { font-size: 13px; font-weight: 700; color: #1d4ed8; background: #eff6ff; padding: 3px 12px; border-radius: 14px; }
+    .empty-state { text-align: center; padding: 40px 20px; color: #aaa; }
+    .empty-state i { font-size: 40px; display: block; margin-bottom: 10px; }
+    @media (max-width:640px){ .page{padding:16px} .stats-row{grid-template-columns:1fr 1fr} }
+  </style>
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+
+  <div class="page">
+    <div class="page-title"><i class="ti ti-chart-bar" style="color:#1d4ed8"></i>گزارشات خرید</div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon si-blue"><i class="ti ti-shopping-bag"></i></div>
+        <div class="stat-val" id="totalOrders">۰</div>
+        <div class="stat-lbl">تعداد کل سفارشات</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon si-green"><i class="ti ti-currency-dollar"></i></div>
+        <div class="stat-val" id="totalSpent">۰</div>
+        <div class="stat-lbl">جمع خرید (تومان)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon si-amber"><i class="ti ti-clock"></i></div>
+        <div class="stat-val" id="pendingOrders">۰</div>
+        <div class="stat-lbl">سفارشات در انتظار</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-list-details"></i>وضعیت سفارشات</div>
+      <div id="statusBreakdown"><div class="empty-state"><i class="ti ti-loader"></i>در حال بارگذاری...</div></div>
+    </div>
+  </div>
+
+  <script src="js/components.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    OnPart.renderNavbar('reports');
+
+    const statusLabels = {
+      pending_expert: 'منتظر تایید کارشناس',
+      pending_customer: 'منتظر تایید',
+      pending_payment: 'منتظر پرداخت',
+      preparing: 'آماده‌سازی',
+      shipping: 'در حال ارسال',
+      delivered: 'تحویل شده',
+      cancelled: 'ابطال شده'
+    };
+
+    async function loadReports(){
+      const token = sessionStorage.getItem('op_token');
+      if(!token){ window.location.href='/login.html'; return; }
+      try{
+        const res = await fetch('https://onpartpadmin.liara.run/api/orders', {
+          headers:{'Authorization':'Bearer '+token}
+        });
+        if(!res.ok) throw new Error();
+        const orders = await res.json();
+
+        document.getElementById('totalOrders').textContent = OnPart.fa(orders.length);
+        const totalSpent = orders.filter(o=>o.status==='delivered').reduce((s,o)=>s+Number(o.total||0),0);
+        document.getElementById('totalSpent').textContent = OnPart.fmt(totalSpent);
+        const pending = orders.filter(o=>!['delivered','cancelled'].includes(o.status)).length;
+        document.getElementById('pendingOrders').textContent = OnPart.fa(pending);
+
+        if(!orders.length){
+          document.getElementById('statusBreakdown').innerHTML = '<div class="empty-state"><i class="ti ti-package-off"></i>هنوز سفارشی ثبت نکرده‌اید</div>';
+          return;
+        }
+
+        const counts = {};
+        orders.forEach(o=>{ counts[o.status] = (counts[o.status]||0)+1; });
+        document.getElementById('statusBreakdown').innerHTML = Object.entries(counts).map(([status,count]) => `
+          <div class="status-row">
+            <span class="status-name">${statusLabels[status]||status}</span>
+            <span class="status-count">${OnPart.fa(count)} سفارش</span>
+          </div>
+        `).join('');
+      }catch(e){
+        document.getElementById('statusBreakdown').innerHTML = '<div class="empty-state"><i class="ti ti-alert-circle"></i>خطا در بارگذاری گزارشات</div>';
+      }
+    }
+
+    loadReports();
+  </script>
+</body>
+</html>

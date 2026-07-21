@@ -1,0 +1,135 @@
+/* ── Back Button / Close Button ── */
+.page-back {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 999;
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.95);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,.12);
+  text-decoration: none;
+  color: #333;
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+  transition: all .2s;
+}
+.page-back:hover { background: #1d4ed8; color: #fff; }
+.page-back.dark { background: rgba(17,24,39,0.85); color: #fff; }
+.page-back.dark:hover { background: #1d4ed8; }
+
+/* ── Global Responsive Base ── */
+* { box-sizing: border-box; }
+
+@media (max-width: 640px) {
+  /* Cards and wraps */
+  .wrap, .card-wrap, .page-card {
+    border-radius: 0 !important;
+    min-height: 100vh !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Form grids become single column */
+  .fg-grid, .form-grid, .two-col {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Reduce padding */
+  .body, .page-body, .content-wrap {
+    padding: 20px 16px !important;
+  }
+
+  /* Header adjustments */
+  .header, .page-header {
+    padding: 20px 16px !important;
+  }
+
+  /* Input full width */
+  .finput, input, select, textarea {
+    font-size: 16px !important; /* prevent zoom on iOS */
+  }
+
+  /* Buttons */
+  .btn-submit, .btn-primary {
+    padding: 14px !important;
+    font-size: 15px !important;
+  }
+
+  /* Upload boxes */
+  .upload-box {
+    padding: 12px !important;
+  }
+
+  /* OTP inputs */
+  .otp-input {
+    width: 40px !important;
+    height: 46px !important;
+    font-size: 18px !important;
+  }
+  .otp-wrap {
+    gap: 6px !important;
+  }
+
+  /* Step indicator */
+  .step-ind {
+    margin-bottom: 20px !important;
+  }
+  .step-lbl {
+    font-size: 9px !important;
+  }
+
+  /* Payment page */
+  .pay-layout {
+    flex-direction: column !important;
+  }
+  .pay-left, .pay-right {
+    width: 100% !important;
+  }
+
+  /* Orders page */
+  .order-card {
+    padding: 14px !important;
+    margin-bottom: 10px !important;
+  }
+
+  /* Profile page */
+  .profile-layout {
+    flex-direction: column !important;
+  }
+
+  /* Section titles */
+  .section-title {
+    font-size: 13px !important;
+  }
+
+  /* History items */
+  .hist-item {
+    padding: 10px 0 !important;
+  }
+  .hist-amount {
+    font-size: 14px !important;
+  }
+
+  /* Preview images */
+  .preview {
+    height: 80px !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .otp-input {
+    width: 34px !important;
+    height: 40px !important;
+    font-size: 16px !important;
+  }
+  .otp-wrap {
+    gap: 4px !important;
+  }
+}

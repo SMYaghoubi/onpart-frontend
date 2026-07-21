@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <link rel="icon" href="/images/favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>پرداخت آنلاین | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .page { padding: 28px; display: grid; grid-template-columns: 1fr 340px; gap: 18px; align-items: start; }
+    .left-col { display: flex; flex-direction: column; gap: 16px; }
+    .balance-card { background: linear-gradient(135deg,#1e3a8a,#1d4ed8); border-radius: 16px; padding: 28px; color: #fff; display: flex; align-items: center; justify-content: space-between; }
+    .balance-icon { width: 60px; height: 60px; background: rgba(255,255,255,.12); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+    .balance-label { font-size: 13px; color: rgba(255,255,255,.7); margin-bottom: 6px; }
+    .balance-val { font-size: 28px; font-weight: 900; }
+    .balance-sub { font-size: 12px; color: rgba(255,255,255,.55); margin-top: 4px; }
+    .section-title { font-size: 15px; font-weight: 800; color: #111; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .section-title i { color: #1d4ed8; }
+    .section-sub { font-size: 12px; color: #aaa; margin-bottom: 14px; }
+    .bank-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .bank-card { background: #fff; border-radius: 14px; padding: 18px 20px; box-shadow: 0 1px 4px rgba(0,0,0,.05); border: 1.5px solid #e5e7eb; }
+    .bank-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .bank-logo { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #fff; flex-shrink: 0; overflow: hidden; }
+    .bank-name { font-size: 14px; font-weight: 700; color: #111; }
+    .bank-owner { font-size: 12px; color: #888; margin-top: 2px; }
+    .bank-lbl { font-size: 11.5px; color: #aaa; font-weight: 500; flex-shrink: 0; }
+    .bank-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .bank-logo { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; color: #fff; flex-shrink: 0; }
+    .bl-mellat { background: #c62828; }
+    .bl-melli  { background: #1565c0; }
+    .bank-name { font-size: 13px; font-weight: 700; color: #111; }
+    .bank-owner { font-size: 11.5px; color: #aaa; }
+    .bank-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding: 6px 0; border-bottom: 0.5px solid #f5f5f5; }
+    .bank-lbl { font-size: 11.5px; color: #aaa; }
+    .bank-val { font-size: 12.5px; font-weight: 600; color: #333; direction: ltr; font-family: monospace; }
+    .copy-btn { background: #f0f4ff; border: none; border-radius: 6px; padding: 4px 10px; font-family: 'Vazirmatn',sans-serif; font-size: 11px; color: #1d4ed8; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all .15s; }
+    .copy-btn:hover { background: #dbeafe; }
+    .copy-btn.copied { background: #dcfce7; color: #16a34a; }
+    .copy-mini { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; border-radius: 6px; padding: 4px 8px; cursor: pointer; font-size: 12px; flex-shrink: 0; transition: all .15s; }
+    .copy-mini:hover { background: #1d4ed8; color: #fff; }
+    .upload-card { background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+    .form-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .fg { margin-bottom: 16px; }
+    .flabel { font-size: 13px; font-weight: 600; color: #333; margin-bottom: 7px; display: block; }
+    .finput { width: 100%; background: #f8fafc; border: 1.5px solid #e5e7eb; border-radius: 9px; padding: 11px 14px; font-family: 'Vazirmatn',sans-serif; font-size: 13.5px; color: #111; outline: none; transition: all .2s; }
+    .finput:focus { border-color: #1d4ed8; background: #fff; }
+    .fselect { width: 100%; background: #f8fafc; border: 1.5px solid #e5e7eb; border-radius: 9px; padding: 11px 14px; font-family: 'Vazirmatn',sans-serif; font-size: 13px; color: #333; outline: none; cursor: pointer; }
+    .drop-zone { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 32px 20px; text-align: center; cursor: pointer; transition: all .2s; background: #fafbfc; }
+    .drop-zone:hover, .drop-zone.dragover { border-color: #1d4ed8; background: #eff6ff; }
+    .drop-zone.has-file { border-color: #22c55e; background: #f0fdf4; }
+    .drop-zone i { font-size: 36px; color: #cbd5e1; margin-bottom: 10px; transition: color .2s; display: block; }
+    .drop-zone:hover i, .drop-zone.dragover i { color: #1d4ed8; }
+    .drop-zone.has-file i { color: #22c55e; }
+    .file-preview { display: none; align-items: center; gap: 10px; background: #f0fdf4; border-radius: 9px; padding: 10px 14px; margin-top: 12px; }
+    .file-preview.show { display: flex; }
+    .file-preview i { font-size: 20px; color: #16a34a; }
+    .file-remove { background: none; border: none; cursor: pointer; color: #aaa; font-size: 16px; }
+    .btn-submit { width: 100%; background: #16a34a; color: #fff; border: none; border-radius: 10px; padding: 13px; font-family: 'Vazirmatn',sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .2s; margin-top: 8px; }
+    .btn-submit:hover { background: #15803d; }
+    /* History */
+    .history-card { background: #fff; border-radius: 14px; padding: 22px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+    .hist-item { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid #f3f4f6; }
+    .hist-item:last-child { border-bottom: none; }
+    .hist-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .hi-ok      { background: #dcfce7; color: #16a34a; }
+    .hi-pending { background: #fef3c7; color: #d97706; }
+    .hi-reject  { background: #fee2e2; color: #dc2626; }
+    .hist-amount { font-size: 14px; font-weight: 700; color: #111; }
+    .hist-date   { font-size: 11.5px; color: #aaa; margin-top: 2px; }
+    .badge { border-radius: 6px; padding: 3px 9px; font-size: 11px; font-weight: 600; }
+    .b-green  { background: #dcfce7; color: #16a34a; }
+    .b-amber  { background: #fef3c7; color: #d97706; }
+    .b-red    { background: #fee2e2; color: #dc2626; }
+    /* Success */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); align-items: center; justify-content: center; z-index: 200; }
+    .overlay.show { display: flex; }
+    .suc-box { background: #fff; border-radius: 18px; padding: 44px 40px; text-align: center; max-width: 340px; }
+    .suc-icon { width: 70px; height: 70px; background: #dcfce7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #16a34a; margin: 0 auto 16px; }
+    .btn-close { margin-top: 20px; background: #1d4ed8; color: #fff; border: none; border-radius: 10px; padding: 11px 32px; font-family: 'Vazirmatn',sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
+    @media(max-width:768px){
+      .page{grid-template-columns:1fr!important;padding:16px!important;}
+      .bank-cards{grid-template-columns:1fr!important;}
+      .form-grid2{grid-template-columns:1fr!important;}
+      .balance-card{flex-direction:column;gap:12px;text-align:center;padding:20px!important;}
+      .balance-card{padding:20px!important;flex-direction:column;gap:12px;text-align:center;}
+    }
+  </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/iranianbanklogos@3.1.2/dist/ibl.min.css"/>
+  <link rel="stylesheet" href="css/responsive.css"/>
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+  <div class="page">
+    <div class="left-col">
+      <div class="balance-card">
+        <div><div class="balance-label">مانده بدهی شما</div><div class="balance-val" id="debtAmount">در حال بارگذاری...</div><div class="balance-sub">لطفاً از حساب‌های زیر واریز کنید</div></div>
+        <div class="balance-icon"><i class="ti ti-wallet"></i></div>
+      </div>
+
+      <div>
+        <div class="section-title"><i class="ti ti-building-bank"></i>حساب‌های بانکی آن‌پارت</div>
+        <div class="section-sub">واریز فقط به حساب‌های زیر امکان‌پذیر است</div>
+        <div class="bank-cards" id="bankCards">
+          <div style="text-align:center;padding:20px;color:#aaa;font-size:13px;grid-column:1/-1">در حال بارگذاری...</div>
+        </div>
+      </div>
+
+      <div class="upload-card">
+        <div class="section-title" style="margin-bottom:4px"><i class="ti ti-upload"></i>بارگذاری فیش واریز</div>
+        <div class="section-sub">پس از واریز، فیش را آپلود کنید تا بدهی شما تأیید شود</div>
+        <div class="form-grid2">
+          <div class="fg"><label class="flabel">مبلغ واریزی (تومان)</label><input class="finput" id="amount" placeholder="مثال: ۷،۸۳۸،۶۰۰" oninput="formatAmount(this)" style="direction:ltr;text-align:left"/></div>
+          <div class="fg">
+            <label class="flabel">تاریخ واریز <span style="color:#ef4444">*</span></label>
+            <div style="position:relative">
+              <input class="finput" id="payDate" placeholder="انتخاب تاریخ شمسی" readonly style="cursor:pointer;background:#fff;padding-left:40px"/>
+              <i class="ti ti-calendar" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#1d4ed8;font-size:18px;pointer-events:none"></i>
+            </div>
+            <div id="pdpPopup" style="display:none;background:#fff;border:1px solid #e5e7eb;border-radius:14px;margin-top:6px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.1);z-index:100;position:relative">
+              <div style="background:linear-gradient(135deg,#1e40af,#1d4ed8);padding:16px 20px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                  <button onclick="pdpPrev()" style="background:rgba(255,255,255,.15);border:none;border-radius:7px;width:30px;height:30px;color:#fff;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;font-family:Vazirmatn,sans-serif">›</button>
+                  <span id="pdpHeader" onclick="pdpToggleYear()" style="font-size:14px;font-weight:500;color:#fff;cursor:pointer;padding:4px 10px;border-radius:6px;font-family:Vazirmatn,sans-serif"></span>
+                  <button onclick="pdpNext()" style="background:rgba(255,255,255,.15);border:none;border-radius:7px;width:30px;height:30px;color:#fff;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;font-family:Vazirmatn,sans-serif">‹</button>
+                </div>
+                <div id="pdpSelDate" style="color:rgba(255,255,255,.7);font-size:13px;font-family:Vazirmatn,sans-serif">تاریخ واریز را انتخاب کنید</div>
+              </div>
+              <div id="pdpYearGrid" style="display:none;padding:10px;max-height:180px;overflow-y:auto">
+                <div id="pdpYears" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px"></div>
+              </div>
+              <div id="pdpDayView" style="padding:10px">
+                <div style="display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px">
+                  <div style="text-align:center;font-size:11px;font-weight:500;color:#aaa;padding:3px;font-family:Vazirmatn,sans-serif">ش</div>
+                  <div style="text-align:center;font-size:11px;font-weight:500;color:#aaa;padding:3px;font-family:Vazirmatn,sans-serif">ی</div>
+                  <div style="text-align:center;font-size:11px;font-weight:500;color:#aaa;padding:3px;font-family:Vazirmatn,sans-serif">د</div>
+                  <div style="text-align:center;font-size:11px;font-weight:500;color:#aaa;padding:3px;font-family:Vazirmatn,sans-serif">س</div>
+                  <div style="text-align:center;font-size:11px;font-weight:500;color:#aaa;padding:3px;font-family:Vazirmatn,sans-serif">چ</div>
+                  <div style="text-align:center;font-size:11px;font-weight:500;color:#aaa;padding:3px;font-family:Vazirmatn,sans-serif">پ</div>
+                  <div style="text-align:center;font-size:11px;font-weight:500;color:#aaa;padding:3px;font-family:Vazirmatn,sans-serif;color:#ef4444">ج</div>
+                </div>
+                <div id="pdpDays" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px"></div>
+              </div>
+              <div style="padding:8px 12px 12px;display:flex;justify-content:space-between;border-top:1px solid #f0f0f0">
+                <button onclick="pdpClear()" style="font-size:12px;color:#888;background:none;border:none;cursor:pointer;font-family:Vazirmatn,sans-serif">پاک کردن</button>
+                <button onclick="document.getElementById('pdpPopup').style.display='none'" style="font-size:13px;font-weight:500;background:#1d4ed8;color:#fff;border:none;border-radius:8px;padding:7px 20px;cursor:pointer;font-family:Vazirmatn,sans-serif">تأیید</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fg" style="position:relative">
+          <label class="flabel">بانک مبدأ</label>
+          <div id="bsDisplay" onclick="bsToggle()" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;background:#fff;cursor:pointer;min-height:48px;transition:border .2s">
+            <div id="bsSelLogo" style="width:34px;height:34px;border-radius:8px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">
+              <i class="ti ti-building-bank" style="font-size:18px;color:#bbb"></i>
+            </div>
+            <span id="bsSelTxt" style="flex:1;font-size:14px;color:#bbb;font-family:Vazirmatn,sans-serif">انتخاب بانک...</span>
+            <i class="ti ti-chevron-down" id="bsChevron" style="color:#bbb;font-size:16px;transition:transform .2s;flex-shrink:0"></i>
+          </div>
+          <input type="hidden" id="bankSrc"/>
+          <div id="bsPopup" style="display:none;background:#fff;border:1px solid #e5e7eb;border-radius:14px;margin-top:6px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.1);position:relative;z-index:100">
+            <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:0.5px solid #f0f0f0">
+              <i class="ti ti-search" style="color:#bbb;font-size:16px;flex-shrink:0"></i>
+              <input id="bsSearch" placeholder="جستجوی نام بانک..." oninput="bsFilter(this.value)" style="flex:1;border:none;outline:none;font-family:Vazirmatn,sans-serif;font-size:13px;direction:rtl;background:transparent"/>
+            </div>
+            <div id="bsList" style="max-height:280px;overflow-y:auto;padding:6px"></div>
+          </div>
+        </div>
+        <div class="fg"><label class="flabel">شماره پیگیری</label><input class="finput" id="trackNum" placeholder="شماره پیگیری تراکنش" style="direction:ltr"/></div>
+        <div class="fg"><label class="flabel">شماره کارت مبدأ (کارت شما)</label><input class="finput" id="srcCard" placeholder="xxxx-xxxx-xxxx-xxxx" maxlength="19" oninput="formatCard(this)" style="direction:ltr;letter-spacing:1px"/></div>
+        <div class="fg" style="grid-column:1/-1">
+          <label class="flabel">واریز به <span style="color:#ef4444">*</span></label>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start">
+            <select class="finput" id="destType" onchange="updateDestOptions()" style="width:120px">
+              <option value="card">کارت</option>
+              <option value="account">حساب</option>
+              <option value="sheba">شبا</option>
+            </select>
+            <select class="finput" id="destAccount" style="direction:ltr">
+              <option value="">در حال بارگذاری...</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg">
+          <label class="flabel">فیش / تصویر واریز</label>
+          <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()"
+            ondragover="event.preventDefault();this.classList.add('dragover')"
+            ondragleave="this.classList.remove('dragover')"
+            ondrop="handleDrop(event)">
+            <i class="ti ti-cloud-upload"></i>
+            <div style="font-size:14px;font-weight:600;color:#444">فایل را اینجا بکشید یا کلیک کنید</div>
+            <div style="font-size:12px;color:#aaa;margin-top:4px">JPG، PNG، PDF — حداکثر ۵ مگابایت</div>
+          </div>
+          <div class="file-preview" id="filePreview">
+            <i class="ti ti-file-check"></i>
+            <span id="fileName" style="font-size:13px;font-weight:600;color:#333;flex:1">—</span>
+            <button class="file-remove" onclick="removeFile()"><i class="ti ti-x"></i></button>
+          </div>
+          <input type="file" id="fileInput" accept="image/*,.pdf" style="display:none" onchange="handleFile(this.files[0])"/>
+        </div>
+        <div class="fg" style="margin-bottom:0"><label class="flabel">توضیحات (اختیاری)</label><textarea class="finput" rows="2" style="resize:none" placeholder="توضیحات تکمیلی..."></textarea></div>
+        <button class="btn-submit" onclick="handleSubmit()"><i class="ti ti-send"></i>ثبت و ارسال فیش واریز</button>
+      </div>
+    </div>
+
+    <div class="history-card">
+      <div class="section-title" style="margin-bottom:16px"><i class="ti ti-history"></i>تاریخچه پرداخت‌ها</div>
+      <div id="historyList">
+        <div style="text-align:center;padding:24px;color:#aaa;font-size:13px"><i class="ti ti-loader"></i> در حال بارگذاری...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="successOverlay">
+    <div class="suc-box">
+      <div class="suc-icon"><i class="ti ti-check"></i></div>
+      <div style="font-size:18px;font-weight:800;color:#111;margin-bottom:8px">فیش با موفقیت ارسال شد!</div>
+      <div style="font-size:13px;color:#888;line-height:1.7">پس از بررسی توسط تیم مالی، بدهی شما تأیید خواهد شد.</div>
+      <button class="btn-close" onclick="document.getElementById('successOverlay').classList.remove('show')">متوجه شدم</button>
+    </div>
+  </div>
+
+  <script src="js/components.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    OnPart.renderNavbar('payment');
+
+    function copyText(text, btn){
+      navigator.clipboard.writeText(text).then(function(){
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="ti ti-check"></i>';
+        btn.style.color = '#16a34a';
+        setTimeout(function(){ btn.innerHTML = orig; btn.style.color = ''; }, 1500);
+      });
+    }
+    function copyCard(id,btn){ copyText(document.getElementById(id).textContent, btn); }
+    function handleFile(file){
+      if(!file)return;
+      document.getElementById('dropZone').classList.add('has-file');
+      document.getElementById('filePreview').classList.add('show');
+      document.getElementById('fileName').textContent=file.name;
+    }
+    function handleDrop(e){e.preventDefault();document.getElementById('dropZone').classList.remove('dragover');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);}
+    function removeFile(){document.getElementById('dropZone').classList.remove('has-file');document.getElementById('filePreview').classList.remove('show');document.getElementById('fileInput').value='';}
+    function formatAmount(inp){
+      let v = toEnglishDigits(inp.value).replace(/[^0-9]/g,'');
+      if(!v){ inp.value=''; return; }
+      // Add thousands separator manually
+      let formatted = v.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      // Convert to Persian digits
+      inp.value = formatted.replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]).replace(/,/g, '،');
+    }
+
+    function toEnglishDigits(str){
+      return String(str).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+                         .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    }
+    async function handleSubmit(){
+      const amount = document.getElementById('amount').value;
+      const bank = document.getElementById('bankSrc').value;
+      const track = document.getElementById('trackNum').value;
+      const date = document.getElementById('payDate').value;
+      const fileInput = document.getElementById('fileInput');
+
+      if(!amount){OnPart.toast('مبلغ واریزی را وارد کنید','error');return;}
+      if(!bank){OnPart.toast('بانک مبدأ را انتخاب کنید','error');return;}
+      if(!track){OnPart.toast('شماره پیگیری را وارد کنید','error');return;}
+      if(!date){OnPart.toast('تاریخ واریز را وارد کنید','error');return;}
+
+      const token = sessionStorage.getItem('op_token');
+      if(!token){OnPart.toast('ابتدا وارد حساب شوید','error');return;}
+
+      try{
+        const fd = new FormData();
+        fd.append('amount', toEnglishDigits(amount).replace(/[^0-9]/g,''));
+        fd.append('bank', bank);
+        fd.append('track_number', track);
+        fd.append('pay_date', toEnglishDigits(date));
+        const srcCard = document.getElementById('srcCard').value;
+        const destAccount = document.getElementById('destAccount').value;
+        if(srcCard) fd.append('src_card', srcCard);
+        if(destAccount) fd.append('dest_account', destAccount);
+        const orderId = new URLSearchParams(window.location.search).get('order');
+        if(orderId) fd.append('order_id', orderId);
+        if(fileInput.files[0]) fd.append('file', fileInput.files[0]);
+
+        const res = await fetch('https://onpartpadmin.liara.run/api/payments/receipt',{
+          method:'POST',
+          headers:{'Authorization':'Bearer '+token},
+          body: fd
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.message||'خطا');
+        document.getElementById('successOverlay').classList.add('show');
+        loadPaymentHistory(); // Auto-refresh history
+      } catch(e){
+        OnPart.toast(e.message||'خطا در ارسال','error');
+      }
+    }
+
+    // Load user debt
+    async function loadUserDebt(){
+      const token = sessionStorage.getItem('op_token');
+      if(!token) return;
+      try{
+        const user = JSON.parse(sessionStorage.getItem('op_user')||'{}');
+        if(user.id){
+          const res = await fetch('https://onpartpadmin.liara.run/api/users/'+user.id,{
+            headers:{'Authorization':'Bearer '+token}
+          });
+          if(res.ok){
+            const u = await res.json();
+            document.getElementById('debtAmount').textContent = OnPart.fmt(u.debt||0)+' تومان';
+          }
+        }
+      }catch(e){}
+    }
+
+    // Load all data in parallel
+    Promise.all([loadUserDebt(), loadBankAccounts(), loadPaymentHistory()])
+      .catch(()=>{});
+
+    function formatPayDate(dateStr){
+      if(!dateStr) return '—';
+      try {
+        const d = new Date(dateStr);
+        const j = gToJ(d.getFullYear(), d.getMonth()+1, d.getDate());
+        return `${toFa(j.y)}/${toFa(String(j.m).padStart(2,'0'))}/${toFa(String(j.d).padStart(2,'0'))}`;
+      } catch(e){ return dateStr?.slice(0,10)||'—'; }
+    }
+
+    function formatCard(inp){
+      let v = toEnglishDigits(inp.value).replace(/\D/g,'').slice(0,16);
+      inp.value = v.replace(/(.{4})/g,'$1-').replace(/-$/,'');
+    }
+
+    let allBanks = [];
+
+    function updateDestOptions(){
+      const type = document.getElementById('destType').value;
+      const sel = document.getElementById('destAccount');
+      sel.innerHTML = '<option value="">انتخاب کنید...</option>' +
+        allBanks.map(b=>{
+          let val = '', lbl = '';
+          if(type==='card'){ val=b.card||''; lbl=`${b.name} — ${b.owner} — ${b.card||'ندارد'}`; }
+          else if(type==='account'){ val=b.account||''; lbl=`${b.name} — ${b.owner} — ${b.account||'ندارد'}`; }
+          else { val=b.sheba||''; lbl=`${b.name} — ${b.owner} — ${b.sheba||'ندارد'}`; }
+          return val ? `<option value="${val}">${lbl}</option>` : '';
+        }).filter(Boolean).join('');
+    }
+
+    async function loadBankAccounts(){
+      try{
+        const res = await fetch('https://onpartpadmin.liara.run/api/settings');
+        if(!res.ok) throw new Error();
+        const s = await res.json();
+        const banks = JSON.parse(s.bank_accounts||'[]');
+        allBanks = banks;
+        updateDestOptions();
+
+        // Fill bank cards display
+        if(banks.length && document.getElementById('bankCards')){
+          const colors=['#1d4ed8','#16a34a','#d97706','#7c3aed','#dc2626'];
+          document.getElementById('bankCards').innerHTML = banks.map((b,i)=>{
+            const color=colors[i%colors.length];
+            const av=b.name?b.name[0]:'ب';
+            const logoHtml=b.logo?`<img src="${b.logo}" style="width:36px;height:36px;object-fit:contain"/>`:`<span>${av}</span>`;
+            const logoBg=b.logo?'transparent':color;
+            return `<div class="bank-card">
+              <div class="bank-head">
+                <div class="bank-logo" style="background:${logoBg}">${logoHtml}</div>
+                <div><div class="bank-name">${b.name||'بانک'}</div><div class="bank-owner">${b.owner||''}</div></div>
+              </div>
+              ${b.card?`<div class="bank-row">
+                <span class="bank-lbl">شماره کارت</span>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span class="bank-val" style="direction:ltr;letter-spacing:1px">${b.card}</span>
+                  <button onclick="copyText('${b.card}',this)" class="copy-mini"><i class="ti ti-copy"></i></button>
+                </div>
+              </div>`:''}
+              ${b.account?`<div class="bank-row">
+                <span class="bank-lbl">شماره حساب</span>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span class="bank-val" style="direction:ltr">${b.account}</span>
+                  <button onclick="copyText('${b.account}',this)" class="copy-mini"><i class="ti ti-copy"></i></button>
+                </div>
+              </div>`:''}
+              ${b.sheba?`<div class="bank-row">
+                <span class="bank-lbl">شبا</span>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span class="bank-val" style="direction:ltr;font-size:11px">${b.sheba}</span>
+                  <button onclick="copyText('${b.sheba}',this)" class="copy-mini"><i class="ti ti-copy"></i></button>
+                </div>
+              </div>`:''}
+            </div>`;
+          }).join('');
+        }
+      }catch(e){
+        const sel = document.getElementById('destAccount');
+        if(sel) sel.innerHTML = '<option value="">خطا در بارگذاری حساب‌ها</option>';
+      }
+    }
+
+    function toggleHistDetail(i){
+      const det = document.getElementById(`histDetail_${i}`);
+      const chev = document.getElementById(`histChev_${i}`);
+      const open = det.style.display === 'none';
+      det.style.display = open ? 'block' : 'none';
+      if(chev) chev.style.transform = open ? 'rotate(180deg)' : '';
+    }
+
+    async function loadPaymentHistory(){
+      const token = sessionStorage.getItem('op_token');
+      if(!token) return;
+      const list = document.getElementById('historyList');
+      try{
+        const res = await fetch('https://onpartpadmin.liara.run/api/payments', {
+          headers:{'Authorization':'Bearer '+token}
+        });
+        if(!res.ok) throw new Error();
+        const payments = await res.json();
+        if(!payments.length){
+          list.innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;font-size:13px">هنوز پرداختی ثبت نکرده‌اید</div>';
+          return;
+        }
+        const statusIcon = {approved:'hi-ok', pending:'hi-pending', rejected:'hi-reject'};
+        const statusBadge = {approved:'b-green', pending:'b-amber', rejected:'b-red'};
+        const statusText = {approved:'تأیید شده', pending:'در انتظار', rejected:'رد شده'};
+        const statusGlyph = {approved:'check', pending:'clock', rejected:'x'};
+        const API_BASE = 'https://onpartpadmin.liara.run';
+        list.innerHTML = payments.map((p,i) => `
+          <div class="hist-item" style="flex-direction:column;align-items:stretch;cursor:pointer" onclick="toggleHistDetail(${i})">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div class="hist-icon ${statusIcon[p.status]||'hi-pending'}"><i class="ti ti-${statusGlyph[p.status]||'clock'}"></i></div>
+              <div style="flex:1">
+                <div class="hist-amount">${OnPart.fmt(p.amount||0)} تومان</div>
+                <div class="hist-date">${formatPayDate(p.pay_date||p.created_at)} — ${p.bank||''}</div>
+              </div>
+              <span class="badge ${statusBadge[p.status]||'b-amber'}">${statusText[p.status]||p.status}</span>
+              <i class="ti ti-chevron-down" id="histChev_${i}" style="color:#bbb;font-size:14px;transition:transform .2s"></i>
+            </div>
+            <div id="histDetail_${i}" style="display:none;margin-top:10px;padding:12px;background:#f8fafc;border-radius:10px;font-size:12.5px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                <div><span style="color:#aaa">شماره پیگیری:</span><div style="font-weight:600;direction:ltr">${p.track_number||'—'}</div></div>
+                <div><span style="color:#aaa">کارت مبدأ:</span><div style="font-weight:600;direction:ltr">${p.src_card||'—'}</div></div>
+                <div><span style="color:#aaa">حساب مقصد:</span><div style="font-weight:600;direction:ltr">${p.dest_account||'—'}</div></div>
+                <div><span style="color:#aaa">بانک:</span><div style="font-weight:600">${p.bank||'—'}</div></div>
+              </div>
+              ${p.receipt_file ? `
+                <div style="margin-top:8px">
+                  <div style="color:#aaa;margin-bottom:6px">تصویر فیش:</div>
+                  <a href="${API_BASE}/uploads/${p.receipt_file}" target="_blank">
+                    <img src="${API_BASE}/uploads/${p.receipt_file}" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:contain;border:1px solid #e5e7eb"/>
+                  </a>
+                </div>` : '<div style="color:#bbb;font-size:12px">فیشی آپلود نشده</div>'}
+            </div>
+          </div>
+        `).join('');
+      }catch(e){
+        list.innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;font-size:13px">خطا در بارگذاری تاریخچه</div>';
+      }
+    }
+
+    // Pre-fill amount if coming from a specific order
+    (function prefillFromOrder(){
+      const orderId = new URLSearchParams(window.location.search).get('order');
+      if(!orderId) return;
+      const token = sessionStorage.getItem('op_token');
+      if(!token) return;
+      fetch('https://onpartpadmin.liara.run/api/orders/'+orderId, {headers:{'Authorization':'Bearer '+token}})
+        .then(r=>r.json())
+        .then(o=>{
+          if(o.total){
+            const v = String(o.total);
+            const formatted = v.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            document.getElementById('amount').value = formatted.replace(/\d/g, d=>'۰۱۲۳۴۵۶۷۸۹'[d]).replace(/,/g,'،');
+          }
+        })
+        .catch(()=>{});
+    })();
+  </script>
+<script>
+// ── Persian Datepicker ──
+const pdpMonths=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+const pdpMDays=[31,31,31,31,31,31,30,30,30,30,30,29];
+const pdpWdNames=['شنبه','یک‌شنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنج‌شنبه','جمعه'];
+const toFa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+const pad2=n=>String(n).padStart(2,'0');
+let pdpY=1404,pdpM=3,pdpSD=null,pdpSM=null,pdpSY=null,pdpShowY=false;
+
+function gToJ(gy,gm,gd){
+  gy=parseInt(gy);gm=parseInt(gm);gd=parseInt(gd);
+  let jy,jm,jd,g_d_no,j_d_no,j_np,i;
+  const g_days_in_month=[31,28,31,30,31,30,31,31,30,31,30,31];
+  const j_days_in_month=[31,31,31,31,31,31,30,30,30,30,30,29];
+  let gy2=gy-1600;gm=gm-1;gd=gd-1;
+  g_d_no=365*gy2+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400);
+  for(i=0;i<gm;++i)g_d_no+=g_days_in_month[i];
+  if(gm>1&&((gy2%4===0&&gy2%100!==0)||(gy2%400===0)))++g_d_no;
+  g_d_no+=gd;
+  j_d_no=g_d_no-79;
+  j_np=Math.floor(j_d_no/12053);j_d_no%=12053;
+  jy=979+33*j_np+4*Math.floor(j_d_no/1461);j_d_no%=1461;
+  if(j_d_no>=366){jy+=Math.floor((j_d_no-1)/365);j_d_no=(j_d_no-1)%365;}
+  for(i=0;i<11&&j_d_no>=j_days_in_month[i];++i)j_d_no-=j_days_in_month[i];
+  jm=i+1;jd=j_d_no+1;
+  return {y:jy,m:jm,d:jd};
+}
+
+// Set today as default
+(function(){
+  const t=new Date();
+  const j=gToJ(t.getFullYear(),t.getMonth()+1,t.getDate());
+  pdpY=j.y;pdpM=j.m;
+})();
+
+function pdpJtoG(jy,jm,jd){
+  let jy2=jy-979,jm2=jm-1,jd2=jd-1;
+  let jdn=365*jy2+Math.floor(jy2/33)*8+Math.floor((jy2%33+3)/4);
+  for(let i=0;i<jm2;i++)jdn+=pdpMDays[i];
+  jdn+=jd2+79;
+  let gy=1600+400*Math.floor(jdn/146097);jdn=jdn%146097;
+  let leap=true;
+  if(jdn>=36525){jdn++;gy+=100*Math.floor(jdn/36524);jdn=jdn%36524;if(jdn>=365)jdn++;else leap=false;}
+  gy+=4*Math.floor(jdn/1461);jdn=jdn%1461;
+  if(jdn>=366){leap=false;jdn++;gy+=Math.floor(jdn/365);jdn=jdn%365;}
+  const gm=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31];
+  let mo=0;for(;mo<12;mo++){if(jdn<gm[mo])break;jdn-=gm[mo];}
+  return new Date(gy,mo,jdn+1);
+}
+function pdpDow(jy,jm,jd){return(pdpJtoG(jy,jm,jd).getDay()+1)%7;}
+
+function pdpRender(){
+  document.getElementById('pdpHeader').textContent=pdpMonths[pdpM-1]+' '+toFa(pdpY);
+  const first=pdpDow(pdpY,pdpM,1),days=pdpMDays[pdpM-1];
+  let html='';
+  for(let i=0;i<first;i++)html+='<div></div>';
+  for(let d=1;d<=days;d++){
+    const isSel=pdpSD===d&&pdpSM===pdpM&&pdpSY===pdpY;
+    const dow=(first+d-1)%7;
+    const isFri=dow===6;
+    const todayJ=gToJ(new Date().getFullYear(),new Date().getMonth()+1,new Date().getDate());
+    const isToday=d===todayJ.d&&pdpM===todayJ.m&&pdpY===todayJ.y;
+    html+=`<div onclick="pdpSel(${d})" style="text-align:center;padding:6px 2px;border-radius:7px;cursor:pointer;font-size:12px;font-family:Vazirmatn,sans-serif;
+    background:${isSel?'#1d4ed8':isToday?'#EFF6FF':'transparent'};
+    color:${isSel?'#fff':isFri?'#ef4444':isToday?'#1d4ed8':'#333'};
+    border:${isToday&&!isSel?'1.5px solid #1d4ed8':'1.5px solid transparent'};
+    font-weight:${isToday?'600':'400'};
+    transition:background .15s"
+    onmouseover="if(!${isSel})this.style.background='#f0f4ff'"
+    onmouseout="if(!${isSel})this.style.background='${isSel?'#1d4ed8':isToday?'#EFF6FF':'transparent'}'">${toFa(d)}</div>`;
+  }
+  document.getElementById('pdpDays').innerHTML=html;
+}
+
+function pdpSel(d){
+  pdpSD=d;pdpSM=pdpM;pdpSY=pdpY;
+  const dow=pdpDow(pdpY,pdpM,d);
+  document.getElementById('pdpSelDate').textContent=`${pdpWdNames[dow]}، ${toFa(d)} ${pdpMonths[pdpM-1]} ${toFa(pdpY)}`;
+  document.getElementById('pdpSelDate').style.color='#fff';
+  document.getElementById('payDate').value=`${toFa(pdpY)}/${toFa(pad2(pdpM))}/${toFa(pad2(d))}`;
+  pdpRender();
+}
+
+function pdpPrev(){pdpM--;if(pdpM<1){pdpM=12;pdpY--;}pdpRender();}
+function pdpNext(){pdpM++;if(pdpM>12){pdpM=1;pdpY++;}pdpRender();}
+
+function pdpToggleYear(){
+  pdpShowY=!pdpShowY;
+  document.getElementById('pdpYearGrid').style.display=pdpShowY?'block':'none';
+  document.getElementById('pdpDayView').style.display=pdpShowY?'none':'block';
+  if(pdpShowY){
+    let html='';
+    for(let y=pdpY-5;y<=pdpY+5;y++){
+      const isSel=y===pdpY;
+      html+=`<div onclick="pdpSelY(${y})" style="text-align:center;padding:8px;border-radius:7px;cursor:pointer;font-size:12px;font-family:Vazirmatn,sans-serif;background:${isSel?'#1d4ed8':'transparent'};color:${isSel?'#fff':'#333'}">${toFa(y)}</div>`;
+    }
+    document.getElementById('pdpYears').innerHTML=html;
+  }
+}
+function pdpSelY(y){pdpY=y;pdpShowY=false;document.getElementById('pdpYearGrid').style.display='none';document.getElementById('pdpDayView').style.display='block';pdpRender();}
+function pdpClear(){pdpSD=pdpSM=pdpSY=null;document.getElementById('payDate').value='';document.getElementById('pdpSelDate').textContent='تاریخ واریز را انتخاب کنید';document.getElementById('pdpSelDate').style.color='rgba(255,255,255,.7)';pdpRender();}
+
+document.getElementById('payDate').addEventListener('click',function(){
+  const p=document.getElementById('pdpPopup');
+  p.style.display=p.style.display==='none'?'block':'none';
+  if(p.style.display==='block')pdpRender();
+});
+
+// ── Bank Selector ──
+const banks=[
+  {n:'بانک ملت',cls:'ibl-mellat',cat:'دولتی'},
+  {n:'بانک ملی ایران',cls:'ibl-bmi',cat:'دولتی'},
+  {n:'بانک صادرات ایران',cls:'ibl-bsi',cat:'دولتی'},
+  {n:'بانک تجارت',cls:'ibl-tejarat',cat:'دولتی'},
+  {n:'بانک سپه',cls:'ibl-sepah',cat:'دولتی'},
+  {n:'بانک رفاه کارگران',cls:null,color:'#0072BC',abbr:'رفاه',cat:'دولتی'},
+  {n:'بانک کشاورزی',cls:'ibl-bki',cat:'دولتی'},
+  {n:'بانک مسکن',cls:'ibl-maskan',cat:'دولتی'},
+  {n:'بانک توسعه صادرات',cls:'ibl-edbi',cat:'دولتی'},
+  {n:'پست بانک ایران',cls:null,color:'#F9A825',abbr:'پست',cat:'دولتی'},
+  {n:'بانک توسعه تعاون',cls:'ibl-ttbank',cat:'دولتی'},
+  {n:'بانک پاسارگاد',cls:null,color:'#B71C1C',abbr:'پاسارگاد',cat:'خصوصی'},
+  {n:'بانک سامان',cls:null,color:'#1565C0',abbr:'سامان',cat:'خصوصی'},
+  {n:'بانک اقتصاد نوین',cls:'ibl-en',cat:'خصوصی'},
+  {n:'بانک کارآفرین',cls:null,color:'#558B2F',abbr:'کارآفرین',cat:'خصوصی'},
+  {n:'بانک پارسیان',cls:'ibl-parsian',cat:'خصوصی'},
+  {n:'بانک سینا',cls:'ibl-sina',cat:'خصوصی'},
+  {n:'بانک آینده',cls:null,color:'#E65100',abbr:'آینده',cat:'خصوصی'},
+  {n:'بانک شهر',cls:'ibl-shahr',cat:'خصوصی'},
+  {n:'بانک ایران زمین',cls:'ibl-iz',cat:'خصوصی'},
+  {n:'بانک سرمایه',cls:'ibl-sarmayeh',cat:'خصوصی'},
+  {n:'بانک دی',cls:'ibl-day',cat:'خصوصی'},
+  {n:'بانک گردشگری',cls:null,color:'#00897B',abbr:'گردشگری',cat:'خصوصی'},
+  {n:'بانک خاورمیانه',cls:null,color:'#00838F',abbr:'خاور',cat:'خصوصی'},
+  {n:'بانک مهر ایران',cls:null,color:'#C62828',abbr:'مهر',cat:'قرض‌الحسنه'},
+  {n:'بانک رسالت',cls:'ibl-resalat',cat:'قرض‌الحسنه'},
+  {n:'سایر',cls:null,color:'#78909C',abbr:'سایر',cat:'سایر'},
+];
+
+let bsSelIdx=null;
+
+function bsLogoHTML(b){
+  if(b.cls) return `<i class="ibl32 ${b.cls}"></i>`;
+  if(b.color) return `<div style="width:34px;height:34px;border-radius:7px;background:${b.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;font-family:Vazirmatn,sans-serif">${(b.abbr||'').slice(0,4)}</div>`;
+  return `<i class="ti ti-building-bank" style="font-size:18px;color:#bbb"></i>`;
+}
+
+function bsRender(list,q=''){
+  const el=document.getElementById('bsList');
+  if(!list.length){el.innerHTML=`<div style="text-align:center;padding:24px;color:#bbb;font-size:13px;font-family:Vazirmatn,sans-serif">بانکی یافت نشد</div>`;return;}
+  let html='',lastCat='';
+  list.forEach(b=>{
+    const i=banks.indexOf(b);
+    if(!q&&b.cat!==lastCat){lastCat=b.cat;html+=`<div style="font-size:10.5px;font-weight:600;color:#aaa;padding:10px 10px 4px;letter-spacing:.5px;font-family:Vazirmatn,sans-serif">${b.cat}</div>`;}
+    html+=`<div onclick="bsSelect(${i})" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;background:${bsSelIdx===i?'#EFF6FF':'transparent'};transition:background .15s"
+    onmouseover="this.style.background='${bsSelIdx===i?'#EFF6FF':'#f8fafc'}'"
+    onmouseout="this.style.background='${bsSelIdx===i?'#EFF6FF':'transparent'}'">
+      <div style="width:34px;height:34px;border-radius:8px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">${bsLogoHTML(b)}</div>
+      <div style="flex:1"><div style="font-size:13px;color:#333;font-weight:500;font-family:Vazirmatn,sans-serif">${b.n}</div></div>
+      ${bsSelIdx===i?'<i class="ti ti-check" style="color:#1d4ed8;font-size:16px;flex-shrink:0"></i>':''}
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+
+function bsSelect(i){
+  bsSelIdx=i;
+  const b=banks[i];
+  document.getElementById('bsSelLogo').innerHTML=bsLogoHTML(b);
+  document.getElementById('bsSelTxt').textContent=b.n;
+  document.getElementById('bsSelTxt').style.color='#111';
+  document.getElementById('bankSrc').value=b.n;
+  document.getElementById('bsPopup').style.display='none';
+  document.getElementById('bsChevron').style.transform='rotate(0deg)';
+  bsRender(banks);
+}
+
+function bsToggle(){
+  const p=document.getElementById('bsPopup');
+  const open=p.style.display==='none';
+  p.style.display=open?'block':'none';
+  document.getElementById('bsChevron').style.transform=open?'rotate(180deg)':'rotate(0deg)';
+  document.getElementById('bsDisplay').style.borderColor=open?'#1d4ed8':'#e5e7eb';
+  if(open){document.getElementById('bsSearch').value='';bsRender(banks);setTimeout(()=>document.getElementById('bsSearch').focus(),80);}
+}
+
+function bsFilter(q){
+  bsRender(q?banks.filter(b=>b.n.includes(q)):banks,q);
+}
+
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#bsDisplay')&&!e.target.closest('#bsPopup')){
+    document.getElementById('bsPopup').style.display='none';
+    document.getElementById('bsChevron').style.transform='rotate(0deg)';
+    document.getElementById('bsDisplay').style.borderColor='#e5e7eb';
+  }
+  if(!e.target.closest('#payDate')&&!e.target.closest('#pdpPopup')){
+    document.getElementById('pdpPopup').style.display='none';
+  }
+});
+</script>
+</body>
+</html>

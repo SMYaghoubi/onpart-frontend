@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" href="/images/favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>مدیریت کاربران | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    body{background:#f1f5f9;}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+    .sc{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);display:flex;align-items:center;gap:14px;}
+    .sc-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+    .si-blue{background:#eff6ff;color:#1d4ed8;} .si-green{background:#dcfce7;color:#16a34a;}
+    .si-amber{background:#fef3c7;color:#d97706;} .si-red{background:#fee2e2;color:#dc2626;}
+    .sc-val{font-size:20px;font-weight:900;color:#111;} .sc-lbl{font-size:11.5px;color:#aaa;}
+    .toolbar{background:#fff;border-radius:12px;padding:14px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .fi{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-family:'Vazirmatn',sans-serif;font-size:13px;color:#333;outline:none;}
+    .fi-input{flex:1;min-width:180px;}
+    .btn-add{background:#1d4ed8;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;margin-right:auto;}
+    .table-card{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden;}
+    .tc-head{padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;}
+    .tc-title{font-size:14px;font-weight:800;color:#111;}
+    .tbl{width:100%;border-collapse:collapse;}
+    .tbl th{font-size:11.5px;font-weight:700;color:#888;text-align:center;padding:10px 12px;border-bottom:2px solid #f0f0f0;background:#f8fafc;white-space:nowrap;}
+    .tbl th:nth-child(2){text-align:right;}
+    .tbl td{font-size:12.5px;color:#333;padding:11px 12px;border-bottom:1px solid #f5f5f5;text-align:center;white-space:nowrap;}
+    .tbl tbody tr:hover{background:#f9fbff;}
+    .user-cell{display:flex;align-items:center;gap:8px;}
+    .u-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+    .badge{border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;}
+    .b-green{background:#dcfce7;color:#16a34a;} .b-red{background:#fee2e2;color:#dc2626;}
+    .b-amber{background:#fef3c7;color:#d97706;} .b-blue{background:#dbeafe;color:#1d4ed8;}
+    .b-purple{background:#f5f3ff;color:#7c3aed;} .b-gray{background:#f3f4f6;color:#666;}
+    .action-btns{display:flex;gap:5px;justify-content:center;}
+    .ab{width:28px;height:28px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;}
+    .ab-view{background:#eff6ff;color:#1d4ed8;} .ab-edit{background:#fef3c7;color:#d97706;}
+    .ab-block{background:#fee2e2;color:#dc2626;} .ab-pw{background:#f0fdf4;color:#16a34a;}
+    .pager{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid #f0f0f0;}
+    .pager-info{font-size:12.5px;color:#aaa;}
+    .pager-btns{display:flex;gap:6px;}
+    .pg{width:30px;height:30px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;cursor:pointer;font-family:'Vazirmatn',sans-serif;font-size:12.5px;color:#555;display:flex;align-items:center;justify-content:center;}
+    .pg:hover,.pg.on{background:#1d4ed8;color:#fff;border-color:#1d4ed8;}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;}
+    .modal-overlay.show{display:flex;}
+    .modal{background:#fff;border-radius:18px;width:620px;max-height:92vh;overflow-y:auto;}
+    .modal-head{padding:20px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:5;}
+    .modal-title{font-size:16px;font-weight:800;color:#111;display:flex;align-items:center;gap:8px;}
+    .modal-title i{color:#1d4ed8;}
+    .modal-close{width:32px;height:32px;background:#f3f4f6;border:none;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+    .modal-body{padding:24px;}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .fg{display:flex;flex-direction:column;gap:6px;} .fg.full{grid-column:1/-1;}
+    .fg label{font-size:12.5px;font-weight:600;color:#444;}
+    .finput{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:10px 13px;font-family:'Vazirmatn',sans-serif;font-size:13.5px;color:#111;outline:none;transition:border .2s;width:100%;}
+    .finput:focus{border-color:#1d4ed8;background:#fff;}
+    .fselect{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:10px 13px;font-family:'Vazirmatn',sans-serif;font-size:13px;color:#333;outline:none;width:100%;}
+    .modal-foot{padding:16px 24px;border-top:1px solid #f0f0f0;display:flex;gap:10px;position:sticky;bottom:0;background:#fff;}
+    .btn-prim{background:#1d4ed8;color:#fff;border:none;border-radius:9px;padding:11px 24px;font-family:'Vazirmatn',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;}
+    .btn-sec{background:#f3f4f6;color:#555;border:none;border-radius:9px;padding:11px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+    .sec-lbl{grid-column:1/-1;font-size:12px;font-weight:700;color:#1d4ed8;padding:6px 0 0;display:flex;align-items:center;gap:6px;}
+    .divider{grid-column:1/-1;height:1px;background:#f0f0f0;}
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:600;display:none;align-items:center;gap:10px;z-index:999;}
+    .toast.show{display:flex;}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-placeholder"></div>
+  <div class="main">
+    <div id="topbar-placeholder"></div>
+    <div class="content">
+
+      <div class="stats">
+        <div class="sc"><div class="sc-icon si-blue"><i class="ti ti-users"></i></div><div><div class="sc-val" id="totalUsers">—</div><div class="sc-lbl">کل کاربران</div></div></div>
+        <div class="sc"><div class="sc-icon si-green"><i class="ti ti-user-check"></i></div><div><div class="sc-val" id="activeUsers">—</div><div class="sc-lbl">فعال</div></div></div>
+        <div class="sc"><div class="sc-icon si-amber"><i class="ti ti-building-store"></i></div><div><div class="sc-val" id="partnerUsers">—</div><div class="sc-lbl">همکار</div></div></div>
+        <div class="sc"><div class="sc-icon si-red"><i class="ti ti-user-off"></i></div><div><div class="sc-val" id="blockedUsers">—</div><div class="sc-lbl">مسدود</div></div></div>
+      </div>
+
+      <div class="toolbar">
+        <input class="fi fi-input" placeholder="جستجو نام، موبایل..." id="searchInp" oninput="renderTable()" autocomplete="off" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+        <select class="fi" id="roleF" onchange="renderTable()">
+          <option value="">همه نقش‌ها</option>
+          <option value="user">کاربر عادی</option>
+          <option value="partner">همکار</option>
+          <option value="admin">ادمین</option>
+        </select>
+        <select class="fi" id="statusF" onchange="renderTable()">
+          <option value="">همه وضعیت‌ها</option>
+          <option value="active">فعال</option>
+          <option value="inactive">غیرفعال</option>
+          <option value="blocked">مسدود</option>
+        </select>
+        <button class="btn-add" onclick="openModal('add',null)"><i class="ti ti-user-plus"></i>افزودن کاربر</button>
+      </div>
+
+      <div class="table-card">
+        <div class="tc-head">
+          <div class="tc-title">لیست کاربران (<span id="userCount">0</span>)</div>
+          <button style="background:#f0fdf4;color:#16a34a;border:none;border-radius:7px;padding:7px 14px;font-family:'Vazirmatn',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px" onclick="exportUsers()"><i class="ti ti-file-spreadsheet"></i>خروجی اکسل</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th style="text-align:right">نام</th>
+              <th>موبایل</th><th>نقش</th><th>شهر</th>
+              <th>بدهی (ت)</th><th>اعتبار (ت)</th><th>تاریخ عضویت</th><th>وضعیت</th>
+              <th>عملیات</th>
+            </tr></thead>
+            <tbody id="userTbody"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <div class="pager-info" id="pagerInfo">—</div>
+          <div class="pager-btns" id="pagerBtns"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-user"></i><span id="modalTitle">افزودن کاربر</span></div>
+      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="sec-lbl"><i class="ti ti-id-badge"></i>اطلاعات شخصی</div>
+        <div class="fg"><label>نام</label><input class="finput" id="f_name" placeholder="نام"/></div>
+        <div class="fg"><label>نام خانوادگی</label><input class="finput" id="f_lname" placeholder="نام خانوادگی"/></div>
+        <div class="fg"><label>شماره موبایل *</label><input class="finput" id="f_phone" placeholder="09xxxxxxxxx"/></div>
+        <div class="fg"><label>ایمیل</label><input class="finput" id="f_email" placeholder="email@example.com"/></div>
+        <div class="fg"><label>رمز عبور</label><input class="finput" type="password" id="f_pass" placeholder="رمز عبور"/></div>
+        <div class="fg"><label>نقش</label><select class="fselect" id="f_role"><option value="user">کاربر عادی</option><option value="partner">همکار</option><option value="admin">ادمین</option></select></div>
+        <div class="fg"><label>وضعیت</label><select class="fselect" id="f_status"><option value="active">فعال</option><option value="pending">در انتظار تأیید</option><option value="inactive">غیرفعال</option><option value="blocked">مسدود</option></select></div>
+        <div class="fg"><label>سقف اعتبار (تومان)</label><input class="finput" id="f_credit" placeholder="0" value="0"/></div>
+        <div class="divider"></div>
+        <div class="sec-lbl"><i class="ti ti-map-pin"></i>آدرس</div>
+        <div class="fg"><label>استان</label><input class="finput" id="f_state" placeholder="استان"/></div>
+        <div class="fg"><label>شهر</label><input class="finput" id="f_city" placeholder="شهر"/></div>
+        <div class="fg full"><label>آدرس کامل</label><input class="finput" id="f_addr" placeholder="آدرس..."/></div>
+        <div class="divider"></div>
+        <div class="sec-lbl"><i class="ti ti-building-store"></i>اطلاعات فروشگاه</div>
+        <div class="fg"><label>نام فروشگاه</label><input class="finput" id="f_shop_name" placeholder="نام کسب‌وکار"/></div>
+        <div class="fg"><label>کد ملی</label><input class="finput" id="f_national_code" placeholder="کد ملی"/></div>
+        <div class="fg"><label>شماره ثابت</label><input class="finput" id="f_phone_fixed" placeholder="021XXXXXXXX"/></div>
+        <div class="fg"><label>کد پستی</label><input class="finput" id="f_postal_code" placeholder="کد پستی"/></div>
+        <div class="fg full" id="f_idcard_wrap" style="display:none">
+          <label>تصویر کارت ملی / پروانه کسب</label>
+          <a id="f_idcard_link" href="#" target="_blank" style="display:flex;align-items:center;gap:8px;background:#eff6ff;border-radius:8px;padding:10px 14px;text-decoration:none;color:#1d4ed8;font-size:13px;font-weight:600">
+            <i class="ti ti-id"></i> مشاهده تصویر
+          </a>
+        </div>
+        <div class="fg full" id="f_shopimg_wrap" style="display:none">
+          <label>عکس تابلو فروشگاه</label>
+          <a id="f_shopimg_link" href="#" target="_blank" style="display:flex;align-items:center;gap:8px;background:#eff6ff;border-radius:8px;padding:10px 14px;text-decoration:none;color:#1d4ed8;font-size:13px;font-weight:600">
+            <i class="ti ti-building-store"></i> مشاهده عکس
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-prim" onclick="saveUser()"><i class="ti ti-check"></i>ذخیره</button>
+      <div id="approveRejectBtns" style="display:none;gap:8px;display:none">
+        <button onclick="approveUser(currentId)" style="background:#dcfce7;color:#16a34a;border:none;border-radius:8px;padding:9px 16px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px"><i class="ti ti-check"></i>تأیید کاربر</button>
+        <button onclick="rejectUser(currentId)" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:9px 16px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px"><i class="ti ti-x"></i>رد کاربر</button>
+      </div>
+      <button class="btn-sec" onclick="closeModal()">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-overlay" id="pwModal">
+  <div class="modal" style="width:420px">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-lock"></i>تغییر رمز عبور</div>
+      <button class="modal-close" onclick="document.getElementById('pwModal').classList.remove('show')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="fg" style="margin-bottom:14px"><label>رمز عبور جدید *</label><input class="finput" type="password" id="pw_new" placeholder="رمز عبور جدید"/></div>
+      <div class="fg"><label>تکرار رمز عبور</label><input class="finput" type="password" id="pw_confirm" placeholder="تکرار رمز عبور"/></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-prim" onclick="savePassword()"><i class="ti ti-check"></i>ذخیره رمز عبور</button>
+      <button class="btn-sec" onclick="document.getElementById('pwModal').classList.remove('show')">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+
+function toJalali(dateStr){
+  if(!dateStr) return '—';
+  try{
+    const d=new Date(dateStr);if(isNaN(d))return dateStr;
+    const gy=d.getFullYear(),gm=d.getMonth()+1,gd=d.getDate();
+    let jy=gy-1600,jm=0,jd=0,g_d_no,j_d_no,j_np,i;
+    const g_d_m=[31,28,31,30,31,30,31,31,30,31,30,31];
+    const j_d_m=[31,31,31,31,31,31,30,30,30,30,30,29];
+    let gy2=gy-1600;
+    g_d_no=365*gy2+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400);
+    for(i=0;i<gm-1;i++)g_d_no+=g_d_m[i];
+    if(gm>2&&((gy2%4===0&&gy2%100!==0)||(gy2%400===0)))g_d_no++;
+    g_d_no+=gd;j_d_no=g_d_no-79;
+    j_np=Math.floor(j_d_no/12053);j_d_no%=12053;
+    jy=979+33*j_np+4*Math.floor(j_d_no/1461);j_d_no%=1461;
+    if(j_d_no>=366){jy+=Math.floor((j_d_no-1)/365);j_d_no=(j_d_no-1)%365;}
+    for(i=0;i<11&&j_d_no>=j_d_m[i];i++)j_d_no-=j_d_m[i];
+    jm=i+1;jd=j_d_no+1;
+    const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+    return fa(jy)+'/'+fa(String(jm).padStart(2,'0'))+'/'+fa(String(jd).padStart(2,'0'));
+  }catch(e){return dateStr||'—';}
+}
+
+Admin.renderSidebar('users');
+Admin.renderTopbar('مدیریت کاربران','ti-users');
+
+const fa = n => n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+const fmt = n => fa(Number(n).toLocaleString());
+const colors = ['#1d4ed8','#16a34a','#d97706','#7c3aed','#0f766e','#dc2626'];
+let users = [], filtered = [], currentId = null, page = 1;
+const PER_PAGE = 15;
+
+function toast(msg, ok=true){
+  const t = document.getElementById('toast');
+  t.innerHTML = `<i class="ti ti-${ok?'check':'x'}" style="color:${ok?'#4ade80':'#f87171'};font-size:18px"></i>${msg}`;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+const roleBadge = {user:'b-blue',partner:'b-green',admin:'b-red'};
+const roleLabel = {user:'کاربر',partner:'همکار',admin:'ادمین'};
+const statusBadge = {active:'b-green',inactive:'b-gray',blocked:'b-red',pending:'b-amber'};
+const statusLabel = {active:'فعال',inactive:'غیرفعال',blocked:'مسدود',pending:'در انتظار تأیید'};
+
+async function loadUsers(){
+  try {
+    const token = sessionStorage.getItem('op_token');
+    const res = await fetch(API.BASE_URL+'/api/users?limit=500',{headers:{'Authorization':'Bearer '+token}});
+    const data = await res.json();
+    users = (Array.isArray(data) ? data : (data.users || [])).filter(u=>u.role!=='admin');
+  } catch(e){ users = []; }
+  updateStats(); renderTable();
+}
+
+function updateStats(){
+  document.getElementById('totalUsers').textContent = fa(users.length);
+  document.getElementById('activeUsers').textContent = fa(users.filter(u=>u.status==='active').length);
+  document.getElementById('partnerUsers').textContent = fa(users.filter(u=>u.role==='partner').length);
+  document.getElementById('blockedUsers').textContent = fa(users.filter(u=>u.status==='blocked').length);
+}
+
+function renderTable(){
+  const s = document.getElementById('searchInp').value;
+  const rf = document.getElementById('roleF').value;
+  const sf = document.getElementById('statusF').value;
+  filtered = users.filter(u=>
+    (!s||(u.name?.includes(s)||u.phone?.includes(s)))&&
+    (!rf||u.role===rf)&&(!sf||u.status===sf)
+  );
+  const total=filtered.length, pages=Math.ceil(total/PER_PAGE);
+  if(page>pages) page=1;
+  const start=(page-1)*PER_PAGE, end=Math.min(start+PER_PAGE,total);
+  document.getElementById('userCount').textContent=fa(total);
+  document.getElementById('pagerInfo').textContent=`نمایش ${fa(start+1)}–${fa(end)} از ${fa(total)}`;
+
+  document.getElementById('userTbody').innerHTML=filtered.slice(start,end).map((u,i)=>`
+    <tr>
+      <td style="text-align:right"><div class="user-cell">
+        <div class="u-av" style="background:${colors[i%colors.length]}">${(u.name||'؟')[0]}</div>
+        <div>
+          <div style="font-size:13px;font-weight:600">${u.name||'—'}</div>
+          <div style="font-size:11px;color:#aaa">${u.email||''}</div>
+        </div>
+      </div></td>
+      <td style="direction:ltr">${u.phone||'—'}</td>
+      <td><span class="badge ${roleBadge[u.role]||'b-gray'}">${roleLabel[u.role]||u.role}</span></td>
+      <td>${u.city||'—'}</td>
+      <td style="color:${u.debt>0?'#dc2626':'#16a34a'};font-weight:700">${u.debt>0?fmt(u.debt):'صفر'}</td>
+      <td>${u.credit_limit>0?fmt(u.credit_limit):'—'}</td>
+      <td style="font-size:11.5px;color:#888">${toJalali(u.created_at)||'—'}</td>
+      <td><span class="badge ${statusBadge[u.status]||'b-gray'}">${statusLabel[u.status]||u.status}</span></td>
+      <td><div class="action-btns">
+        ${u.status==='pending'?`
+        <button class="ab" onclick="approveUser(${u.id})" title="تأیید و فعال‌سازی" style="background:#dcfce7;color:#16a34a">
+          <i class="ti ti-check"></i>
+        </button>`:''}
+        <button class="ab ab-edit" onclick="editUser(${u.id})" title="ویرایش"><i class="ti ti-edit"></i></button>
+        <button class="ab ab-pw" onclick="openPwModal(${u.id})" title="تغییر رمز"><i class="ti ti-lock"></i></button>
+        <button class="ab ab-block" onclick="toggleBlock(${u.id},'${u.status}')" title="${u.status==='blocked'?'رفع مسدودی':'مسدود کردن'}">
+          <i class="ti ti-${u.status==='blocked'?'lock-open':'lock'}"></i>
+        </button>
+        <button class="ab ab-delete" onclick="deleteUser(${u.id},'${(u.name||u.phone||'').replace(/'/g,"\\'")}')" title="حذف کامل" style="background:#fee2e2;color:#dc2626">
+          <i class="ti ti-trash"></i>
+        </button>
+      </div></td>
+    </tr>`).join('');
+
+  let btns='';
+  for(let i=1;i<=pages;i++) btns+=`<button class="pg${i===page?' on':''}" onclick="gotoPage(${i})">${fa(i)}</button>`;
+  document.getElementById('pagerBtns').innerHTML=btns;
+}
+
+function gotoPage(p){page=p;renderTable();}
+
+function editUser(id){
+  const u=users.find(x=>x.id===id);
+  if(u) openModal('edit',u);
+}
+
+function openModal(mode,u){
+  currentId=u?.id||null;
+  document.getElementById('modalTitle').textContent=mode==='add'?'افزودن کاربر جدید':'ویرایش کاربر';
+  if(u){
+    const nameParts=(u.name||'').split(' ');
+    document.getElementById('f_name').value=nameParts[0]||'';
+    document.getElementById('f_lname').value=nameParts.slice(1).join(' ')||'';
+    document.getElementById('f_phone').value=u.phone||'';
+    document.getElementById('f_email').value=u.email||'';
+    document.getElementById('f_pass').value='';
+    document.getElementById('f_role').value=u.role||'user';
+    document.getElementById('f_status').value=u.status||'active';
+    document.getElementById('f_credit').value=u.credit_limit||0;
+    document.getElementById('f_state').value=u.state||'';
+    document.getElementById('f_city').value=u.city||'';
+    document.getElementById('f_addr').value=u.address||'';
+    document.getElementById('f_shop_name').value=u.shop_name||'';
+    document.getElementById('f_national_code').value=u.national_code||'';
+    document.getElementById('f_phone_fixed').value=u.phone_fixed||'';
+    document.getElementById('f_postal_code').value=u.postal_code||'';
+    const approveRejectBtns = document.getElementById('approveRejectBtns');
+    if(approveRejectBtns){
+      if(u && u.status === 'pending'){
+        approveRejectBtns.style.display = 'flex';
+      } else {
+        approveRejectBtns.style.display = 'none';
+      }
+    }
+    const API_BASE='https://onpartpadmin.liara.run';
+    const idWrap=document.getElementById('f_idcard_wrap');
+    const shopWrap=document.getElementById('f_shopimg_wrap');
+    if(u.id_card_image){
+      idWrap.style.display='block';
+      document.getElementById('f_idcard_link').href=`${API_BASE}/uploads/${u.id_card_image}`;
+    } else idWrap.style.display='none';
+    if(u.shop_image){
+      shopWrap.style.display='block';
+      document.getElementById('f_shopimg_link').href=`${API_BASE}/uploads/${u.shop_image}`;
+    } else shopWrap.style.display='none';
+  } else {
+    ['f_name','f_lname','f_phone','f_email','f_pass','f_state','f_city','f_addr'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('f_credit').value='0';
+    document.getElementById('f_role').value='user';
+    document.getElementById('f_status').value='active';
+  }
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+
+async function saveUser(){
+  const phone=document.getElementById('f_phone').value.trim();
+  if(!phone){toast('شماره موبایل اجباری است',false);return;}
+  const name=document.getElementById('f_name').value.trim()+' '+document.getElementById('f_lname').value.trim();
+  const data={
+    name:name.trim(),phone,email:document.getElementById('f_email').value.trim(),
+    password:document.getElementById('f_pass').value||undefined,
+    role:document.getElementById('f_role').value,status:document.getElementById('f_status').value,
+    credit_limit:Number(document.getElementById('f_credit').value),
+    state:document.getElementById('f_state').value,city:document.getElementById('f_city').value,
+    address:document.getElementById('f_addr').value,
+    shop_name:document.getElementById('f_shop_name').value,
+    national_code:document.getElementById('f_national_code').value,
+    phone_fixed:document.getElementById('f_phone_fixed').value,
+    postal_code:document.getElementById('f_postal_code').value
+  };
+  try {
+    const token=sessionStorage.getItem('op_token');
+    const url=currentId?`${API.BASE_URL}/api/users/${currentId}`:`${API.BASE_URL}/api/users`;
+    const method=currentId?'PUT':'POST';
+    const res=await fetch(url,{method,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(data)});
+    const result=await res.json();
+    if(!res.ok) throw new Error(result.message);
+    toast(currentId?'کاربر ویرایش شد':'کاربر اضافه شد');
+    closeModal(); loadUsers();
+  } catch(e){toast(e.message||'خطا',false);}
+}
+
+function openPwModal(id){currentId=id;document.getElementById('pwModal').classList.add('show');}
+
+async function savePassword(){
+  const np=document.getElementById('pw_new').value;
+  const cp=document.getElementById('pw_confirm').value;
+  if(!np||np!==cp){toast('رمز عبور مطابقت ندارد',false);return;}
+  try {
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/users/${currentId}`,{
+      method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({password:np})
+    });
+    if(!res.ok) throw new Error();
+    toast('رمز عبور تغییر کرد');
+    document.getElementById('pwModal').classList.remove('show');
+  } catch(e){toast('خطا در تغییر رمز',false);}
+}
+
+async function approveUser(id){
+  if(!confirm('آیا می‌خواهید این کاربر را تأیید و فعال کنید؟')) return;
+  try {
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/users/${id}/status`,{
+      method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({status:'active'})
+    });
+    if(!res.ok) throw new Error();
+    toast('کاربر با موفقیت تأیید و فعال شد');
+    closeModal();
+    loadUsers();
+  } catch(e){ toast('خطا در تأیید کاربر',false); }
+}
+
+async function rejectUser(id){
+  if(!confirm('آیا می‌خواهید این کاربر را رد و مسدود کنید؟')) return;
+  try {
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/users/${id}/status`,{
+      method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({status:'blocked'})
+    });
+    if(!res.ok) throw new Error();
+    toast('کاربر رد و مسدود شد');
+    closeModal();
+    loadUsers();
+  } catch(e){ toast('خطا در رد کاربر',false); }
+}
+
+async function toggleBlock(id,status){
+  const action=status==='blocked'?'رفع مسدودی':'مسدود کردن';
+  if(!confirm(`آیا می‌خواهید این کاربر را ${action} کنید؟`)) return;
+  try {
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/users/${id}/block`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
+    if(!res.ok) throw new Error();
+    toast(`${action} با موفقیت انجام شد`);
+    loadUsers();
+  } catch(e){toast('خطا',false);}
+}
+
+async function deleteUser(id,name){
+  if(!confirm(`آیا مطمئن هستید می‌خواهید "${name}" را برای همیشه حذف کنید؟\nاین عمل همه سفارشات، پرداخت‌ها و اطلاعات این کاربر را هم حذف می‌کند و قابل بازگشت نیست.`)) return;
+  try {
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/users/${id}`,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.message||'خطا در حذف');
+    toast('کاربر با موفقیت حذف شد');
+    loadUsers();
+  } catch(e){ toast(e.message||'خطا در حذف کاربر',false); }
+}
+
+function exportUsers(){
+  const rows=[['نام','موبایل','نقش','شهر','بدهی','اعتبار','وضعیت']];
+  filtered.forEach(u=>rows.push([u.name,u.phone,u.role,u.city,u.debt,u.credit_limit,u.status]));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='users.csv';a.click();
+}
+
+loadUsers();
+</script>
+</body>
+</html>

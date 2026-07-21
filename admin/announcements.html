@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" href="/images/favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>اعلان‌های فروشگاه | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    body{background:#f1f5f9;}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+    .sc{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+    .sc-val{font-size:20px;font-weight:900;color:#111;margin-bottom:2px;}
+    .sc-lbl{font-size:11.5px;color:#aaa;}
+    .toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+    .fi{background:#fff;border:1.5px solid #e5e7eb;border-radius:9px;padding:8px 14px;font-family:'Vazirmatn',sans-serif;font-size:13px;outline:none;}
+    .fi-input{flex:1;min-width:180px;}
+    .btn-add{background:#1d4ed8;color:#fff;border:none;border-radius:9px;padding:9px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
+    .table-card{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden;}
+    .tc-head{padding:14px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;}
+    .tc-title{font-size:14px;font-weight:700;color:#111;}
+    .tbl{width:100%;border-collapse:collapse;}
+    .tbl th{padding:10px 12px;font-size:11.5px;font-weight:700;color:#666;background:#f8fafc;border-bottom:2px solid #e5e7eb;text-align:center;white-space:nowrap;}
+    .tbl td{padding:10px 12px;font-size:12.5px;color:#333;border-bottom:1px solid #f5f5f5;text-align:center;}
+    .tbl tbody tr:hover{background:#f9fbff;}
+    .badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+    .b-green{background:#dcfce7;color:#16a34a;}
+    .b-gray{background:#f3f4f6;color:#6b7280;}
+    .b-blue{background:#dbeafe;color:#1d4ed8;}
+    .b-amber{background:#fef3c7;color:#d97706;}
+    .b-purple{background:#ede9fe;color:#7c3aed;}
+    .ab{width:30px;height:30px;border-radius:7px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px;}
+    .ab:hover{opacity:.8;}
+    .ann-preview{text-align:right;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#666;font-size:12px;}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;padding:16px;}
+    .modal-overlay.show{display:flex;}
+    .modal{background:#fff;border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.15);}
+    .modal-head{padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;}
+    .modal-title{font-size:15px;font-weight:700;color:#111;display:flex;align-items:center;gap:8px;}
+    .modal-close{background:none;border:none;cursor:pointer;font-size:20px;color:#aaa;}
+    .modal-body{padding:20px;}
+    .modal-foot{padding:14px 20px;border-top:1px solid #f0f0f0;display:flex;gap:10px;}
+    .btn-prim{background:#1d4ed8;color:#fff;border:none;border-radius:9px;padding:10px 20px;font-family:Vazirmatn,sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
+    .btn-sec{background:#f5f5f5;color:#555;border:none;border-radius:9px;padding:10px 20px;font-family:Vazirmatn,sans-serif;font-size:13px;cursor:pointer;}
+    .fg{margin-bottom:14px;}
+    .flabel{font-size:12.5px;font-weight:600;color:#444;display:block;margin-bottom:5px;}
+    .finput,.fselect,.ftextarea{width:100%;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:10px 13px;font-family:Vazirmatn,sans-serif;font-size:13px;color:#111;outline:none;box-sizing:border-box;}
+    .ftextarea{resize:vertical;min-height:100px;}
+    .finput:focus,.fselect:focus,.ftextarea:focus{border-color:#1d4ed8;background:#fff;}
+    .fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .hint{font-size:11.5px;color:#aaa;margin-top:4px;}
+    @media(max-width:768px){
+      .stats{grid-template-columns:1fr;}
+      .fg-grid{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-placeholder"></div>
+  <div class="main">
+    <div id="topbar-placeholder"></div>
+    <div class="content">
+
+      <div class="stats">
+        <div class="sc"><div class="sc-val" id="statTotal" style="color:#1d4ed8">۰</div><div class="sc-lbl">کل اعلان‌ها</div></div>
+        <div class="sc"><div class="sc-val" id="statActive" style="color:#16a34a">۰</div><div class="sc-lbl">فعال</div></div>
+        <div class="sc"><div class="sc-val" id="statInactive" style="color:#6b7280">۰</div><div class="sc-lbl">غیرفعال</div></div>
+      </div>
+
+      <div class="toolbar">
+        <input class="fi fi-input" id="searchInp" placeholder="جستجو عنوان یا متن..." oninput="renderTable()"/>
+        <select class="fi" id="statusF" onchange="renderTable()">
+          <option value="">همه وضعیت‌ها</option>
+          <option value="active">فعال</option>
+          <option value="inactive">غیرفعال</option>
+        </select>
+        <button class="btn-add" onclick="openModal()"><i class="ti ti-plus"></i>اعلان جدید</button>
+      </div>
+
+      <div class="table-card">
+        <div class="tc-head">
+          <div class="tc-title"><i class="ti ti-speakerphone" style="color:#1d4ed8;margin-left:6px"></i>اعلان‌های فروشگاه</div>
+          <span style="font-size:12px;color:#aaa">پیام‌هایی که در فروشگاه به کاربران نمایش داده می‌شود</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>عنوان</th>
+                <th>متن</th>
+                <th>نوع</th>
+                <th>وضعیت</th>
+                <th>تاریخ</th>
+                <th>انقضا</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+            <tbody id="tbody">
+              <tr><td colspan="7" style="padding:40px;color:#aaa">در حال بارگذاری...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="annModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modalTitle"><i class="ti ti-bell"></i>اعلان جدید</div>
+      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId"/>
+      <div class="fg">
+        <label class="flabel">عنوان *</label>
+        <input class="finput" id="fTitle" placeholder="مثلاً: تخفیف ویژه هفته"/>
+      </div>
+      <div class="fg">
+        <label class="flabel">متن پیام *</label>
+        <textarea class="ftextarea" id="fBody" placeholder="متن کامل اعلان برای کاربران..."></textarea>
+      </div>
+      <div class="fg-grid">
+        <div class="fg">
+          <label class="flabel">نوع</label>
+          <select class="fselect" id="fType">
+            <option value="info">اطلاع‌رسانی</option>
+            <option value="success">موفقیت / خبر خوب</option>
+            <option value="warning">هشدار</option>
+            <option value="promo">پیشنهاد ویژه</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="flabel">تاریخ انقضا (اختیاری)</label>
+          <input class="finput" id="fExpires" type="datetime-local"/>
+          <div class="hint">خالی = بدون انقضا</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-prim" onclick="saveAnnouncement()"><i class="ti ti-check"></i>ذخیره</button>
+      <button class="btn-sec" onclick="closeModal()">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+Admin.renderSidebar('announcements');
+Admin.renderTopbar('اعلان‌های فروشگاه', 'ti-speakerphone');
+
+const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+const typeLabels = { info:'اطلاع‌رسانی', success:'خبر خوب', warning:'هشدار', promo:'پیشنهاد ویژه' };
+const typeCls = { info:'b-blue', success:'b-green', warning:'b-amber', promo:'b-purple' };
+
+let announcements = [], filtered = [];
+
+async function loadAnnouncements() {
+  const token = sessionStorage.getItem('op_token');
+  try {
+    const res = await fetch(`${API.BASE_URL}/api/announcements/admin`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.ok) {
+      announcements = await res.json();
+      updateStats();
+      renderTable();
+    } else {
+      document.getElementById('tbody').innerHTML = '<tr><td colspan="7" style="padding:40px;color:#dc2626">خطا در بارگذاری</td></tr>';
+    }
+  } catch (e) {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="7" style="padding:40px;color:#dc2626">خطا در اتصال</td></tr>';
+  }
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = fa(announcements.length);
+  document.getElementById('statActive').textContent = fa(announcements.filter(a => a.is_active).length);
+  document.getElementById('statInactive').textContent = fa(announcements.filter(a => !a.is_active).length);
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('fa-IR', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function renderTable() {
+  const q = document.getElementById('searchInp').value.trim().toLowerCase();
+  const st = document.getElementById('statusF').value;
+  filtered = announcements.filter(a => {
+    const matchQ = !q || a.title.toLowerCase().includes(q) || (a.body||'').toLowerCase().includes(q);
+    const matchSt = !st || (st === 'active' ? a.is_active : !a.is_active);
+    return matchQ && matchSt;
+  });
+
+  const tbody = document.getElementById('tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="padding:40px;color:#aaa">اعلانی یافت نشد</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(a => `
+    <tr>
+      <td style="font-weight:600;text-align:right">${a.title}</td>
+      <td><div class="ann-preview">${a.body}</div></td>
+      <td><span class="badge ${typeCls[a.type]||'b-blue'}">${typeLabels[a.type]||a.type}</span></td>
+      <td><span class="badge ${a.is_active?'b-green':'b-gray'}">${a.is_active?'فعال':'غیرفعال'}</span></td>
+      <td style="font-size:11.5px;color:#888">${fmtDate(a.created_at)}</td>
+      <td style="font-size:11.5px;color:#888">${a.expires_at ? fmtDate(a.expires_at) : '—'}</td>
+      <td>
+        <div style="display:flex;gap:4px;justify-content:center">
+          <button class="ab" style="background:#eff6ff;color:#1d4ed8" onclick="editAnnouncement(${a.id})" title="ویرایش"><i class="ti ti-pencil"></i></button>
+          <button class="ab" style="background:${a.is_active?'#fef3c7':'#dcfce7'};color:${a.is_active?'#d97706':'#16a34a'}" onclick="toggleAnnouncement(${a.id})" title="${a.is_active?'غیرفعال':'فعال'}"><i class="ti ti-${a.is_active?'eye-off':'eye'}"></i></button>
+          <button class="ab" style="background:#fee2e2;color:#dc2626" onclick="deleteAnnouncement(${a.id})" title="حذف"><i class="ti ti-trash"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openModal(data) {
+  document.getElementById('editId').value = data ? data.id : '';
+  document.getElementById('modalTitle').innerHTML = data
+    ? '<i class="ti ti-pencil"></i>ویرایش اعلان'
+    : '<i class="ti ti-bell"></i>اعلان جدید';
+  document.getElementById('fTitle').value = data ? data.title : '';
+  document.getElementById('fBody').value = data ? data.body : '';
+  document.getElementById('fType').value = data ? data.type : 'info';
+  document.getElementById('fExpires').value = data && data.expires_at
+    ? new Date(data.expires_at).toISOString().slice(0, 16)
+    : '';
+  document.getElementById('annModal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('annModal').classList.remove('show');
+}
+
+function editAnnouncement(id) {
+  const a = announcements.find(x => x.id === id);
+  if (a) openModal(a);
+}
+
+async function saveAnnouncement() {
+  const id = document.getElementById('editId').value;
+  const title = document.getElementById('fTitle').value.trim();
+  const body = document.getElementById('fBody').value.trim();
+  const type = document.getElementById('fType').value;
+  const expiresRaw = document.getElementById('fExpires').value;
+  const expires_at = expiresRaw ? new Date(expiresRaw).toISOString().slice(0, 19).replace('T', ' ') : null;
+
+  if (!title || !body) {
+    Admin.toast('عنوان و متن الزامی است', 'error');
+    return;
+  }
+
+  const token = sessionStorage.getItem('op_token');
+  const payload = { title, body, type, expires_at };
+  const url = id
+    ? `${API.BASE_URL}/api/announcements/${id}`
+    : `${API.BASE_URL}/api/announcements`;
+  const method = id ? 'PUT' : 'POST';
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      Admin.toast(id ? 'اعلان ویرایش شد' : 'اعلان ایجاد شد');
+      closeModal();
+      loadAnnouncements();
+    } else {
+      const d = await res.json();
+      Admin.toast(d.message || 'خطا', 'error');
+    }
+  } catch (e) {
+    Admin.toast('خطا در اتصال', 'error');
+  }
+}
+
+async function toggleAnnouncement(id) {
+  const token = sessionStorage.getItem('op_token');
+  try {
+    const res = await fetch(`${API.BASE_URL}/api/announcements/${id}/toggle`, {
+      method: 'PATCH',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.ok) {
+      Admin.toast('وضعیت تغییر کرد');
+      loadAnnouncements();
+    }
+  } catch (e) {
+    Admin.toast('خطا', 'error');
+  }
+}
+
+async function deleteAnnouncement(id) {
+  if (!confirm('این اعلان حذف شود؟')) return;
+  const token = sessionStorage.getItem('op_token');
+  try {
+    const res = await fetch(`${API.BASE_URL}/api/announcements/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.ok) {
+      Admin.toast('حذف شد');
+      loadAnnouncements();
+    }
+  } catch (e) {
+    Admin.toast('خطا', 'error');
+  }
+}
+
+loadAnnouncements();
+</script>
+</body>
+</html>

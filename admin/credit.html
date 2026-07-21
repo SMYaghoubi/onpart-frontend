@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" href="/images/favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>سامانه اعتباری | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    body{background:#f1f5f9;}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+    .sc{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);display:flex;align-items:center;gap:14px;}
+    .sc-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+    .si-blue{background:#eff6ff;color:#1d4ed8;} .si-green{background:#dcfce7;color:#16a34a;}
+    .si-amber{background:#fef3c7;color:#d97706;} .si-purple{background:#f5f3ff;color:#7c3aed;}
+    .sc-val{font-size:20px;font-weight:900;color:#111;} .sc-lbl{font-size:11.5px;color:#aaa;}
+    .tabs{display:flex;gap:6px;margin-bottom:16px;}
+    .tab{padding:8px 18px;border-radius:8px;border:1.5px solid #e5e7eb;background:#fff;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;color:#666;cursor:pointer;display:flex;align-items:center;gap:6px;}
+    .tab.on{background:#7c3aed;color:#fff;border-color:#7c3aed;}
+    .tab-badge{background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;}
+    .tab.on .tab-badge{background:rgba(255,255,255,.3);}
+    .toolbar{background:#fff;border-radius:12px;padding:14px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .fi{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 12px;font-family:'Vazirmatn',sans-serif;font-size:13px;color:#333;outline:none;}
+    .fi-input{flex:1;}
+    .table-card{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden;}
+    .tc-head{padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;}
+    .tc-title{font-size:14px;font-weight:800;color:#111;}
+    .tbl{width:100%;border-collapse:collapse;}
+    .tbl th{font-size:11.5px;font-weight:700;color:#888;text-align:center;padding:10px 12px;border-bottom:2px solid #f0f0f0;background:#f8fafc;white-space:nowrap;}
+    .tbl th:nth-child(2){text-align:right;}
+    .tbl td{font-size:12.5px;color:#333;padding:11px 12px;border-bottom:1px solid #f5f5f5;text-align:center;white-space:nowrap;}
+    .tbl tbody tr:hover{background:#f9fbff;}
+    .user-cell{display:flex;align-items:center;gap:8px;}
+    .u-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+    .badge{border-radius:6px;padding:3px 9px;font-size:11px;font-weight:600;}
+    .b-green{background:#dcfce7;color:#16a34a;} .b-red{background:#fee2e2;color:#dc2626;}
+    .b-amber{background:#fef3c7;color:#d97706;} .b-blue{background:#dbeafe;color:#1d4ed8;}
+    .b-purple{background:#f5f3ff;color:#7c3aed;}
+    .progress-bar{height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;width:80px;}
+    .progress-fill{height:100%;border-radius:3px;}
+    .action-btns{display:flex;gap:5px;justify-content:center;}
+    .ab{width:28px;height:28px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;}
+    .ab-view{background:#eff6ff;color:#1d4ed8;} .ab-ok{background:#dcfce7;color:#16a34a;} .ab-reject{background:#fee2e2;color:#dc2626;}
+    .pager{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid #f0f0f0;}
+    .pager-info{font-size:12.5px;color:#aaa;}
+    .pager-btns{display:flex;gap:6px;}
+    .pg{width:30px;height:30px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;cursor:pointer;font-family:'Vazirmatn',sans-serif;font-size:12.5px;color:#555;display:flex;align-items:center;justify-content:center;}
+    .pg:hover,.pg.on{background:#7c3aed;color:#fff;border-color:#7c3aed;}
+    /* Modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;}
+    .modal-overlay.show{display:flex;}
+    .modal{background:#fff;border-radius:18px;width:620px;max-height:90vh;overflow-y:auto;}
+    .modal-head{padding:20px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;}
+    .modal-title{font-size:16px;font-weight:800;color:#111;display:flex;align-items:center;gap:8px;}
+    .modal-title i{color:#7c3aed;}
+    .modal-close{width:32px;height:32px;background:#f3f4f6;border:none;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+    .modal-body{padding:24px;}
+    .hero-card{background:linear-gradient(135deg,#4c1d95,#7c3aed);border-radius:14px;padding:22px;color:#fff;display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+    .h-av{width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+    .info-box{background:#f8fafc;border-radius:10px;padding:12px 14px;}
+    .info-lbl{font-size:11px;color:#aaa;margin-bottom:3px;}
+    .info-val{font-size:13px;font-weight:700;color:#111;}
+    .credit-input{width:100%;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:10px 13px;font-family:'Vazirmatn',sans-serif;font-size:14px;color:#111;outline:none;margin-top:8px;}
+    .modal-foot{padding:16px 24px;border-top:1px solid #f0f0f0;display:flex;gap:10px;}
+    .btn-approve{background:#16a34a;color:#fff;border:none;border-radius:9px;padding:10px 20px;font-family:'Vazirmatn',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;}
+    .btn-reject-btn{background:#dc2626;color:#fff;border:none;border-radius:9px;padding:10px 18px;font-family:'Vazirmatn',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;}
+    .btn-sec{background:#f3f4f6;color:#555;border:none;border-radius:9px;padding:10px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:600;display:none;align-items:center;gap:10px;z-index:999;}
+    .toast.show{display:flex;}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-placeholder"></div>
+  <div class="main">
+    <div id="topbar-placeholder"></div>
+    <div class="content">
+
+      <div class="stats">
+        <div class="sc"><div class="sc-icon si-amber"><i class="ti ti-clock"></i></div><div><div class="sc-val" id="pendingCount">—</div><div class="sc-lbl">در انتظار بررسی</div></div></div>
+        <div class="sc"><div class="sc-icon si-green"><i class="ti ti-check"></i></div><div><div class="sc-val" id="approvedCount">—</div><div class="sc-lbl">تأیید شده</div></div></div>
+        <div class="sc"><div class="sc-icon si-red"><i class="ti ti-x"></i></div><div><div class="sc-val" id="rejectedCount">—</div><div class="sc-lbl">رد شده</div></div></div>
+        <div class="sc"><div class="sc-icon si-purple"><i class="ti ti-cash"></i></div><div><div class="sc-val" id="totalCredit">—</div><div class="sc-lbl">مجموع اعتبار داده شده</div></div></div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab on" onclick="setTab(this,'pending')">در انتظار <span class="tab-badge" id="pendingBadge">0</span></button>
+        <button class="tab" onclick="setTab(this,'approved')">تأیید شده</button>
+        <button class="tab" onclick="setTab(this,'rejected')">رد شده</button>
+        <button class="tab" onclick="setTab(this,'all')">همه</button>
+      </div>
+
+      <div class="toolbar">
+        <input class="fi fi-input" placeholder="جستجو نام، موبایل..." id="searchInp" oninput="renderTable()" autocomplete="off"/>
+        <select class="fi" id="gTypeF" onchange="renderTable()">
+          <option value="">همه نوع ضمانت</option>
+          <option value="cheque">چک</option>
+          <option value="promissory">سفته</option>
+          <option value="guarantor">ضامن</option>
+          <option value="property">ملک</option>
+        </select>
+      </div>
+
+      <div class="table-card">
+        <div class="tc-head">
+          <div class="tc-title" id="tableTitle">درخواست‌های در انتظار</div>
+          <button style="background:#f0fdf4;color:#16a34a;border:none;border-radius:7px;padding:7px 14px;font-family:'Vazirmatn',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px" onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i>خروجی اکسل</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th style="text-align:right">متقاضی</th>
+              <th>تاریخ</th>
+              <th>مبلغ درخواستی</th>
+              <th>نوع ضمانت</th>
+              <th>امتیاز</th>
+              <th>وضعیت</th>
+              <th>عملیات</th>
+            </tr></thead>
+            <tbody id="creditTbody"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <div class="pager-info" id="pagerInfo">—</div>
+          <div class="pager-btns" id="pagerBtns"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-id-badge"></i>بررسی درخواست اعتبار</div>
+      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+
+function toJalali(dateStr){
+  if(!dateStr) return '—';
+  try{
+    const d=new Date(dateStr);if(isNaN(d))return dateStr;
+    const gy=d.getFullYear(),gm=d.getMonth()+1,gd=d.getDate();
+    let jy=gy-1600,jm=0,jd=0,g_d_no,j_d_no,j_np,i;
+    const g_d_m=[31,28,31,30,31,30,31,31,30,31,30,31];
+    const j_d_m=[31,31,31,31,31,31,30,30,30,30,30,29];
+    let gy2=gy-1600;
+    g_d_no=365*gy2+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400);
+    for(i=0;i<gm-1;i++)g_d_no+=g_d_m[i];
+    if(gm>2&&((gy2%4===0&&gy2%100!==0)||(gy2%400===0)))g_d_no++;
+    g_d_no+=gd;j_d_no=g_d_no-79;
+    j_np=Math.floor(j_d_no/12053);j_d_no%=12053;
+    jy=979+33*j_np+4*Math.floor(j_d_no/1461);j_d_no%=1461;
+    if(j_d_no>=366){jy+=Math.floor((j_d_no-1)/365);j_d_no=(j_d_no-1)%365;}
+    for(i=0;i<11&&j_d_no>=j_d_m[i];i++)j_d_no-=j_d_m[i];
+    jm=i+1;jd=j_d_no+1;
+    const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+    return fa(jy)+'/'+fa(String(jm).padStart(2,'0'))+'/'+fa(String(jd).padStart(2,'0'));
+  }catch(e){return dateStr||'—';}
+}
+
+Admin.renderSidebar('credit');
+Admin.renderTopbar('سامانه اعتباری','ti-id-badge');
+
+const fa=n=>n.toString().replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+const fmt=n=>fa(Number(n).toLocaleString());
+const colors=['#1d4ed8','#16a34a','#d97706','#7c3aed','#0f766e','#dc2626'];
+let requests=[],filtered=[],curTab='pending',curId=null,page=1;const PER=15;
+
+const gLabel={cheque:'چک',promissory:'سفته',guarantor:'ضامن',property:'ملک'};
+const sBadge={pending:'b-amber',approved:'b-green',rejected:'b-red'};
+const sLabel={pending:'در انتظار',approved:'تأیید شده',rejected:'رد شده'};
+
+function toast(msg,ok=true){
+  const t=document.getElementById('toast');
+  t.innerHTML=`<i class="ti ti-${ok?'check':'x'}" style="color:${ok?'#4ade80':'#f87171'};font-size:18px"></i>${msg}`;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function scoreColor(s){return s>=80?'#16a34a':s>=60?'#d97706':'#dc2626';}
+
+async function loadRequests(){
+  try {
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/credit`,{headers:{'Authorization':'Bearer '+token}});
+    if(res.ok) requests=await res.json();
+    else requests=[];
+  } catch(e){ requests=[]; }
+  updateStats(); renderTable();
+}
+
+function updateStats(){
+  const pending=requests.filter(r=>r.status==='pending');
+  document.getElementById('pendingCount').textContent=fa(pending.length);
+  document.getElementById('pendingBadge').textContent=fa(pending.length);
+  document.getElementById('approvedCount').textContent=fa(requests.filter(r=>r.status==='approved').length);
+  document.getElementById('rejectedCount').textContent=fa(requests.filter(r=>r.status==='rejected').length);
+  const total=requests.filter(r=>r.status==='approved').reduce((s,r)=>s+Number(r.approved_amount||r.amount),0);
+  document.getElementById('totalCredit').textContent=fa(Math.round(total/1000000))+'M';
+}
+
+function renderTable(){
+  const s=document.getElementById('searchInp').value;
+  const gf=document.getElementById('gTypeF').value;
+  const tabMap={pending:'pending',approved:'approved',rejected:'rejected',all:''};
+  const st=tabMap[curTab];
+  filtered=requests.filter(r=>
+    (!s||(r.user_name?.includes(s)||r.user_phone?.includes(s)))&&
+    (!gf||r.guarantee_type===gf)&&(!st||r.status===st)
+  );
+  const total=filtered.length,pages=Math.ceil(total/PER);
+  if(page>pages)page=1;
+  const start=(page-1)*PER,end=Math.min(start+PER,total);
+  document.getElementById('pagerInfo').textContent=`نمایش ${fa(start+1)}–${fa(end)} از ${fa(total)}`;
+
+  document.getElementById('creditTbody').innerHTML=filtered.slice(start,end).map((r,i)=>`
+    <tr>
+      <td style="text-align:right"><div class="user-cell">
+        <div class="u-av" style="background:${colors[i%colors.length]}">${(r.user_name||'؟')[0]}</div>
+        <div><div style="font-weight:600">${r.user_name||'—'}</div><div style="font-size:11px;color:#aaa">${r.user_phone||''}</div></div>
+      </div></td>
+      <td>${toJalali(r.created_at)||'—'}</td>
+      <td style="font-weight:700">${fmt(r.amount)}</td>
+      <td><span class="badge b-blue">${gLabel[r.guarantee_type]||r.guarantee_type}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;justify-content:center">
+          <div class="progress-bar"><div class="progress-fill" style="width:${r.score}%;background:${scoreColor(r.score)}"></div></div>
+          <span style="font-size:12px;font-weight:700;color:${scoreColor(r.score)}">${fa(r.score)}</span>
+        </div>
+      </td>
+      <td><span class="badge ${sBadge[r.status]||'b-gray'}">${sLabel[r.status]||r.status}</span></td>
+      <td><div class="action-btns">
+        <button class="ab ab-view" onclick="openModal(${i})" title="بررسی"><i class="ti ti-eye"></i></button>
+        ${r.status==='pending'?`
+        <button class="ab ab-ok" onclick="quickApprove(${r.id})" title="تأیید"><i class="ti ti-check"></i></button>
+        <button class="ab ab-reject" onclick="quickReject(${r.id})" title="رد"><i class="ti ti-x"></i></button>`:''}
+        <button class="ab" onclick="deleteCreditRequest(${r.id},'${(r.user_name||'').replace(/'/g,"\\'")}')" title="حذف" style="background:#fee2e2;color:#dc2626"><i class="ti ti-trash"></i></button>
+      </div></td>
+    </tr>`).join('');
+
+  let btns='';
+  for(let i=1;i<=pages;i++) btns+=`<button class="pg${i===page?' on':''}" onclick="gotoPage(${i})">${fa(i)}</button>`;
+  document.getElementById('pagerBtns').innerHTML=btns;
+}
+
+function setTab(el,tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');curTab=tab;page=1;
+  const titles={pending:'در انتظار',approved:'تأیید شده',rejected:'رد شده',all:'همه'};
+  document.getElementById('tableTitle').textContent='درخواست‌های '+titles[tab];
+  renderTable();
+}
+
+function gotoPage(p){page=p;renderTable();}
+
+function openModal(i){
+  const r=filtered[i];curId=r.id;
+  const isPending=r.status==='pending';
+  const API_BASE='https://onpartpadmin.liara.run';
+  document.getElementById('modalBody').innerHTML=`
+    <div class="hero-card">
+      <div class="h-av" style="background:${colors[i%colors.length]}">${(r.user_name||'؟')[0]}</div>
+      <div style="flex:1">
+        <div style="font-size:16px;font-weight:800">${r.user_name||'—'}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7)">${r.user_phone||''}</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:22px;font-weight:900;color:#a78bfa">${fa(r.score)}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.6)">امتیاز</div>
+      </div>
+    </div>
+    <div class="info-grid">
+      <div class="info-box"><div class="info-lbl">نام متقاضی</div><div class="info-val">${r.full_name||r.user_name||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">موبایل</div><div class="info-val" style="direction:ltr">${r.mobile||r.user_phone||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">کد ملی</div><div class="info-val">${r.national_code||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">شغل</div><div class="info-val">${r.job||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">استان</div><div class="info-val">${r.province||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">شهر</div><div class="info-val">${r.city||'—'}</div></div>
+      <div class="info-box" style="grid-column:1/-1"><div class="info-lbl">آدرس</div><div class="info-val">${r.address||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">مبلغ درخواستی</div><div class="info-val">${fmt(r.amount)} تومان</div></div>
+      <div class="info-box"><div class="info-lbl">نوع ضمانت</div><div class="info-val">${gLabel[r.guarantee_type]||r.guarantee_type}</div></div>
+      <div class="info-box"><div class="info-lbl">تاریخ درخواست</div><div class="info-val">${toJalali(r.created_at)||'—'}</div></div>
+      <div class="info-box" style="grid-column:1/-1"><div class="info-lbl">جزئیات ضمانت</div><div class="info-val">${r.guarantee_detail||'—'}</div></div>
+    </div>
+    <div style="margin:14px 0">
+      <div style="font-size:12.5px;font-weight:700;color:#555;margin-bottom:10px"><i class="ti ti-files"></i> مدارک آپلودشده</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+        ${r.id_card_file?`<a href="${API_BASE}/uploads/${r.id_card_file}" target="_blank" style="display:flex;align-items:center;gap:8px;background:#eff6ff;border-radius:9px;padding:10px 14px;text-decoration:none;color:#1d4ed8;font-size:13px;font-weight:600"><i class="ti ti-id"></i>کارت ملی</a>`:`<div style="background:#f5f5f5;border-radius:9px;padding:10px 14px;font-size:13px;color:#bbb;display:flex;align-items:center;gap:8px"><i class="ti ti-file-off"></i>کارت ملی — ندارد</div>`}
+        ${r.guarantee_file?`<a href="${API_BASE}/uploads/${r.guarantee_file}" target="_blank" style="display:flex;align-items:center;gap:8px;background:#eff6ff;border-radius:9px;padding:10px 14px;text-decoration:none;color:#1d4ed8;font-size:13px;font-weight:600"><i class="ti ti-file-invoice"></i>مدرک ضمانت</a>`:`<div style="background:#f5f5f5;border-radius:9px;padding:10px 14px;font-size:13px;color:#bbb;display:flex;align-items:center;gap:8px"><i class="ti ti-file-off"></i>مدرک ضمانت — ندارد</div>`}
+        ${r.job_file?`<a href="${API_BASE}/uploads/${r.job_file}" target="_blank" style="display:flex;align-items:center;gap:8px;background:#eff6ff;border-radius:9px;padding:10px 14px;text-decoration:none;color:#1d4ed8;font-size:13px;font-weight:600"><i class="ti ti-briefcase"></i>مدرک شغلی</a>`:`<div style="background:#f5f5f5;border-radius:9px;padding:10px 14px;font-size:13px;color:#bbb;display:flex;align-items:center;gap:8px"><i class="ti ti-file-off"></i>مدرک شغلی — ندارد</div>`}
+        ${r.other_file?`<a href="${API_BASE}/uploads/${r.other_file}" target="_blank" style="display:flex;align-items:center;gap:8px;background:#eff6ff;border-radius:9px;padding:10px 14px;text-decoration:none;color:#1d4ed8;font-size:13px;font-weight:600"><i class="ti ti-paperclip"></i>سایر مدارک</a>`:`<div style="background:#f5f5f5;border-radius:9px;padding:10px 14px;font-size:13px;color:#bbb;display:flex;align-items:center;gap:8px"><i class="ti ti-file-off"></i>سایر مدارک — ندارد</div>`}
+      </div>
+    </div>
+    ${isPending?`
+    <div style="background:#f8fafc;border-radius:10px;padding:14px">
+      <div style="font-size:12.5px;font-weight:700;color:#555;margin-bottom:6px">مبلغ اعتبار مورد تأیید (تومان)</div>
+      <input class="credit-input" id="approveAmount" value="${fmt(r.amount)}" placeholder="مبلغ اعتبار..."/>
+    </div>`:''}`;
+
+  document.getElementById('modalFoot').innerHTML=isPending?`
+    <button class="btn-approve" onclick="approveCredit()"><i class="ti ti-check"></i>تأیید و اعطای اعتبار</button>
+    <button class="btn-reject-btn" onclick="rejectCredit()"><i class="ti ti-x"></i>رد درخواست</button>
+    <button class="btn-sec" onclick="closeModal()">بستن</button>`:`
+    <button class="btn-sec" onclick="closeModal()">بستن</button>`;
+
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+
+async function approveCredit(){
+  try {
+    const token=sessionStorage.getItem('op_token');
+    await fetch(`${API.BASE_URL}/api/credit/${curId}/approve`,{
+      method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({approved_amount:Number(document.getElementById('approveAmount').value.replace(/,/g,''))})
+    });
+    toast('اعتبار تأیید و به کاربر اعطا شد');closeModal();loadRequests();
+  } catch(e){ toast('تأیید شد');closeModal();loadRequests(); }
+}
+
+async function rejectCredit(){
+  try {
+    const token=sessionStorage.getItem('op_token');
+    await fetch(`${API.BASE_URL}/api/credit/${curId}/reject`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
+    toast('درخواست رد شد');closeModal();loadRequests();
+  } catch(e){ toast('رد شد');closeModal();loadRequests(); }
+}
+
+async function quickApprove(id){
+  const token=sessionStorage.getItem('op_token');
+  await fetch(`${API.BASE_URL}/api/credit/${id}/approve`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
+  toast('اعتبار تأیید شد');loadRequests();
+}
+async function quickReject(id){
+  const token=sessionStorage.getItem('op_token');
+  await fetch(`${API.BASE_URL}/api/credit/${id}/reject`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
+  toast('رد شد');loadRequests();
+}
+
+async function deleteCreditRequest(id,name){
+  if(!confirm(`آیا مطمئن هستید می‌خواهید درخواست اعتبار "${name}" را حذف کنید؟`)) return;
+  try {
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/credit/${id}`,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+    if(!res.ok) throw new Error();
+    toast('درخواست حذف شد');loadRequests();
+  } catch(e){ toast('خطا در حذف',false); }
+}
+
+function exportExcel(){
+  const rows=[['نام','موبایل','مبلغ','ضمانت','امتیاز','وضعیت']];
+  filtered.forEach(r=>rows.push([r.user_name,r.user_phone,r.amount,gLabel[r.guarantee_type],r.score,sLabel[r.status]]));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='credit.csv';a.click();
+}
+
+loadRequests();
+</script>
+</body>
+</html>

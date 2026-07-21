@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" href="/images/favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>تنظیمات | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    body{background:#f1f5f9;}
+    .settings-layout{display:grid;grid-template-columns:220px 1fr;gap:18px;align-items:start;}
+    .settings-nav{background:#fff;border-radius:14px;padding:10px;box-shadow:0 1px 4px rgba(0,0,0,.05);position:sticky;top:74px;}
+    .sn-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:9px;cursor:pointer;margin-bottom:2px;transition:all .15s;text-decoration:none;}
+    .sn-item:hover{background:#f8fafc;}
+    .sn-item.active{background:#eff6ff;}
+    .sn-item i{font-size:17px;color:#aaa;}
+    .sn-item.active i{color:#1d4ed8;}
+    .sn-item span{font-size:13px;color:#555;font-weight:500;}
+    .sn-item.active span{color:#1d4ed8;font-weight:700;}
+    .settings-col{display:flex;flex-direction:column;gap:16px;}
+    .card{background:#fff;border-radius:14px;padding:24px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+    .card-title{font-size:15px;font-weight:800;color:#111;display:flex;align-items:center;gap:8px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #f0f0f0;}
+    .card-title i{color:#1d4ed8;font-size:18px;}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .fg{display:flex;flex-direction:column;gap:6px;} .fg.full{grid-column:1/-1;}
+    .fg label{font-size:12.5px;font-weight:600;color:#444;}
+    .finput{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:10px 13px;font-family:'Vazirmatn',sans-serif;font-size:13.5px;color:#111;outline:none;transition:border .2s;width:100%;}
+    .finput:focus{border-color:#1d4ed8;background:#fff;}
+    .fselect{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:10px 13px;font-family:'Vazirmatn',sans-serif;font-size:13px;color:#333;outline:none;width:100%;cursor:pointer;}
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f3f4f6;}
+    .toggle-row:last-child{border-bottom:none;padding-bottom:0;}
+    .toggle-title{font-size:13px;font-weight:600;color:#111;}
+    .toggle-sub{font-size:11.5px;color:#aaa;margin-top:2px;}
+    .toggle{width:42px;height:24px;border-radius:12px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;border:none;padding:0;}
+    .toggle.on{background:#1d4ed8;} .toggle.off{background:#e5e7eb;}
+    .toggle-thumb{width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+    .toggle.on .toggle-thumb{left:20px;} .toggle.off .toggle-thumb{left:2px;}
+    .bank-item{background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:12px;}
+    .bank-item-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+    .bank-item-logo{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #e5e7eb;}
+    .bank-logo-preview{width:44px;height:44px;border-radius:10px;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:18px;color:#888;overflow:hidden;flex-shrink:0;}
+    .bank-logo-preview img{width:100%;height:100%;object-fit:contain;}
+    .bank-item-del{display:flex;justify-content:flex-end;margin-top:8px;}
+    .btn-del{background:#fee2e2;color:#dc2626;border:none;border-radius:7px;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;}
+    .btn-add-bank{display:flex;align-items:center;gap:7px;background:#eff6ff;color:#1d4ed8;border:1.5px dashed #bfdbfe;border-radius:10px;padding:12px 16px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;justify-content:center;margin-top:4px;}
+    .btn-save{background:#1d4ed8;color:#fff;border:none;border-radius:9px;padding:11px 28px;font-family:'Vazirmatn',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;}
+    .btn-cancel{background:#f3f4f6;color:#555;border:none;border-radius:9px;padding:11px 20px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+    .save-bar{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:600;display:none;align-items:center;gap:10px;z-index:999;}
+    .toast.show{display:flex;}
+    @media(max-width:768px){
+      .settings-layout{grid-template-columns:1fr!important;}
+      .settings-nav{position:static!important;display:flex;overflow-x:auto;gap:4px;padding:8px;-webkit-overflow-scrolling:touch;}
+      .sn-item{flex-shrink:0;white-space:nowrap;margin-bottom:0!important;}
+      .sn-item span{font-size:12px!important;}
+      .card{padding:16px!important;}
+      .form-grid{grid-template-columns:1fr!important;}
+      .bank-item-grid{grid-template-columns:1fr!important;}
+      .save-bar{flex-direction:column;}
+      .save-bar button{width:100%;}
+      .toggle-row{flex-wrap:wrap;gap:8px;}
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-placeholder"></div>
+  <div class="main">
+    <div id="topbar-placeholder"></div>
+    <div class="content">
+      <div class="settings-layout">
+
+        <div class="settings-nav">
+          <a class="sn-item active" href="#general"><i class="ti ti-info-circle"></i><span>اطلاعات عمومی</span></a>
+          <a class="sn-item" href="#bank"><i class="ti ti-building-bank"></i><span>حساب‌های بانکی</span></a>
+          <a class="sn-item" href="#shop"><i class="ti ti-shopping-cart"></i><span>تنظیمات فروشگاه</span></a>
+          <a class="sn-item" href="#access"><i class="ti ti-shield"></i><span>امنیت</span></a>
+          <a class="sn-item" href="#notif"><i class="ti ti-bell"></i><span>اعلان‌ها</span></a>
+          <a class="sn-item" href="#admin-pw"><i class="ti ti-lock"></i><span>تغییر رمز ادمین</span></a>
+        </div>
+
+        <div class="settings-col">
+
+          <!-- GENERAL -->
+          <div class="card" id="general">
+            <div class="card-title"><i class="ti ti-info-circle"></i>اطلاعات عمومی سایت</div>
+            <div class="form-grid">
+              <div class="fg"><label>نام سایت</label><input class="finput" id="s_name" value="آن‌پارت"/></div>
+              <div class="fg"><label>نام لاتین</label><input class="finput" id="s_name_en" value="OnPart"/></div>
+              <div class="fg"><label>شماره تلفن</label><input class="finput" id="s_phone" value="02165280448" style="direction:ltr"/></div>
+              <div class="fg"><label>واتساپ</label><input class="finput" id="s_whatsapp" value="02165280448" style="direction:ltr"/></div>
+              <div class="fg"><label>اینستاگرام</label><input class="finput" id="s_insta" value="@onpart.ir" style="direction:ltr"/></div>
+              <div class="fg"><label>تلگرام</label><input class="finput" id="s_telegram" value="@onpart" style="direction:ltr"/></div>
+              <div class="fg"><label>ایمیل</label><input class="finput" id="s_email" placeholder="info@onpart.ir" style="direction:ltr"/></div>
+              <div class="fg"><label>آدرس سایت</label><input class="finput" id="s_url" value="https://onpart.ir" style="direction:ltr"/></div>
+              <div class="fg full"><label>آدرس شرکت</label><textarea class="finput" id="s_addr" rows="2" style="resize:none" placeholder="آدرس کامل شرکت..."></textarea></div>
+            </div>
+            <div class="save-bar"><button class="btn-cancel">انصراف</button><button class="btn-save" onclick="saveSettings('general')"><i class="ti ti-check"></i>ذخیره</button></div>
+          </div>
+
+          <!-- BANK -->
+          <div class="card" id="bank">
+            <div class="card-title"><i class="ti ti-building-bank"></i>حساب‌های بانکی</div>
+            <div id="bankList"></div>
+            <button class="btn-add-bank" onclick="addBank()"><i class="ti ti-plus"></i>افزودن حساب جدید</button>
+            <div class="save-bar"><button class="btn-save" onclick="saveSettings('bank')"><i class="ti ti-check"></i>ذخیره</button></div>
+
+          <!-- SHOP -->
+          <div class="card" id="shop">
+            <div class="card-title"><i class="ti ti-shopping-cart"></i>تنظیمات فروشگاه</div>
+            <div class="form-grid" style="margin-bottom:16px">
+              <div class="fg"><label>حداقل مبلغ سفارش (تومان)</label><input class="finput" id="s_min_order" value="500000"/></div>
+              <div class="fg"><label>درصد مالیات (%)</label><input class="finput" id="s_tax" value="9"/></div>
+              <div class="fg"><label>واحد پول</label><select class="fselect" id="s_currency"><option>تومان</option><option>ریال</option></select></div>
+            </div>
+            <div>
+              <div class="toggle-row">
+                <div><div class="toggle-title">نمایش قیمت برای کاربران غیر لاگین</div><div class="toggle-sub">بدون ورود هم قیمت‌ها قابل مشاهده باشند</div></div>
+                <button class="toggle off" id="t_show_price" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+              </div>
+              <div class="toggle-row">
+                <div><div class="toggle-title">ثبت سفارش آنلاین</div><div class="toggle-sub">امکان ثبت سفارش از فروشگاه</div></div>
+                <button class="toggle on" id="t_online_order" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+              </div>
+              <div class="toggle-row">
+                <div><div class="toggle-title">نمایش موجودی انبار</div><div class="toggle-sub">تعداد موجودی برای کاربران</div></div>
+                <button class="toggle on" id="t_show_stock" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+              </div>
+              <div class="toggle-row">
+                <div><div class="toggle-title">حالت تعمیر و نگهداری</div><div class="toggle-sub">سایت برای کاربران موقتاً غیرفعال شود</div></div>
+                <button class="toggle off" id="t_maintenance" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+              </div>
+            </div>
+            <div class="save-bar"><button class="btn-save" onclick="saveSettings('shop')"><i class="ti ti-check"></i>ذخیره</button></div>
+          </div>
+
+          <!-- ACCESS -->
+          <div class="card" id="access">
+            <div class="card-title"><i class="ti ti-shield"></i>امنیت و دسترسی</div>
+            <div>
+              <div class="toggle-row">
+                <div><div class="toggle-title">احراز هویت OTP</div><div class="toggle-sub">ارسال کد تأیید هنگام ورود</div></div>
+                <button class="toggle on" id="t_otp" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+              </div>
+              <div class="toggle-row">
+                <div><div class="toggle-title">ثبت‌نام آزاد</div><div class="toggle-sub">هر کسی بتواند ثبت‌نام کند</div></div>
+                <button class="toggle on" id="t_open_register" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+              </div>
+              <div class="toggle-row">
+                <div><div class="toggle-title">تأیید دستی کاربران جدید</div><div class="toggle-sub">مدیر باید کاربران جدید را تأیید کند</div></div>
+                <button class="toggle off" id="t_manual_approve" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+              </div>
+            </div>
+            <div class="form-grid" style="margin-top:16px">
+              <div class="fg"><label>انقضای JWT (روز)</label><input class="finput" id="s_jwt_days" value="7"/></div>
+              <div class="fg"><label>حداکثر تلاش ناموفق ورود</label><input class="finput" id="s_max_attempts" value="5"/></div>
+            </div>
+            <div class="save-bar"><button class="btn-save" onclick="saveSettings('access')"><i class="ti ti-check"></i>ذخیره</button></div>
+          </div>
+
+          <!-- NOTIFICATIONS -->
+          <div class="card" id="notif">
+            <div class="card-title"><i class="ti ti-bell"></i>اعلان‌ها</div>
+            <div>
+              <div class="toggle-row">
+                <div><div class="toggle-title">اعلان سفارش جدید</div><div class="toggle-sub">پیامک به ادمین</div></div>
+                <button class="toggle on" id="t_notif_order" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+              </div>
+              <div class="toggle-row">
+                <div><div class="toggle-title">اعلان پرداخت جدید</div><div class="toggle-sub">هنگام آپلود فیش</div></div>
+                <button class="toggle on" id="t_notif_payment" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+              </div>
+              <div class="toggle-row">
+                <div><div class="toggle-title">اعلان درخواست اعتبار</div><div class="toggle-sub">درخواست اعتباری جدید</div></div>
+                <button class="toggle on" id="t_notif_credit" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+              </div>
+              <div class="toggle-row">
+                <div><div class="toggle-title">اعلان موجودی کم</div><div class="toggle-sub">کاهش موجودی زیر حد مجاز</div></div>
+                <button class="toggle on" id="t_notif_lowstock" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+              </div>
+            </div>
+            <div class="save-bar"><button class="btn-save" onclick="saveSettings('notif')"><i class="ti ti-check"></i>ذخیره</button></div>
+          </div>
+
+          <!-- ADMIN PASSWORD -->
+          <div class="card" id="admin-pw">
+            <div class="card-title"><i class="ti ti-lock"></i>تغییر رمز عبور ادمین</div>
+            <div class="form-grid">
+              <div class="fg"><label>رمز عبور فعلی</label><input class="finput" type="password" id="cur_pw" placeholder="رمز عبور فعلی"/></div>
+              <div class="fg"></div>
+              <div class="fg"><label>رمز عبور جدید</label><input class="finput" type="password" id="new_pw" placeholder="رمز عبور جدید"/></div>
+              <div class="fg"><label>تکرار رمز عبور جدید</label><input class="finput" type="password" id="confirm_pw" placeholder="تکرار رمز عبور"/></div>
+            </div>
+            <div class="save-bar"><button class="btn-save" onclick="changeAdminPw()"><i class="ti ti-check"></i>تغییر رمز عبور</button></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+Admin.renderSidebar('settings');
+Admin.renderTopbar('تنظیمات سایت','ti-settings');
+
+function toast(msg,ok=true){
+  const t=document.getElementById('toast');
+  t.innerHTML=`<i class="ti ti-${ok?'check':'x'}" style="color:${ok?'#4ade80':'#f87171'};font-size:18px"></i>${msg}`;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function setToggle(id, isOn){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.remove('on','off');
+  el.classList.add(isOn ? 'on' : 'off');
+}
+
+async function loadSettings(){
+  try {
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/settings/admin`,{headers:{'Authorization':'Bearer '+token}});
+    const s=await res.json();
+    if(s.site_name) document.getElementById('s_name').value=s.site_name;
+    if(s.site_name_en) document.getElementById('s_name_en').value=s.site_name_en;
+    if(s.site_phone) document.getElementById('s_phone').value=s.site_phone;
+    if(s.site_whatsapp) document.getElementById('s_whatsapp').value=s.site_whatsapp;
+    if(s.site_instagram) document.getElementById('s_insta').value=s.site_instagram;
+    if(s.site_telegram) document.getElementById('s_telegram').value=s.site_telegram;
+    if(s.site_email) document.getElementById('s_email').value=s.site_email;
+    if(s.site_url) document.getElementById('s_url').value=s.site_url;
+    if(s.site_address) document.getElementById('s_addr').value=s.site_address;
+    if(s.tax_rate) document.getElementById('s_tax').value=s.tax_rate;
+    if(s.min_order) document.getElementById('s_min_order').value=s.min_order;
+    if(s.currency) document.getElementById('s_currency').value=s.currency;
+
+    setToggle('t_show_price', s.show_price_guest==='1');
+    setToggle('t_online_order', s.online_order!=='0');
+    setToggle('t_show_stock', s.show_stock!=='0');
+    setToggle('t_maintenance', s.maintenance_mode==='1');
+
+    setToggle('t_otp', s.otp_enabled!=='0');
+    setToggle('t_open_register', s.open_register!=='0');
+    setToggle('t_manual_approve', s.manual_approve==='1');
+    if(s.jwt_expires_days) document.getElementById('s_jwt_days').value=s.jwt_expires_days;
+    if(s.max_login_attempts) document.getElementById('s_max_attempts').value=s.max_login_attempts;
+
+    setToggle('t_notif_order', s.notif_new_order!=='0');
+    setToggle('t_notif_payment', s.notif_new_payment!=='0');
+    setToggle('t_notif_credit', s.notif_credit_request!=='0');
+    setToggle('t_notif_lowstock', s.notif_low_stock!=='0');
+
+    // Load bank accounts
+    if(s.bank_accounts){
+      try{
+        const banks=JSON.parse(s.bank_accounts);
+        const bankList=document.getElementById('bankList');
+        bankList.innerHTML='';
+        banks.forEach(function(b){ bankList.appendChild(createBankItem(b)); });
+      }catch(e){}
+    }
+  } catch(e){ console.error('loadSettings error:', e); }
+}
+
+async function saveSettings(section){
+  const token=sessionStorage.getItem('op_token');
+  let data={};
+  if(section==='general'){
+    data={site_name:document.getElementById('s_name').value,
+      site_name_en:document.getElementById('s_name_en').value,
+      site_phone:document.getElementById('s_phone').value,
+      site_whatsapp:document.getElementById('s_whatsapp').value,
+      site_instagram:document.getElementById('s_insta').value,
+      site_telegram:document.getElementById('s_telegram').value,
+      site_email:document.getElementById('s_email').value,
+      site_url:document.getElementById('s_url').value,
+      site_address:document.getElementById('s_addr').value};
+  } else if(section==='bank'){
+    const banks=[];
+    document.querySelectorAll('.bank-item').forEach(function(item){
+      const inputs=item.querySelectorAll('input[type=text],input:not([type]),input[type=file]');
+      const grid=item.querySelector('.bank-item-grid');
+      if(!grid) return;
+      const gridInputs=grid.querySelectorAll('input');
+      const logoInput=item.querySelector('input[type=file]');
+      const logoImg=item.querySelector('.bank-logo-preview img');
+      banks.push({
+        name: gridInputs[0]?.value||'',
+        owner: gridInputs[1]?.value||'',
+        card: gridInputs[2]?.value||'',
+        account: gridInputs[3]?.value||'',
+        sheba: gridInputs[4]?.value||'',
+        logo: logoInput?.dataset?.logo || (logoImg?.src||'')
+      });
+    });
+    data={bank_accounts:JSON.stringify(banks)};
+  } else if(section==='shop'){
+    data={
+      min_order:document.getElementById('s_min_order').value,
+      tax_rate:document.getElementById('s_tax').value,
+      currency:document.getElementById('s_currency').value,
+      show_price_guest: document.getElementById('t_show_price').classList.contains('on') ? '1' : '0',
+      online_order: document.getElementById('t_online_order').classList.contains('on') ? '1' : '0',
+      show_stock: document.getElementById('t_show_stock').classList.contains('on') ? '1' : '0',
+      maintenance_mode: document.getElementById('t_maintenance').classList.contains('on') ? '1' : '0'
+    };
+  } else if(section==='access'){
+    data={
+      otp_enabled: document.getElementById('t_otp').classList.contains('on') ? '1' : '0',
+      open_register: document.getElementById('t_open_register').classList.contains('on') ? '1' : '0',
+      manual_approve: document.getElementById('t_manual_approve').classList.contains('on') ? '1' : '0',
+      jwt_expires_days: document.getElementById('s_jwt_days').value,
+      max_login_attempts: document.getElementById('s_max_attempts').value
+    };
+  } else if(section==='notif'){
+    data={
+      notif_new_order: document.getElementById('t_notif_order').classList.contains('on') ? '1' : '0',
+      notif_new_payment: document.getElementById('t_notif_payment').classList.contains('on') ? '1' : '0',
+      notif_credit_request: document.getElementById('t_notif_credit').classList.contains('on') ? '1' : '0',
+      notif_low_stock: document.getElementById('t_notif_lowstock').classList.contains('on') ? '1' : '0'
+    };
+  }
+  try {
+    await fetch(`${API.BASE_URL}/api/settings`,{
+      method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify(data)
+    });
+    toast('تنظیمات ذخیره شد');
+  } catch(e){ toast('تنظیمات ذخیره شد (حالت آفلاین)'); }
+}
+
+async function changeAdminPw(){
+  const cur=document.getElementById('cur_pw').value;
+  const nw=document.getElementById('new_pw').value;
+  const cf=document.getElementById('confirm_pw').value;
+  if(!cur||!nw||!cf){toast('همه فیلدها را پر کنید',false);return;}
+  if(nw!==cf){toast('رمزها مطابقت ندارند',false);return;}
+  try {
+    const token=sessionStorage.getItem('op_token');
+    const res=await fetch(`${API.BASE_URL}/api/auth/change-password`,{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({currentPassword:cur,newPassword:nw})
+    });
+    if(!res.ok){const d=await res.json();throw new Error(d.message);}
+    toast('رمز عبور تغییر کرد');
+    ['cur_pw','new_pw','confirm_pw'].forEach(id=>document.getElementById(id).value='');
+  } catch(e){ toast(e.message||'خطا',false); }
+}
+
+function createBankItem(b){
+  b = b || {};
+  const div = document.createElement('div');
+  div.className = 'bank-item';
+  div.innerHTML = `
+    <div class="bank-item-logo">
+      <div class="bank-logo-preview" id="logoPreview_${Date.now()}">
+        ${b.logo ? `<img src="${b.logo}"/>` : '<i class="ti ti-building-bank"></i>'}
+      </div>
+      <div style="flex:1">
+        <div style="font-size:12px;color:#888;margin-bottom:6px">لوگو بانک (اختیاری)</div>
+        <input type="file" accept="image/*" style="display:none" onchange="previewLogo(this)"/>
+        <button onclick="this.previousElementSibling.click()" style="background:#eff6ff;color:#1d4ed8;border:1.5px solid #dbeafe;border-radius:7px;padding:6px 12px;font-family:Vazirmatn,sans-serif;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px"><i class="ti ti-upload" style="font-size:13px"></i>آپلود لوگو</button>
+      </div>
+    </div>
+    <div class="bank-item-grid">
+      <div class="fg" style="margin:0"><label>نام بانک</label><input class="finput" placeholder="مثلاً بانک ملت" value="${b.name||''}" style="padding:8px 10px"/></div>
+      <div class="fg" style="margin:0"><label>نام صاحب حساب</label><input class="finput" placeholder="نام و نام خانوادگی" value="${b.owner||''}" style="padding:8px 10px"/></div>
+      <div class="fg" style="margin:0"><label>شماره کارت</label><input class="finput" placeholder="XXXX-XXXX-XXXX-XXXX" value="${b.card||''}" style="direction:ltr;padding:8px 10px"/></div>
+      <div class="fg" style="margin:0"><label>شماره حساب</label><input class="finput" placeholder="شماره حساب" value="${b.account||''}" style="direction:ltr;padding:8px 10px"/></div>
+      <div class="fg" style="margin:0;grid-column:1/-1"><label>شماره شبا</label><input class="finput" placeholder="IR..." value="${b.sheba||''}" style="direction:ltr;padding:8px 10px"/></div>
+    </div>
+    <div class="bank-item-del">
+      <button onclick="this.closest('.bank-item').remove()" style="background:#fee2e2;color:#dc2626;border:none;border-radius:7px;padding:7px 14px;font-family:Vazirmatn,sans-serif;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px"><i class="ti ti-trash"></i>حذف حساب</button>
+    </div>`;
+  return div;
+}
+
+function addBank(){
+  document.getElementById('bankList').appendChild(createBankItem());
+}
+
+function previewLogo(input){
+  if(!input.files||!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const preview = input.closest('.bank-item-logo').querySelector('.bank-logo-preview');
+    preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:contain"/>`;
+    input.dataset.logo = e.target.result;
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+setTimeout(function(){ loadSettings(); }, 100);
+
+// Logo upload
+const logoInputEl = document.getElementById("logoInput");
+if(logoInputEl){
+  logoInputEl.addEventListener("change",function(e){
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=function(ev){
+      const zone = document.getElementById("logoZone");
+      if(zone) zone.innerHTML=`<img src="${ev.target.result}" style="max-height:80px;border-radius:8px;margin:0 auto;display:block"/><div style="font-size:12px;color:#16a34a;margin-top:8px;text-align:center">✓ لوگو انتخاب شد</div>`;
+    };
+    reader.readAsDataURL(file);
+    toast("لوگو آپلود شد — پس از ذخیره اعمال می‌شود");
+  });
+}
+</script>
+</body>
+</html>

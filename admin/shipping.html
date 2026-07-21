@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>حمل و نقل | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    body{background:#f1f5f9;}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+    .sc{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+    .sc-val{font-size:22px;font-weight:900;color:#111;margin-bottom:2px;}
+    .sc-lbl{font-size:12px;color:#aaa;}
+    .toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+    .fi{background:#fff;border:1.5px solid #e5e7eb;border-radius:9px;padding:8px 14px;font-family:'Vazirmatn',sans-serif;font-size:13px;outline:none;color:#111;}
+    .fi-input{flex:1;min-width:180px;}
+    .table-card{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden;}
+    .tc-head{padding:14px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;}
+    .tc-title{font-size:14px;font-weight:700;color:#111;}
+    .tbl{width:100%;border-collapse:collapse;}
+    .tbl th{padding:10px 12px;font-size:11.5px;font-weight:700;color:#666;background:#f8fafc;border-bottom:2px solid #e5e7eb;text-align:center;white-space:nowrap;}
+    .tbl td{padding:10px 12px;font-size:12.5px;color:#333;border-bottom:1px solid #f5f5f5;text-align:center;vertical-align:middle;}
+    .tbl tbody tr:hover{background:#f9fbff;}
+    .badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+    .b-teal{background:#ccfbf1;color:#0f766e;}
+    .b-green{background:#dcfce7;color:#16a34a;}
+    .b-amber{background:#fef3c7;color:#d97706;}
+    .b-purple{background:#ede9fe;color:#7c3aed;}
+    .b-blue{background:#dbeafe;color:#1d4ed8;}
+    .ab{width:30px;height:30px;border-radius:7px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px;}
+    .ab:hover{opacity:.8;}
+    .method-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+    .m-post{background:#fef3c7;color:#d97706;}
+    .m-tipax{background:#ede9fe;color:#7c3aed;}
+    .m-snap{background:#fee2e2;color:#dc2626;}
+    .m-motor{background:#dcfce7;color:#16a34a;}
+    .m-van{background:#dbeafe;color:#1d4ed8;}
+  </style>
+  <script src="../js/api.js"></script>
+  <script src="../js/admin.js"></script>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-placeholder"></div>
+  <div class="main">
+    <div id="topbar-placeholder"></div>
+    <div class="content">
+
+      <div class="stats">
+        <div class="sc"><div class="sc-val" id="statTotal" style="color:#1d4ed8">۰</div><div class="sc-lbl">کل ارسال‌ها</div></div>
+        <div class="sc"><div class="sc-val" id="statShipping" style="color:#0f766e">۰</div><div class="sc-lbl">در حال ارسال</div></div>
+        <div class="sc"><div class="sc-val" id="statDelivered" style="color:#16a34a">۰</div><div class="sc-lbl">تحویل شده</div></div>
+        <div class="sc"><div class="sc-val" id="statPost" style="color:#d97706">۰</div><div class="sc-lbl">پست / تیپاکس</div></div>
+      </div>
+
+      <div class="toolbar">
+        <input class="fi fi-input" id="searchInp" placeholder="جستجو نام مشتری، شماره سفارش..." oninput="renderTable()"/>
+        <select class="fi" id="methodF" onchange="renderTable()">
+          <option value="">همه روش‌ها</option>
+          <option value="post">پست</option>
+          <option value="tipax">تیپاکس</option>
+          <option value="snap">خودرو سواری</option>
+          <option value="motorbike">پیک موتوری</option>
+          <option value="van">وانت</option>
+        </select>
+        <select class="fi" id="statusF" onchange="renderTable()">
+          <option value="">همه وضعیت‌ها</option>
+          <option value="shipping">در حال ارسال</option>
+          <option value="delivered">تحویل شده</option>
+        </select>
+      </div>
+
+      <div class="table-card">
+        <div class="tc-head">
+          <div class="tc-title">اطلاعات حمل و نقل (<span id="shipCount">۰</span>)</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>شماره سفارش</th>
+              <th style="text-align:right">مشتری</th>
+              <th>روش ارسال</th>
+              <th>کد رهگیری / راننده</th>
+              <th>تعداد بسته</th>
+              <th>کد تحویل</th>
+              <th>تاریخ</th>
+              <th>وضعیت</th>
+              <th>عملیات</th>
+            </tr></thead>
+            <tbody id="shipTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-truck"></i>جزئیات ارسال</div>
+      <button class="modal-close" onclick="document.getElementById('detailModal').classList.remove('show')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-edit"></i>ویرایش اطلاعات ارسال</div>
+      <button class="modal-close" onclick="document.getElementById('editModal').classList.remove('show')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editOrderId"/>
+      <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="fg">
+          <label class="flabel">روش ارسال</label>
+          <select class="fselect" id="editMethod" onchange="toggleEditFields()" style="width:100%">
+            <option value="post">پست</option>
+            <option value="tipax">تیپاکس</option>
+            <option value="snap">خودرو سواری</option>
+            <option value="motorbike">پیک موتوری</option>
+            <option value="van">وانت</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="flabel">تعداد بسته‌ها</label>
+          <input class="finput" id="editPackages" type="number" min="1" style="width:100%"/>
+        </div>
+        <div id="editTrackRow" style="grid-column:1/-1">
+          <label class="flabel">کد رهگیری</label>
+          <input class="finput" id="editTracking" style="width:100%;direction:ltr"/>
+        </div>
+        <div id="editDriverRow" style="display:none;grid-column:1/-1;display:none">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="fg"><label class="flabel">نام راننده</label><input class="finput" id="editDriverName" style="width:100%"/></div>
+            <div class="fg"><label class="flabel">موبایل راننده</label><input class="finput" id="editDriverPhone" style="width:100%;direction:ltr"/></div>
+            <div class="fg"><label class="flabel">نوع وسیله</label>
+              <select class="fselect" id="editVehicle" style="width:100%">
+                <option value="motorbike">موتورسیکلت</option>
+                <option value="car">خودرو</option>
+                <option value="van">وانت</option>
+              </select>
+            </div>
+            <div class="fg"><label class="flabel">شماره پلاک</label><input class="finput" id="editPlate" style="width:100%;direction:ltr"/></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-prim" onclick="saveEdit()"><i class="ti ti-check"></i>ذخیره</button>
+      <button class="btn-sec" onclick="document.getElementById('editModal').classList.remove('show')">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function toJalali(dateStr){
+  if(!dateStr)return'—';
+  try{const d=new Date(dateStr);if(isNaN(d))return dateStr;const gy=d.getFullYear(),gm=d.getMonth()+1,gd=d.getDate();let jy=gy-1600,jm=0,jd=0,g_d_no,j_d_no,j_np,i;const g_d_m=[31,28,31,30,31,30,31,31,30,31,30,31];const j_d_m=[31,31,31,31,31,31,30,30,30,30,30,29];let gy2=gy-1600;g_d_no=365*gy2+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400);for(i=0;i<gm-1;i++)g_d_no+=g_d_m[i];if(gm>2&&((gy2%4===0&&gy2%100!==0)||(gy2%400===0)))g_d_no++;g_d_no+=gd;j_d_no=g_d_no-79;j_np=Math.floor(j_d_no/12053);j_d_no%=12053;jy=979+33*j_np+4*Math.floor(j_d_no/1461);j_d_no%=1461;if(j_d_no>=366){jy+=Math.floor((j_d_no-1)/365);j_d_no=(j_d_no-1)%365;}for(i=0;i<11&&j_d_no>=j_d_m[i];i++)j_d_no-=j_d_m[i];jm=i+1;jd=j_d_no+1;const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);return fa(jy)+'/'+fa(String(jm).padStart(2,'0'))+'/'+fa(String(jd).padStart(2,'0'));}catch(e){return dateStr||'—';}
+}
+
+Admin.renderSidebar('shipping');
+Admin.renderTopbar('حمل و نقل','ti-truck');
+
+const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+const methodFa={post:'پست',tipax:'تیپاکس',snap:'خودرو سواری',motorbike:'پیک موتوری',van:'وانت'};
+const methodCls={post:'m-post',tipax:'m-tipax',snap:'m-snap',motorbike:'m-motor',van:'m-van'};
+
+let orders=[],filtered=[];
+
+async function loadShipping(){
+  const token=sessionStorage.getItem('op_token');
+  try{
+    const res=await fetch(`${API.BASE_URL}/api/orders?admin=1&limit=500`,{headers:{'Authorization':'Bearer '+token}});
+    if(res.ok){
+      const data=await res.json();
+      const all=Array.isArray(data)?data:(data.orders||[]);
+      orders=all.filter(o=>o.shipping_method);
+    }
+  }catch(e){}
+  updateStats();renderTable();
+}
+
+function updateStats(){
+  document.getElementById('statTotal').textContent=fa(orders.length);
+  document.getElementById('statShipping').textContent=fa(orders.filter(o=>o.status==='shipping').length);
+  document.getElementById('statDelivered').textContent=fa(orders.filter(o=>o.status==='delivered').length);
+  document.getElementById('statPost').textContent=fa(orders.filter(o=>o.shipping_method==='post'||o.shipping_method==='tipax').length);
+}
+
+function renderTable(){
+  const q=document.getElementById('searchInp').value;
+  const mf=document.getElementById('methodF').value;
+  const sf=document.getElementById('statusF').value;
+  filtered=orders.filter(o=>
+    (!q||o.user_name?.includes(q)||String(o.id).includes(q)||o.user_phone?.includes(q))&&
+    (!mf||o.shipping_method===mf)&&(!sf||o.status===sf)
+  );
+  document.getElementById('shipCount').textContent=fa(filtered.length);
+  document.getElementById('shipTbody').innerHTML=filtered.map((o,i)=>`
+    <tr>
+      <td style="font-weight:700;color:#1d4ed8">#${fa(o.id)}</td>
+      <td style="text-align:right"><div style="font-weight:600">${o.user_name||'—'}</div><div style="font-size:11px;color:#aaa">${o.user_phone||''}</div></td>
+      <td><span class="method-badge ${methodCls[o.shipping_method]||''}">${methodFa[o.shipping_method]||o.shipping_method}</span></td>
+      <td style="font-size:12px;direction:ltr">${o.shipping_tracking||o.shipping_driver_name||'—'}</td>
+      <td>${fa(o.shipping_packages||1)} بسته</td>
+      <td>${o.delivery_code?`<span style="font-weight:700;color:#16a34a;letter-spacing:2px">${fa(o.delivery_code)}</span>`:'—'}</td>
+      <td style="font-size:11.5px;color:#aaa">${toJalali(o.updated_at||o.created_at)}</td>
+      <td><span class="badge ${o.status==='delivered'?'b-green':'b-teal'}">${o.status==='delivered'?'تحویل شده':'در ارسال'}</span></td>
+      <td><div class="action-btns">
+        <button class="ab" style="background:#eff6ff;color:#1d4ed8" onclick="openDetail(${i})" title="مشاهده"><i class="ti ti-eye"></i></button>
+        <button class="ab" style="background:#fef3c7;color:#d97706" onclick="editShipping(${i})" title="ویرایش"><i class="ti ti-edit"></i></button>
+        <button class="ab" style="background:#fee2e2;color:#dc2626" onclick="deleteShipping(${o.id})" title="حذف"><i class="ti ti-trash"></i></button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function openDetail(i){
+  const o=filtered[i];
+  const isDriver=o.shipping_method&&!['post','tipax'].includes(o.shipping_method);
+  document.getElementById('detailBody').innerHTML=`
+    <div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);padding:16px 20px;margin:-20px -20px 16px">
+      <div style="font-size:16px;font-weight:800;color:#fff">سفارش #${fa(o.id)}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.7);margin-top:3px">${o.user_name||''} — ${o.user_phone||''}</div>
+    </div>
+    <div class="info-grid">
+      <div class="info-box"><div class="info-lbl">روش ارسال</div><div class="info-val">${methodFa[o.shipping_method]||o.shipping_method||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">تعداد بسته‌ها</div><div class="info-val">${fa(o.shipping_packages||1)} بسته</div></div>
+      <div class="info-box"><div class="info-lbl">تاریخ ارسال</div><div class="info-val">${toJalali(o.updated_at||o.created_at)}</div></div>
+      <div class="info-box"><div class="info-lbl">وضعیت</div><div class="info-val">${o.status==='delivered'?'تحویل شده':'در حال ارسال'}</div></div>
+      ${isDriver?`
+      <div class="info-box"><div class="info-lbl">نام راننده</div><div class="info-val">${o.shipping_driver_name||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">موبایل راننده</div><div class="info-val" style="direction:ltr">${o.shipping_driver_phone||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">نوع وسیله</div><div class="info-val">${o.shipping_vehicle||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">شماره پلاک</div><div class="info-val" style="direction:ltr">${o.shipping_plate||'—'}</div></div>
+      `:''}
+      ${!isDriver?`<div class="info-box" style="grid-column:1/-1"><div class="info-lbl">کد رهگیری</div><div class="info-val" style="direction:ltr">${o.shipping_tracking||'—'}</div></div>`:''}
+    </div>
+    ${o.delivery_code?`<div style="background:#f0fdf4;border:2px dashed #16a34a;border-radius:12px;padding:16px;text-align:center;margin-top:12px">
+      <div style="font-size:12px;color:#16a34a;margin-bottom:6px;font-weight:600">کد تحویل</div>
+      <div style="font-size:28px;font-weight:900;color:#16a34a;letter-spacing:4px">${fa(o.delivery_code)}</div>
+    </div>`:''}`;
+  document.getElementById('detailModal').classList.add('show');
+}
+
+function toggleEditFields(){
+  const m=document.getElementById('editMethod').value;
+  const isPost=m==='post'||m==='tipax';
+  document.getElementById('editTrackRow').style.display=isPost?'block':'none';
+  document.getElementById('editDriverRow').style.display=isPost?'none':'block';
+}
+
+function editShipping(i){
+  const o=filtered[i];
+  document.getElementById('editOrderId').value=o.id;
+  document.getElementById('editMethod').value=o.shipping_method||'post';
+  document.getElementById('editPackages').value=o.shipping_packages||1;
+  document.getElementById('editTracking').value=o.shipping_tracking||'';
+  document.getElementById('editDriverName').value=o.shipping_driver_name||'';
+  document.getElementById('editDriverPhone').value=o.shipping_driver_phone||'';
+  document.getElementById('editVehicle').value=o.shipping_vehicle||'car';
+  document.getElementById('editPlate').value=o.shipping_plate||'';
+  toggleEditFields();
+  document.getElementById('editModal').classList.add('show');
+}
+
+async function saveEdit(){
+  const id=document.getElementById('editOrderId').value;
+  const method=document.getElementById('editMethod').value;
+  const token=sessionStorage.getItem('op_token');
+  const data={
+    shipping_method:method,
+    shipping_packages:parseInt(document.getElementById('editPackages').value||1),
+    shipping_tracking:document.getElementById('editTracking').value,
+    shipping_driver_name:document.getElementById('editDriverName').value,
+    shipping_driver_phone:document.getElementById('editDriverPhone').value,
+    shipping_vehicle:document.getElementById('editVehicle').value,
+    shipping_plate:document.getElementById('editPlate').value,
+  };
+  try{
+    const res=await fetch(`${API.BASE_URL}/api/orders/${id}/ship`,{
+      method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify(data)
+    });
+    if(res.ok){document.getElementById('editModal').classList.remove('show');loadShipping();Admin.toast('ویرایش شد');}
+    else{const d=await res.json();Admin.toast(d.message||'خطا',false);}
+  }catch(e){Admin.toast('خطا',false);}
+}
+
+async function deleteShipping(id){
+  if(!confirm('آیا اطلاعات ارسال این سفارش حذف شود؟'))return;
+  const token=sessionStorage.getItem('op_token');
+  try{
+    const res=await fetch(`${API.BASE_URL}/api/orders/${id}/status`,{
+      method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({status:'preparing',clear_shipping:true})
+    });
+    if(res.ok){loadShipping();Admin.toast('اطلاعات ارسال حذف شد');}
+    else Admin.toast('خطا در حذف',false);
+  }catch(e){Admin.toast('خطا',false);}
+}
+
+loadShipping();
+</script>
+</body>
+</html>

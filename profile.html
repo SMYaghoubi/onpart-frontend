@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>پروفایل من | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/responsive.css"/>
+  <style>
+    body{background:#f4f6f9;min-height:100vh;}
+    .page{max-width:760px;margin:0 auto;padding:20px 16px 40px;}
+    .hero-card{background:linear-gradient(135deg,#1e3a8a,#1d4ed8);border-radius:18px;padding:28px 24px;display:flex;align-items:center;gap:20px;margin-bottom:18px;position:relative;}
+    .hero-card::before{content:'';position:absolute;top:-40px;left:-40px;width:200px;height:200px;background:rgba(255,255,255,.06);border-radius:50%;pointer-events:none;}
+    .avatar{width:72px;height:72px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff;flex-shrink:0;border:3px solid rgba(255,255,255,.3);}
+    .hero-info{flex:1;min-width:0;}
+    .hero-name{font-size:20px;font-weight:800;color:#fff;margin-bottom:6px;}
+    .hero-sub{font-size:13px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px;}
+    .btn-edit{background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3);border-radius:9px;padding:9px 18px;font-family:Vazirmatn,sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;position:relative;z-index:10;}
+    .btn-edit:hover{background:rgba(255,255,255,.25);}
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;}
+    .stat-card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;align-items:center;gap:12px;}
+    .stat-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+    .si-blue{background:#eff6ff;color:#1d4ed8;}
+    .si-amber{background:#fef3c7;color:#d97706;}
+    .si-green{background:#f0fdf4;color:#16a34a;}
+    .stat-val{font-size:18px;font-weight:800;color:#111;}
+    .stat-lbl{font-size:11.5px;color:#aaa;margin-top:2px;}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+    .card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+    .card-title{font-size:14px;font-weight:700;color:#111;margin-bottom:14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid #f5f5f5;padding-bottom:10px;}
+    .info-row{display:flex;align-items:flex-start;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f9f9f9;gap:8px;}
+    .info-row:last-child{border-bottom:none;}
+    .info-label{font-size:12px;color:#aaa;display:flex;align-items:center;gap:5px;flex-shrink:0;}
+    .info-val{font-size:12.5px;font-weight:600;color:#333;}
+    .qlinks{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+    .qlink{background:#f8fafc;border-radius:11px;padding:14px 10px;text-decoration:none;text-align:center;color:#555;border:1.5px solid #e5e7eb;display:block;}
+    .qlink:hover{border-color:#1d4ed8;background:#eff6ff;color:#1d4ed8;}
+    .qlink i{font-size:22px;display:block;margin-bottom:6px;}
+    .qlink span{font-size:11.5px;font-weight:600;}
+    @media(max-width:640px){
+      .page{padding:12px 10px 32px;}
+      .hero-card{flex-direction:column;align-items:flex-start;padding:20px;gap:12px;}
+      .stats-row{grid-template-columns:1fr 1fr;}
+      .grid2{grid-template-columns:1fr;}
+      .qlinks{grid-template-columns:repeat(2,1fr);}
+    }
+  </style>
+</head>
+<body>
+<script src="js/components.js"></script>
+<div id="navbar-placeholder"></div>
+<script>OnPart.renderNavbar('profile');</script>
+
+<div class="page">
+  <div class="hero-card">
+    <div class="avatar"><i class="ti ti-user"></i></div>
+    <div class="hero-info">
+      <div class="hero-name" id="heroName">در حال بارگذاری...</div>
+      <div class="hero-sub"><i class="ti ti-phone" style="font-size:14px"></i><span id="heroPhone">—</span></div>
+      <div class="hero-sub" style="margin-top:4px"><i class="ti ti-map-pin" style="font-size:14px"></i><span id="heroCity">—</span></div>
+    </div>
+    <a href="edit-profile.html" class="btn-edit"><i class="ti ti-edit"></i>ویرایش پروفایل</a>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-icon si-blue"><i class="ti ti-shopping-bag"></i></div><div><div class="stat-val" id="statOrders">۰</div><div class="stat-lbl">مجموع سفارشات</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-amber"><i class="ti ti-credit-card"></i></div><div><div class="stat-val" id="statDebt">۰</div><div class="stat-lbl">مانده بدهی (ت)</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green"><i class="ti ti-check"></i></div><div><div class="stat-val" id="statDelivered">۰</div><div class="stat-lbl">تحویل شده</div></div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-id-badge" style="color:#1d4ed8"></i>اطلاعات شخصی</div>
+      <div class="info-row"><span class="info-label"><i class="ti ti-user"></i>نام</span><span class="info-val" id="infoName">—</span></div>
+      <div class="info-row"><span class="info-label"><i class="ti ti-phone"></i>موبایل</span><span class="info-val" id="infoPhone" style="direction:ltr">—</span></div>
+      <div class="info-row"><span class="info-label"><i class="ti ti-id"></i>کد ملی</span><span class="info-val" id="infoNational">—</span></div>
+      <div class="info-row"><span class="info-label"><i class="ti ti-mail"></i>ایمیل</span><span class="info-val" id="infoEmail">—</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-building-store" style="color:#16a34a"></i>اطلاعات فروشگاه</div>
+      <div class="info-row"><span class="info-label"><i class="ti ti-building-store"></i>نام فروشگاه</span><span class="info-val" id="infoShop">—</span></div>
+      <div class="info-row"><span class="info-label"><i class="ti ti-phone-call"></i>تلفن ثابت</span><span class="info-val" id="infoPhoneFixed" style="direction:ltr">—</span></div>
+      <div class="info-row"><span class="info-label"><i class="ti ti-map-pin"></i>استان/شهر</span><span class="info-val" id="infoLocation">—</span></div>
+      <div class="info-row"><span class="info-label"><i class="ti ti-map"></i>آدرس</span><span class="info-val" id="infoAddress">—</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="ti ti-apps" style="color:#7c3aed"></i>دسترسی سریع</div>
+    <div class="qlinks">
+      <a class="qlink" href="orders.html"><i class="ti ti-shopping-bag"></i><span>سفارشات من</span></a>
+      <a class="qlink" href="payment.html"><i class="ti ti-credit-card"></i><span>ثبت فیش</span></a>
+      <a class="qlink" href="change-password.html"><i class="ti ti-lock"></i><span>تغییر رمز</span></a>
+      <a class="qlink" href="shop.html"><i class="ti ti-shopping-cart"></i><span>فروشگاه</span></a>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+const BASE = 'https://onpartpadmin.liara.run';
+
+async function loadProfile(){
+  const token = sessionStorage.getItem('op_token');
+  if(!token){ window.location.href='login.html'; return; }
+  try{
+    const [pRes, oRes] = await Promise.all([
+      fetch(BASE+'/api/users/me', {headers:{'Authorization':'Bearer '+token}}),
+      fetch(BASE+'/api/orders/my', {headers:{'Authorization':'Bearer '+token}})
+    ]);
+    if(!pRes.ok){ window.location.href='login.html'; return; }
+    const u = await pRes.json();
+    document.getElementById('heroName').textContent = u.name||'کاربر گرامی';
+    document.getElementById('heroPhone').textContent = u.phone||'—';
+    document.getElementById('heroCity').textContent = [u.province,u.city].filter(Boolean).join(' — ')||'—';
+    document.getElementById('infoName').textContent = u.name||'—';
+    document.getElementById('infoPhone').textContent = u.phone||'—';
+    document.getElementById('infoNational').textContent = u.national_code||'—';
+    document.getElementById('infoEmail').textContent = u.email||'—';
+    document.getElementById('infoShop').textContent = u.shop_name||'—';
+    document.getElementById('infoPhoneFixed').textContent = u.phone_fixed||'—';
+    document.getElementById('infoLocation').textContent = [u.province,u.city].filter(Boolean).join(' / ')||'—';
+    document.getElementById('infoAddress').textContent = u.address||'—';
+    document.getElementById('statDebt').textContent = OnPart.fmt(u.debt||0);
+    if(oRes.ok){
+      const orders = await oRes.json();
+      document.getElementById('statOrders').textContent = OnPart.fa(orders.length);
+      document.getElementById('statDelivered').textContent = OnPart.fa(orders.filter(o=>o.status==='delivered').length);
+    }
+  }catch(e){ console.error(e); }
+}
+loadProfile();
+</script>
+</body>
+</html>

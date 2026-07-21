@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>تامین‌کنندگان | آن‌پارت</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    body{background:#f1f5f9;}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+    .sc{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+    .sc-val{font-size:20px;font-weight:900;color:#111;margin-bottom:2px;}
+    .sc-lbl{font-size:11.5px;color:#aaa;}
+    .toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+    .fi{background:#fff;border:1.5px solid #e5e7eb;border-radius:9px;padding:8px 14px;font-family:'Vazirmatn',sans-serif;font-size:13px;outline:none;}
+    .fi-input{flex:1;min-width:180px;}
+    .btn-add{background:#1d4ed8;color:#fff;border:none;border-radius:9px;padding:9px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
+    .table-card{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden;}
+    .tc-head{padding:14px 20px;border-bottom:1px solid #f0f0f0;}
+    .tc-title{font-size:14px;font-weight:700;color:#111;}
+    .tbl{width:100%;border-collapse:collapse;}
+    .tbl th{padding:10px 12px;font-size:11.5px;font-weight:700;color:#666;background:#f8fafc;border-bottom:2px solid #e5e7eb;text-align:center;white-space:nowrap;}
+    .tbl td{padding:10px 12px;font-size:12.5px;color:#333;border-bottom:1px solid #f5f5f5;text-align:center;}
+    .tbl tbody tr:hover{background:#f9fbff;}
+    .badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+    .b-amber{background:#fef3c7;color:#d97706;}
+    .b-green{background:#dcfce7;color:#16a34a;}
+    .b-red{background:#fee2e2;color:#dc2626;}
+    .ab{width:30px;height:30px;border-radius:7px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px;}
+    .ab:hover{opacity:.8;}
+
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;padding:16px;}
+    .modal-overlay.show{display:flex;}
+    .modal{background:#fff;border-radius:16px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.15);}
+    .modal-head{padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;}
+    .modal-title{font-size:15px;font-weight:700;color:#111;display:flex;align-items:center;gap:8px;}
+    .modal-close{background:none;border:none;cursor:pointer;font-size:20px;color:#aaa;}
+    .modal-body{padding:20px;}
+    .modal-foot{padding:14px 20px;border-top:1px solid #f0f0f0;display:flex;gap:10px;}
+    .btn-prim{background:#1d4ed8;color:#fff;border:none;border-radius:9px;padding:10px 20px;font-family:Vazirmatn,sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
+    .btn-sec{background:#f5f5f5;color:#555;border:none;border-radius:9px;padding:10px 20px;font-family:Vazirmatn,sans-serif;font-size:13px;cursor:pointer;}
+    .btn-danger{background:#fee2e2;color:#dc2626;border:none;border-radius:9px;padding:10px 20px;font-family:Vazirmatn,sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
+
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .info-box{background:#f8fafc;border-radius:9px;padding:12px;}
+    .info-lbl{font-size:11px;color:#aaa;margin-bottom:3px;}
+    .info-val{font-size:13px;font-weight:600;color:#111;}
+
+    .fg{margin-bottom:14px;}
+    .flabel{font-size:12.5px;font-weight:600;color:#444;display:block;margin-bottom:5px;}
+    .finput{width:100%;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;padding:10px 13px;font-family:Vazirmatn,sans-serif;font-size:13px;color:#111;outline:none;box-sizing:border-box;}
+    .finput:focus{border-color:#1d4ed8;background:#fff;}
+    .fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+    @media(max-width:768px){
+      .stats{grid-template-columns:1fr 1fr;}
+      .fg-grid{grid-template-columns:1fr;}
+      .info-grid{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-placeholder"></div>
+  <div class="main">
+    <div id="topbar-placeholder"></div>
+    <div class="content">
+
+      <div class="stats">
+        <div class="sc"><div class="sc-val" id="statTotal" style="color:#1d4ed8">۰</div><div class="sc-lbl">کل تامین‌کنندگان</div></div>
+        <div class="sc"><div class="sc-val" id="statPending" style="color:#d97706">۰</div><div class="sc-lbl">در انتظار بررسی</div></div>
+        <div class="sc"><div class="sc-val" id="statApproved" style="color:#16a34a">۰</div><div class="sc-lbl">تایید شده</div></div>
+        <div class="sc"><div class="sc-val" id="statRejected" style="color:#dc2626">۰</div><div class="sc-lbl">رد شده</div></div>
+      </div>
+
+      <div class="toolbar">
+        <input class="fi fi-input" id="searchInp" placeholder="جستجو نام، شرکت، موبایل..." oninput="renderTable()"/>
+        <select class="fi" id="statusF" onchange="renderTable()">
+          <option value="">همه وضعیت‌ها</option>
+          <option value="pending">در انتظار</option>
+          <option value="approved">تایید شده</option>
+          <option value="rejected">رد شده</option>
+        </select>
+        <button class="btn-add" onclick="openAddModal()"><i class="ti ti-plus"></i>افزودن تامین‌کننده</button>
+      </div>
+
+      <div class="table-card">
+        <div class="tc-head"><div class="tc-title">لیست تامین‌کنندگان (<span id="supplierCount">۰</span>)</div></div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th style="text-align:right">شرکت / فروشگاه</th>
+              <th>نوع فعالیت</th>
+              <th>مسئول</th>
+              <th>موبایل</th>
+              <th>شهر</th>
+              <th>برندها</th>
+              <th>تاریخ</th>
+              <th>وضعیت</th>
+              <th>عملیات</th>
+            </tr></thead>
+            <tbody id="supplierTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL/EDIT MODAL -->
+<div class="modal-overlay" id="supplierModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-building-factory-2"></i><span id="modalTitle">جزئیات تامین‌کننده</span></div>
+      <button class="modal-close" onclick="closeSupplierModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="supplierModalBody"></div>
+    <div class="modal-foot" id="supplierModalFoot"></div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-plus"></i>افزودن تامین‌کننده جدید</div>
+      <button class="modal-close" onclick="document.getElementById('addModal').classList.remove('show')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="fg-grid">
+        <div class="fg"><label class="flabel">نام شرکت / فروشگاه <span style="color:#ef4444">*</span></label><input class="finput" id="a_company"/></div>
+        <div class="fg"><label class="flabel">نوع فعالیت</label>
+          <select class="finput" id="a_type">
+            <option value="">انتخاب کنید...</option>
+            <option>تولیدکننده</option><option>وارد‌کننده</option><option>عمده‌فروش</option><option>توزیع‌کننده</option><option>سایر</option>
+          </select>
+        </div>
+        <div class="fg"><label class="flabel">نام مسئول <span style="color:#ef4444">*</span></label><input class="finput" id="a_name"/></div>
+        <div class="fg"><label class="flabel">موبایل <span style="color:#ef4444">*</span></label><input class="finput" id="a_mobile" style="direction:ltr"/></div>
+        <div class="fg"><label class="flabel">تلفن ثابت</label><input class="finput" id="a_phone" style="direction:ltr"/></div>
+        <div class="fg"><label class="flabel">ایمیل</label><input class="finput" id="a_email" style="direction:ltr"/></div>
+        <div class="fg"><label class="flabel">استان</label><input class="finput" id="a_province"/></div>
+        <div class="fg"><label class="flabel">شهر <span style="color:#ef4444">*</span></label><input class="finput" id="a_city"/></div>
+        <div class="fg" style="grid-column:1/-1"><label class="flabel">آدرس</label><input class="finput" id="a_address"/></div>
+        <div class="fg" style="grid-column:1/-1"><label class="flabel">برندها (با کاما جدا کنید)</label><input class="finput" id="a_brands" placeholder="ایران‌خودرو، سایپا، بوش"/></div>
+        <div class="fg" style="grid-column:1/-1"><label class="flabel">توضیحات</label><input class="finput" id="a_desc"/></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-prim" onclick="submitAdd()"><i class="ti ti-check"></i>ثبت تامین‌کننده</button>
+      <button class="btn-sec" onclick="document.getElementById('addModal').classList.remove('show')">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<!-- REJECT MODAL -->
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-title"><i class="ti ti-x"></i>رد درخواست</div>
+      <button class="modal-close" onclick="document.getElementById('rejectModal').classList.remove('show')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:#666;margin-bottom:12px">دلیل رد درخواست را وارد کنید — این متن در پیامک ارسال می‌شود:</div>
+      <textarea class="finput" id="rejectReason" rows="3" style="resize:none"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-danger" onclick="confirmReject()"><i class="ti ti-x"></i>رد درخواست</button>
+      <button class="btn-sec" onclick="document.getElementById('rejectModal').classList.remove('show')">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+Admin.renderSidebar('partners');
+Admin.renderTopbar('تامین‌کنندگان','ti-building-store');
+
+const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+const statusFa = {pending:'در انتظار', approved:'تایید شده', rejected:'رد شده'};
+const statusCls = {pending:'b-amber', approved:'b-green', rejected:'b-red'};
+const catLabels = {engine:'موتور',gearbox:'گیربکس',brake:'ترمز',electrical:'برق',body:'بدنه',cooling:'خنک‌کاری',fuel:'سوخت‌رسانی',steering:'فرمان',filter:'فیلتر',exhaust:'اگزوز',ac:'تهویه',other_cat:'سایر'};
+
+let suppliers=[], filtered=[], curId=null;
+
+async function loadSuppliers(){
+  const token=sessionStorage.getItem('op_token');
+  try{
+    const res=await fetch(`${API.BASE_URL}/api/suppliers`,{headers:{'Authorization':'Bearer '+token}});
+    if(res.ok){
+      suppliers=await res.json();
+      updateStats();
+      renderTable();
+    }
+  }catch(e){}
+}
+
+function updateStats(){
+  document.getElementById('statTotal').textContent=fa(suppliers.length);
+  document.getElementById('statPending').textContent=fa(suppliers.filter(s=>s.status==='pending').length);
+  document.getElementById('statApproved').textContent=fa(suppliers.filter(s=>s.status==='approved').length);
+  document.getElementById('statRejected').textContent=fa(suppliers.filter(s=>s.status==='rejected').length);
+}
+
+function renderTable(){
+  const q=(document.getElementById('searchInp').value||'').toLowerCase();
+  const sf=document.getElementById('statusF').value;
+  filtered=suppliers.filter(s=>
+    (!q||(s.company||'').toLowerCase().includes(q)||(s.name||'').toLowerCase().includes(q)||(s.mobile||'').includes(q))&&
+    (!sf||s.status===sf)
+  );
+  document.getElementById('supplierCount').textContent=fa(filtered.length);
+  document.getElementById('supplierTbody').innerHTML=filtered.map((s,i)=>`
+    <tr>
+      <td style="text-align:right"><div style="font-weight:700;color:#111">${s.company}</div><div style="font-size:11px;color:#aaa">${s.type||''}</div></td>
+      <td>${s.type||'—'}</td>
+      <td>${s.name||'—'}</td>
+      <td style="direction:ltr">${s.mobile||'—'}</td>
+      <td>${s.city||'—'}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px;color:#666">${s.brands||'—'}</td>
+      <td style="font-size:11px;color:#aaa">${s.created_at?.slice(0,10)||'—'}</td>
+      <td><span class="badge ${statusCls[s.status]||'b-amber'}">${statusFa[s.status]||s.status}</span></td>
+      <td><div style="display:flex;gap:6px;justify-content:center">
+        <button class="ab" style="background:#eff6ff;color:#1d4ed8" onclick="openDetail(${i})" title="مشاهده"><i class="ti ti-eye"></i></button>
+        <button class="ab" style="background:#fef3c7;color:#d97706" onclick="openEdit(${i})" title="ویرایش"><i class="ti ti-edit"></i></button>
+        ${s.status==='pending'?`<button class="ab" style="background:#f0fdf4;color:#16a34a" onclick="approveSupplier(${s.id})" title="تایید"><i class="ti ti-check"></i></button>
+        <button class="ab" style="background:#fee2e2;color:#dc2626" onclick="openRejectModal(${s.id})" title="رد"><i class="ti ti-x"></i></button>`:''}
+        <button class="ab" style="background:#fee2e2;color:#dc2626" onclick="deleteSupplier(${s.id})" title="حذف"><i class="ti ti-trash"></i></button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function openDetail(i){
+  const s=filtered[i]; curId=s.id;
+  const cats=(s.categories||'').split(',').filter(Boolean).map(c=>{
+    if(c.startsWith('other_cat:')) return 'سایر: '+c.replace('other_cat:','');
+    return catLabels[c]||c;
+  }).join('، ');
+  document.getElementById('modalTitle').textContent='جزئیات تامین‌کننده';
+  document.getElementById('supplierModalBody').innerHTML=`
+    <div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);padding:16px 20px;margin:-20px -20px 16px">
+      <div style="font-size:17px;font-weight:800;color:#fff">${s.company}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.7);margin-top:3px">${s.type||''} — ${s.city||''}</div>
+    </div>
+    <div class="info-grid">
+      <div class="info-box"><div class="info-lbl">مسئول</div><div class="info-val">${s.name||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">موبایل</div><div class="info-val" style="direction:ltr">${s.mobile||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">تلفن ثابت</div><div class="info-val" style="direction:ltr">${s.phone||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">ایمیل</div><div class="info-val">${s.email||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">استان</div><div class="info-val">${s.province||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">شهر</div><div class="info-val">${s.city||'—'}</div></div>
+      <div class="info-box" style="grid-column:1/-1"><div class="info-lbl">آدرس</div><div class="info-val">${s.address||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">شماره ثبت شرکت</div><div class="info-val">${s.reg_number||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">سال تأسیس</div><div class="info-val">${s.year||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">وب‌سایت</div><div class="info-val" style="direction:ltr">${s.website||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">تعداد آیتم انبار</div><div class="info-val">${s.inventory||'—'}</div></div>
+      <div class="info-box" style="grid-column:1/-1"><div class="info-lbl">توانایی ارسال</div><div class="info-val">${s.shipping||'—'}</div></div>
+      ${cats?`<div class="info-box" style="grid-column:1/-1;background:#eff6ff"><div class="info-lbl" style="color:#1d4ed8">حوزه فعالیت</div><div class="info-val">${cats}</div></div>`:''}
+      <div class="info-box" style="grid-column:1/-1;background:#f0fdf4"><div class="info-lbl" style="color:#16a34a">برندها</div><div class="info-val">${s.brands||'—'}</div></div>
+      ${s.description?`<div class="info-box" style="grid-column:1/-1"><div class="info-lbl">توضیحات</div><div class="info-val" style="font-weight:400">${s.description}</div></div>`:''}
+    </div>`;
+  document.getElementById('supplierModalFoot').innerHTML = s.status==='pending'?`
+    <button class="btn-prim" style="background:#16a34a" onclick="approveSupplier(${s.id});closeSupplierModal()"><i class="ti ti-check"></i>تایید</button>
+    <button class="btn-danger" onclick="closeSupplierModal();openRejectModal(${s.id})"><i class="ti ti-x"></i>رد</button>
+    <button class="btn-sec" onclick="closeSupplierModal()">بستن</button>`:`<button class="btn-sec" onclick="closeSupplierModal()">بستن</button>`;
+  document.getElementById('supplierModal').classList.add('show');
+}
+
+function openEdit(i){
+  const s=filtered[i]; curId=s.id;
+  document.getElementById('modalTitle').textContent='ویرایش تامین‌کننده';
+  document.getElementById('supplierModalBody').innerHTML=`
+    <div class="fg-grid">
+      <div class="fg"><label class="flabel">نام شرکت / فروشگاه</label><input class="finput" id="ed_company" value="${s.company||''}"/></div>
+      <div class="fg"><label class="flabel">نوع فعالیت</label>
+        <select class="finput" id="ed_type">
+          <option value="">انتخاب کنید...</option>
+          ${['تولیدکننده','وارد‌کننده','عمده‌فروش','توزیع‌کننده','سایر'].map(t=>`<option ${s.type===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg"><label class="flabel">نام مسئول</label><input class="finput" id="ed_name" value="${s.name||''}"/></div>
+      <div class="fg"><label class="flabel">موبایل</label><input class="finput" id="ed_mobile" value="${s.mobile||''}" style="direction:ltr"/></div>
+      <div class="fg"><label class="flabel">تلفن ثابت</label><input class="finput" id="ed_phone" value="${s.phone||''}" style="direction:ltr"/></div>
+      <div class="fg"><label class="flabel">ایمیل</label><input class="finput" id="ed_email" value="${s.email||''}" style="direction:ltr"/></div>
+      <div class="fg"><label class="flabel">استان</label><input class="finput" id="ed_province" value="${s.province||''}"/></div>
+      <div class="fg"><label class="flabel">شهر</label><input class="finput" id="ed_city" value="${s.city||''}"/></div>
+      <div class="fg" style="grid-column:1/-1"><label class="flabel">آدرس</label><input class="finput" id="ed_address" value="${s.address||''}"/></div>
+      <div class="fg" style="grid-column:1/-1"><label class="flabel">برندها</label><input class="finput" id="ed_brands" value="${s.brands||''}"/></div>
+      <div class="fg" style="grid-column:1/-1"><label class="flabel">توضیحات</label><input class="finput" id="ed_desc" value="${(s.description||'').replace(/"/g,'&quot;')}"/></div>
+    </div>`;
+  document.getElementById('supplierModalFoot').innerHTML=`
+    <button class="btn-prim" onclick="saveEdit()"><i class="ti ti-check"></i>ذخیره تغییرات</button>
+    <button class="btn-sec" onclick="closeSupplierModal()">انصراف</button>`;
+  document.getElementById('supplierModal').classList.add('show');
+}
+
+async function saveEdit(){
+  const token=sessionStorage.getItem('op_token');
+  const data={
+    company: document.getElementById('ed_company').value,
+    type: document.getElementById('ed_type').value,
+    name: document.getElementById('ed_name').value,
+    mobile: document.getElementById('ed_mobile').value,
+    phone: document.getElementById('ed_phone').value,
+    email: document.getElementById('ed_email').value,
+    province: document.getElementById('ed_province').value,
+    city: document.getElementById('ed_city').value,
+    address: document.getElementById('ed_address').value,
+    brands: document.getElementById('ed_brands').value,
+    description: document.getElementById('ed_desc').value,
+  };
+  try{
+    const res=await fetch(`${API.BASE_URL}/api/suppliers/${curId}`,{
+      method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify(data)
+    });
+    if(res.ok){ Admin.toast('تامین‌کننده ویرایش شد'); closeSupplierModal(); loadSuppliers(); }
+    else{ const d=await res.json(); Admin.toast(d.message||'خطا',false); }
+  }catch(e){ Admin.toast('خطا',false); }
+}
+
+function closeSupplierModal(){ document.getElementById('supplierModal').classList.remove('show'); }
+
+function openRejectModal(id){ curId=id; document.getElementById('rejectReason').value=''; document.getElementById('rejectModal').classList.add('show'); }
+
+async function approveSupplier(id){
+  const token=sessionStorage.getItem('op_token');
+  try{
+    const res=await fetch(`${API.BASE_URL}/api/suppliers/${id}/approve`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
+    if(res.ok){ Admin.toast('تایید شد و پیامک ارسال شد'); loadSuppliers(); }
+  }catch(e){ Admin.toast('خطا',false); }
+}
+
+async function confirmReject(){
+  const reason=document.getElementById('rejectReason').value.trim();
+  if(!reason){ Admin.toast('دلیل رد را وارد کنید',false); return; }
+  const token=sessionStorage.getItem('op_token');
+  try{
+    const res=await fetch(`${API.BASE_URL}/api/suppliers/${curId}/reject`,{
+      method:'PATCH', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({reason})
+    });
+    if(res.ok){ Admin.toast('رد شد و پیامک ارسال شد'); document.getElementById('rejectModal').classList.remove('show'); loadSuppliers(); }
+  }catch(e){ Admin.toast('خطا',false); }
+}
+
+async function deleteSupplier(id){
+  if(!confirm('حذف این تامین‌کننده؟')) return;
+  const token=sessionStorage.getItem('op_token');
+  await fetch(`${API.BASE_URL}/api/suppliers/${id}`,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+  Admin.toast('حذف شد');
+  loadSuppliers();
+}
+
+function openAddModal(){
+  ['a_company','a_type','a_name','a_mobile','a_phone','a_email','a_province','a_city','a_address','a_brands','a_desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('addModal').classList.add('show');
+}
+
+async function submitAdd(){
+  const company=document.getElementById('a_company').value.trim();
+  const name=document.getElementById('a_name').value.trim();
+  const mobile=document.getElementById('a_mobile').value.trim();
+  const city=document.getElementById('a_city').value.trim();
+  if(!company||!name||!mobile||!city){ Admin.toast('فیلدهای الزامی را پر کنید',false); return; }
+
+  const token=sessionStorage.getItem('op_token');
+  const data={
+    company, name, mobile, city,
+    type: document.getElementById('a_type').value,
+    phone: document.getElementById('a_phone').value,
+    email: document.getElementById('a_email').value,
+    province: document.getElementById('a_province').value,
+    address: document.getElementById('a_address').value,
+    brands: document.getElementById('a_brands').value,
+    description: document.getElementById('a_desc').value,
+  };
+  try{
+    const res=await fetch(`${API.BASE_URL}/api/suppliers`,{
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify(data)
+    });
+    if(res.ok){
+      Admin.toast('تامین‌کننده اضافه شد');
+      document.getElementById('addModal').classList.remove('show');
+      loadSuppliers();
+    } else { const d=await res.json(); Admin.toast(d.message||'خطا',false); }
+  }catch(e){ Admin.toast('خطا',false); }
+}
+
+loadSuppliers();
+</script>
+</body>
+</html>

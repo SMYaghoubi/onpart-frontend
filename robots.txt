@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /shop.html
+Allow: /cooperation.html
+Allow: /register.html
+Allow: /login.html
+
+Disallow: /admin/
+Disallow: /profile.html
+Disallow: /orders.html
+Disallow: /payment.html
+Disallow: /change-password.html
+Disallow: /edit-profile.html
+Disallow: /reports.html
+Disallow: /credit.html
+
+Sitemap: https://onpart.ir/sitemap.xml
