@@ -150,7 +150,7 @@ async function doLogin(){
     if(!res.ok)throw new Error(data.message||'نام کاربری یا رمز عبور اشتباه است');
     sessionStorage.setItem('op_token',data.token);
     sessionStorage.setItem('op_user',JSON.stringify(data.user));
-    window.location.href='shop.html';
+    window.location.href='/shop';
   }catch(e){
     const err=document.getElementById('loginError');
     if(err){err.textContent=e.message;err.style.display='block';}
@@ -174,7 +174,7 @@ async function verifyOTP(){
     if(!res.ok)throw new Error(data.message||'کد اشتباه است');
     sessionStorage.setItem('op_token',data.token);
     sessionStorage.setItem('op_user',JSON.stringify(data.user));
-    window.location.href='shop.html';
+    window.location.href='/shop';
   }catch(e){alert(e.message);}
 }
 </script>
