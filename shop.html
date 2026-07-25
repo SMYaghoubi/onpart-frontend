@@ -390,7 +390,7 @@
           <td class="td-hide-mob"><span class="chip ch-gray">${p.cat}</span></td>
           <td class="td-hide-mob">${flowB}</td>
           <td class="td-hide-mob stock-col">${stockB}</td>
-          <td class="td-price">${canShowPrice()?fmt(p.price):'<a href="/login.html" style="color:#1d4ed8;font-size:11px">ورود برای مشاهده</a>'}</td>
+          <td class="td-price">${canShowPrice()?fmt(p.price):'<a href="/login" style="color:#1d4ed8;font-size:11px">ورود برای مشاهده</a>'}</td>
           <td><div class="qty-wrap">
             <button class="qbtn" onclick="chg(${i},-1)">−</button>
             <input class="qinp" value="${fa(q)}" onchange="setQ(${i},this.value)"/>
@@ -493,7 +493,7 @@
       if(!items.length){OnPart.toast('سبد خرید خالی است','error');return;}
 
       const token = sessionStorage.getItem('op_token');
-      if(!token){ OnPart.toast('لطفاً ابتدا وارد حساب کاربری شوید','error'); window.location.href='login.html'; return; }
+      if(!token){ OnPart.toast('لطفاً ابتدا وارد حساب کاربری شوید','error'); window.location.href='/login'; return; }
 
       const orderItems = items.map(it => ({
         product_id: products[it.id].id,
@@ -526,7 +526,7 @@
         closeCart();
         loadProducts();
 
-        setTimeout(()=>{ window.location.href = 'orders.html'; }, 1200);
+        setTimeout(()=>{ window.location.href = '/orders'; }, 1200);
       } catch(e){
         OnPart.toast('خطا در ارتباط با سرور', 'error');
       } finally {
