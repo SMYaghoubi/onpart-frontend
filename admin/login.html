@@ -91,7 +91,7 @@
       <span class="btn-text"><i class="ti ti-login"></i> ورود به پنل</span>
     </button>
 
-    <a class="back-link" href="../index.html">
+    <a class="back-link" href="/">
       <i class="ti ti-arrow-right"></i>
       بازگشت به صفحه اصلی
     </a>
@@ -159,8 +159,8 @@
         if(!res.ok) throw new Error(data.message || 'نام کاربری یا رمز اشتباه است');
         sessionStorage.setItem('op_token', data.token);
         sessionStorage.setItem('op_user', JSON.stringify(data.user));
-        window.location.href = 'index.html';
-
+        window.location.href = '/admin';
+        
       } catch(err){
         showError(err.message || 'خطا در ورود');
         btn.classList.remove('loading');
@@ -173,7 +173,7 @@
       try {
         const u = JSON.parse(sessionStorage.getItem('op_user')||'{}');
         if(u.role === 'admin' || u.role === 'partner'){
-          window.location.replace('index.html');
+          window.location.replace('/admin');
         } else {
           // Regular user - clear token, stay on login
           sessionStorage.removeItem('op_token');
