@@ -88,12 +88,12 @@
 </head>
 <body>
   <nav class="coop-nav">
-    <a class="nav-logo" href="index.html"><img src="images/logo.png" style="height:32px;object-fit:contain"/><div class="nav-logo-text">On<span>Part</span></div></a>
+    <a class="nav-logo" href="/"><img src="images/logo.png" style="height:32px;object-fit:contain"/><div class="nav-logo-text">On<span>Part</span></div></a>
     <div class="nav-links">
-      <a class="nav-link" href="index.html">صفحه اصلی</a>
-      <a class="nav-link" href="shop.html">فروشگاه</a>
-      <a class="nav-link" href="cooperation.html">سامانه همکاری</a>
-      <a class="nav-link active" href="credit.html">سامانه اعتباری</a>
+      <a class="nav-link" href="/">صفحه اصلی</a>
+      <a class="nav-link" href="/shop">فروشگاه</a>
+      <a class="nav-link" href="/cooperation">سامانه همکاری</a>
+      <a class="nav-link active" href="/credit">سامانه اعتباری</a>
     </div>
     <div style="display:flex;align-items:center;gap:5px;font-size:13px;color:#444;direction:ltr"><i class="ti ti-phone" style="color:#1d4ed8"></i>۰۲۱-۶۵۲۸-۰۴۴۸</div>
   </nav>
@@ -191,7 +191,7 @@
       <div class="suc-icon"><i class="ti ti-check"></i></div>
       <div style="font-size:22px;font-weight:900;color:#111;margin-bottom:10px">درخواست ثبت شد!</div>
       <div style="font-size:14px;color:#888;line-height:1.8">ظرف ۳ روز کاری نتیجه از طریق پیامک اعلام می‌شود.</div>
-      <button class="btn-close" onclick="window.location.href='shop.html'">متوجه شدم</button>
+      <button class="btn-close" onclick="window.location.href='/shop'">متوجه شدم</button>
     </div>
   </div>
 
@@ -216,7 +216,7 @@
       if(!name){ alert('نام و نام خانوادگی الزامی است'); return; }
 
       const token = sessionStorage.getItem('op_token');
-      if(!token){ window.location.href='login.html'; return; }
+      if(!token){ window.location.href='/login'; return; }
 
       const btn = document.getElementById('submitBtn');
       btn.disabled=true; btn.textContent='در حال ارسال...';
