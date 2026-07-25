@@ -91,7 +91,7 @@
         <div class="err" id="phoneErr"></div>
       </div>
       <button class="btn-submit" id="sendOtpBtn" onclick="sendOtp()">دریافت کد تایید</button>
-      <div class="login-link">قبلاً ثبت‌نام کرده‌اید؟ <a href="login.html">ورود به حساب</a></div>
+      <div class="login-link">قبلاً ثبت‌نام کرده‌اید؟ <a href="/login">ورود به حساب</a></div>
     </div>
 
     <!-- Step 2: OTP -->
@@ -211,7 +211,7 @@
         <i class="ti ti-clock-hour-4"></i>
         <div style="font-size:17px;font-weight:800;color:#111;margin-bottom:8px">ثبت‌نام با موفقیت انجام شد</div>
         <div style="font-size:13.5px;color:#888;line-height:1.8">حساب شما در انتظار تأیید مدیر است. پس از تأیید، می‌توانید با شماره موبایل خود وارد سامانه شوید.</div>
-        <a href="login.html" style="display:inline-block;margin-top:20px;background:#1d4ed8;color:#fff;border-radius:10px;padding:12px 32px;font-weight:700;text-decoration:none">بازگشت به ورود</a>
+        <a href="/login" style="display:inline-block;margin-top:20px;background:#1d4ed8;color:#fff;border-radius:10px;padding:12px 32px;font-weight:700;text-decoration:none">بازگشت به ورود</a>
       </div>
     </div>
   </div>
@@ -223,9 +223,9 @@ let timerInterval = null;
 let timerSeconds = 120;
 
 // Replace history so back button goes to index, not back into registration
-history.replaceState(null, '', 'register.html');
+history.replaceState(null, '', '/register');
 window.addEventListener('popstate', function() {
-  window.location.replace('index.html');
+  window.location.replace('/');
 });
 
 // Check if registration is open
@@ -331,7 +331,7 @@ async function verifyOtp(){
     // If user already has a name, they're already registered - redirect to login
     if(!data.isNewUser && data.user.name){
       alert('این شماره قبلاً ثبت‌نام کرده. به صفحه ورود هدایت می‌شوید.');
-      window.location.href = 'login.html';
+      window.location.href = '/login';
       return;
     }
     showStep(3);
