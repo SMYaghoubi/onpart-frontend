@@ -36,7 +36,7 @@ const OnPart = {
     // Block admin/partner from shop pages (unless they explicitly set allow flag)
     if(isLoggedIn && (user.role === 'admin' || user.role === 'partner')) {
       if(!sessionStorage.getItem('allow_shop')) {
-        window.location.replace('/admin/index.html');
+        window.location.replace('/admin/');
         return;
       }
     }
@@ -46,12 +46,12 @@ const OnPart = {
     var userAv = userName ? userName[0] : '?';
 
     var nav = '<nav class="op-nav">';
-    nav += '<div class="op-nav-logo"><a href="/index.html"><img src="/images/logo.png" style="height:38px;object-fit:contain"/></a></div>';
+    nav += '<div class="op-nav-logo"><a href="/"><img src="/images/logo.png" style="height:38px;object-fit:contain"/></a></div>';
     nav += '<div class="op-nav-links">';
-    nav += '<a href="/shop.html" class="op-nav-link' + (activePage==='shop'?' active':'') + '">صفحه اصلی</a>';
-    nav += '<a href="/profile.html" class="op-nav-link' + (activePage==='profile'?' active':'') + '">پروفایل من</a>';
-    nav += '<a href="/orders.html" class="op-nav-link' + (activePage==='orders'?' active':'') + '">سفارشات من</a>';
-    nav += '<a href="/payment.html" class="op-nav-link' + (activePage==='payment'?' active':'') + '">ثبت فیش واریزی</a>';
+    nav += '<a href="/shop" class="op-nav-link' + (activePage==='shop'?' active':'') + '">صفحه اصلی</a>';
+    nav += '<a href="/profile" class="op-nav-link' + (activePage==='profile'?' active':'') + '">پروفایل من</a>';
+    nav += '<a href="/orders" class="op-nav-link' + (activePage==='orders'?' active':'') + '">سفارشات من</a>';
+    nav += '<a href="/payment" class="op-nav-link' + (activePage==='payment'?' active':'') + '">ثبت فیش واریزی</a>';
     nav += '</div>';
     nav += '<div class="op-nav-right">';
     nav += '<div class="op-nav-phone op-hide-mobile"><i class="ti ti-phone"></i>02165280448</div>';
@@ -74,10 +74,10 @@ const OnPart = {
     }
 
     nav += '<div class="op-mob-links">';
-    nav += '<a href="/shop.html" class="op-mob-link' + (activePage==='shop'?' active':'') + '"><i class="ti ti-home"></i>\u0635\u0641\u062d\u0647 \u0627\u0635\u0644\u06cc</a>';
-    nav += '<a href="/profile.html" class="op-mob-link' + (activePage==='profile'?' active':'') + '"><i class="ti ti-user"></i>\u067e\u0631\u0648\u0641\u0627\u06cc\u0644 \u0645\u0646</a>';
-    nav += '<a href="/orders.html" class="op-mob-link' + (activePage==='orders'?' active':'') + '"><i class="ti ti-package"></i>سفارشات من</a>';
-    nav += '<a href="/payment.html" class="op-mob-link' + (activePage==='payment'?' active':'') + '"><i class="ti ti-file-invoice"></i>ثبت فیش واریزی</a>';
+    nav += '<a href="/shop" class="op-mob-link' + (activePage==='shop'?' active':'') + '"><i class="ti ti-home"></i>\u0635\u0641\u062d\u0647 \u0627\u0635\u0644\u06cc</a>';
+    nav += '<a href="/profile" class="op-mob-link' + (activePage==='profile'?' active':'') + '"><i class="ti ti-user"></i>\u067e\u0631\u0648\u0641\u0627\u06cc\u0644 \u0645\u0646</a>';
+    nav += '<a href="/orders" class="op-mob-link' + (activePage==='orders'?' active':'') + '"><i class="ti ti-package"></i>سفارشات من</a>';
+    nav += '<a href="/payment" class="op-mob-link' + (activePage==='payment'?' active':'') + '"><i class="ti ti-file-invoice"></i>ثبت فیش واریزی</a>';
     
     nav += '</div>';
 
@@ -86,7 +86,7 @@ const OnPart = {
     if(isLoggedIn) {
       nav += '<button onclick="OnPart.logout()" class="op-mob-logout"><i class="ti ti-logout"></i>\u062e\u0631\u0648\u062c \u0627\u0632 \u062d\u0633\u0627\u0628</button>';
     } else {
-      nav += '<a href="/login.html" class="op-mob-login"><i class="ti ti-login"></i>\u0648\u0631\u0648\u062f \u0628\u0647 \u062d\u0633\u0627\u0628</a>';
+      nav += '<a href="/login" class="op-mob-login"><i class="ti ti-login"></i>\u0648\u0631\u0648\u062f \u0628\u0647 \u062d\u0633\u0627\u0628</a>';
     }
     nav += '</div></div>';
 
@@ -101,7 +101,7 @@ const OnPart = {
           + '<button onclick="OnPart.logout()" style="background:#fee2e2;color:#dc2626;border:none;border-radius:7px;padding:6px 12px;font-family:Vazirmatn,sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-logout" style="font-size:14px"></i>\u062e\u0631\u0648\u062c</button>'
           + '</div>';
       } else {
-        area.innerHTML = '<a href="/login.html" style="background:#1d4ed8;color:#fff;border-radius:7px;padding:7px 14px;font-size:12.5px;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:5px"><i class="ti ti-login" style="font-size:14px"></i>\u0648\u0631\u0648\u062f</a>';
+        area.innerHTML = '<a href="/login" style="background:#1d4ed8;color:#fff;border-radius:7px;padding:7px 14px;font-size:12.5px;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:5px"><i class="ti ti-login" style="font-size:14px"></i>\u0648\u0631\u0648\u062f</a>';
       }
     }
 
@@ -145,7 +145,7 @@ const OnPart = {
       // Trigger the shop page openCart function
       if(typeof openCart === 'function') openCart();
     } else {
-      window.location.href = '/shop.html';
+      window.location.href = '/shop';
     }
   },
 
@@ -191,16 +191,16 @@ const OnPart = {
   logout: function() {
     sessionStorage.removeItem('op_token');
     sessionStorage.removeItem('op_user');
-    window.location.href = '/login.html';
+    window.location.href = '/login';
   },
 
   checkAuth: function() {
     const token = sessionStorage.getItem('op_token');
-    if(!token) { window.location.href = '/login.html'; return false; }
+    if(!token) { window.location.href = '/login'; return false; }
     try {
       const user = JSON.parse(sessionStorage.getItem('op_user') || '{}');
       if(user.role === 'admin' || user.role === 'partner') {
-        window.location.href = '/admin/index.html';
+        window.location.href = '/admin/';
         return false;
       }
     } catch(e) {}
