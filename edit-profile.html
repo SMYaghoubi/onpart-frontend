@@ -29,7 +29,7 @@
 <script>OnPart.renderNavbar('profile');</script>
 
 <div class="page">
-  <a href="profile.html" class="btn-back"><i class="ti ti-arrow-right"></i>بازگشت به پروفایل</a>
+  <a href="/profile" class="btn-back"><i class="ti ti-arrow-right"></i>بازگشت به پروفایل</a>
   <div class="card">
     <div class="card-title"><i class="ti ti-edit" style="color:#1d4ed8"></i>ویرایش پروفایل</div>
     <div class="fg-grid">
@@ -53,9 +53,9 @@ const BASE = 'https://onpartpadmin.liara.run';
 
 async function loadUser(){
   const token = sessionStorage.getItem('op_token');
-  if(!token){ window.location.href='login.html'; return; }
+  if(!token){ window.location.href='/login'; return; }
   const res = await fetch(BASE+'/api/users/me', {headers:{'Authorization':'Bearer '+token}});
-  if(!res.ok){ window.location.href='login.html'; return; }
+  if(!res.ok){ window.location.href='/login'; return; }
   const u = await res.json();
   document.getElementById('e_name').value = u.name||'';
   document.getElementById('e_shop').value = u.shop_name||'';
@@ -90,7 +90,7 @@ async function saveProfile(){
     });
     if(res.ok){
       alert('پروفایل با موفقیت ذخیره شد');
-      window.location.href = 'profile.html';
+      window.location.href = '/profile';
     } else {
       const d = await res.json();
       alert(d.message||'خطا در ذخیره');
