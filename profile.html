@@ -62,7 +62,7 @@
       <div class="hero-sub"><i class="ti ti-phone" style="font-size:14px"></i><span id="heroPhone">—</span></div>
       <div class="hero-sub" style="margin-top:4px"><i class="ti ti-map-pin" style="font-size:14px"></i><span id="heroCity">—</span></div>
     </div>
-    <a href="edit-profile.html" class="btn-edit"><i class="ti ti-edit"></i>ویرایش پروفایل</a>
+    <a href="/edit-profile" class="btn-edit"><i class="ti ti-edit"></i>ویرایش پروفایل</a>
   </div>
 
   <div class="stats-row">
@@ -91,10 +91,10 @@
   <div class="card">
     <div class="card-title"><i class="ti ti-apps" style="color:#7c3aed"></i>دسترسی سریع</div>
     <div class="qlinks">
-      <a class="qlink" href="orders.html"><i class="ti ti-shopping-bag"></i><span>سفارشات من</span></a>
-      <a class="qlink" href="payment.html"><i class="ti ti-credit-card"></i><span>ثبت فیش</span></a>
-      <a class="qlink" href="change-password.html"><i class="ti ti-lock"></i><span>تغییر رمز</span></a>
-      <a class="qlink" href="shop.html"><i class="ti ti-shopping-cart"></i><span>فروشگاه</span></a>
+      <a class="qlink" href="orders"><i class="ti ti-shopping-bag"></i><span>سفارشات من</span></a>
+      <a class="qlink" href="payment"><i class="ti ti-credit-card"></i><span>ثبت فیش</span></a>
+      <a class="qlink" href="change-password"><i class="ti ti-lock"></i><span>تغییر رمز</span></a>
+      <a class="qlink" href="shop"><i class="ti ti-shopping-cart"></i><span>فروشگاه</span></a>
     </div>
   </div>
 </div>
@@ -105,13 +105,13 @@ const BASE = 'https://onpartpadmin.liara.run';
 
 async function loadProfile(){
   const token = sessionStorage.getItem('op_token');
-  if(!token){ window.location.href='login.html'; return; }
+  if(!token){ window.location.href='/login'; return; }
   try{
     const [pRes, oRes] = await Promise.all([
       fetch(BASE+'/api/users/me', {headers:{'Authorization':'Bearer '+token}}),
       fetch(BASE+'/api/orders/my', {headers:{'Authorization':'Bearer '+token}})
     ]);
-    if(!pRes.ok){ window.location.href='login.html'; return; }
+    if(!pRes.ok){ window.location.href='/login'; return; }
     const u = await pRes.json();
     document.getElementById('heroName').textContent = u.name||'کاربر گرامی';
     document.getElementById('heroPhone').textContent = u.phone||'—';
