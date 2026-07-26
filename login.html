@@ -68,7 +68,7 @@
 </head>
 <body>
 <a href="/" class="page-back" title="بازگشت"><i class="ti ti-arrow-right"></i></a>
-
+ 
 <div class="wrap">
   <div class="left">
     <div class="left-icon"><i class="ti ti-user-circle"></i></div>
@@ -76,11 +76,11 @@
     <div class="left-desc">لطفاً برای استفاده از امکانات فروشگاه ثبت‌نام کنید</div>
     <a class="btn-register" href="/register">ثبت نام</a>
   </div>
-
+ 
   <div class="right">
     <img src="images/logo.png" style="height:60px;object-fit:contain;margin-bottom:4px"/>
     <div class="logo-sub">سامانه فروش قطعات یدکی خودرو</div>
-
+ 
     <div class="fg">
       <label class="flabel">نام کاربری</label>
       <div class="input-wrap">
@@ -88,7 +88,7 @@
         <i class="ti ti-user input-icon"></i>
       </div>
     </div>
-
+ 
     <div class="fg">
       <label class="flabel">رمزعبور</label>
       <div class="input-wrap">
@@ -97,7 +97,7 @@
         <button class="eye-btn" onclick="togglePw()"><i class="ti ti-eye" id="eyeIcon"></i></button>
       </div>
     </div>
-
+ 
     <button class="btn-login" onclick="doLogin()">ورود</button>
     <div id="loginError" style="display:none;background:#fee2e2;color:#dc2626;border-radius:8px;padding:10px 14px;font-size:13px;margin-top:10px;text-align:center"></div>
     <a class="forgot" href="/forgot">رمز عبور را فراموش کرده‌اید؟</a>
@@ -105,31 +105,32 @@
     <div class="bottom-note">حساب کاربری ندارید؟ <a href="/register">ثبت‌نام کنید</a></div>
   </div>
 </div>
-
+ 
 <!-- OTP Modal (for 2FA) -->
 <div class="overlay" id="otpOverlay">
   <div class="otp-card">
     <i class="ti ti-message-2-check otp-icon"></i>
     <div class="otp-title">کد تأیید ارسال شد</div>
     <div class="otp-desc">کد ۵ رقمی ارسال‌شده به شماره موبایل شما را وارد کنید</div>
-    <div class="otp-inputs">
-      <input class="otp-input" maxlength="1" id="o1" oninput="otpNext(this,'o2')"/>
-      <input class="otp-input" maxlength="1" id="o2" oninput="otpNext(this,'o3')"/>
-      <input class="otp-input" maxlength="1" id="o3" oninput="otpNext(this,'o4')"/>
-      <input class="otp-input" maxlength="1" id="o4" oninput="otpNext(this,'o5')"/>
-      <input class="otp-input" maxlength="1" id="o5" oninput="otpNext(this,null)"/>
+    <div class="otp-inputs" style="position:relative">
+      <input class="otp-input" maxlength="1" id="o1" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,'o2')"/>
+      <input class="otp-input" maxlength="1" id="o2" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,'o3')"/>
+      <input class="otp-input" maxlength="1" id="o3" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,'o4')"/>
+      <input class="otp-input" maxlength="1" id="o4" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,'o5')"/>
+      <input class="otp-input" maxlength="1" id="o5" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,null)"/>
+      <input type="text" id="otpHidden" autocomplete="one-time-code" inputmode="numeric" maxlength="5" style="position:absolute;inset:0;opacity:0;border:none;pointer-events:none" oninput="handleOtpAutofill(this.value)"/>
     </div>
     <button class="btn-verify" onclick="verifyOTP()">تأیید و ورود</button>
     <div class="otp-resend">کد را دریافت نکردید؟ <span>ارسال مجدد</span></div>
     <div class="otp-close" onclick="document.getElementById('otpOverlay').classList.remove('show')">انصراف</div>
   </div>
 </div>
-
+ 
 <script>
 // Clear any existing session when login page loads
 sessionStorage.removeItem('op_token');
 sessionStorage.removeItem('op_user');
-
+ 
 function togglePw(){
   const p=document.getElementById('password');
   const ic=document.getElementById('eyeIcon');
@@ -160,6 +161,12 @@ async function doLogin(){
 function otpNext(el,nextId){
   if(el.value&&nextId)document.getElementById(nextId).focus();
 }
+function handleOtpAutofill(val){
+  val = val.replace(/\D/g,'').slice(0,5);
+  const ids=['o1','o2','o3','o4','o5'];
+  ids.forEach((id,i)=>{ document.getElementById(id).value = val[i]||''; });
+  if(val.length===5) verifyOTP();
+}
 async function verifyOTP(){
   const phone=document.getElementById('phoneInput2')?.value||document.getElementById('username').value;
   const otp=[...document.querySelectorAll('.otp-input')].map(i=>i.value).join('');
@@ -176,6 +183,20 @@ async function verifyOTP(){
     sessionStorage.setItem('op_user',JSON.stringify(data.user));
     window.location.href='/shop';
   }catch(e){alert(e.message);}
+}
+ 
+// Auto-focus hidden OTP field whenever the modal becomes visible
+// (works no matter where/how the modal gets shown)
+const otpOverlayEl = document.getElementById('otpOverlay');
+if(otpOverlayEl){
+  new MutationObserver(function(){
+    if(otpOverlayEl.classList.contains('show')){
+      setTimeout(()=>{
+        const h = document.getElementById('otpHidden');
+        if(h) h.focus();
+      }, 150);
+    }
+  }).observe(otpOverlayEl, {attributes:true, attributeFilter:['class']});
 }
 </script>
 </body>
