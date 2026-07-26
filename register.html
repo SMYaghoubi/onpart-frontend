@@ -47,7 +47,7 @@
     .btn-submit{width:100%;background:#1d4ed8;color:#fff;border:none;border-radius:10px;padding:13px;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;}
     .btn-submit:disabled{background:#cbd5e1;cursor:not-allowed;}
     .err{font-size:12px;color:#dc2626;margin-top:4px;display:none;}
-    .otp-wrap{display:flex;gap:8px;direction:ltr;justify-content:center;margin:16px 0;}
+    .otp-wrap{display:flex;gap:8px;direction:ltr;justify-content:center;margin:16px 0;position:relative;}
     .otp-input{width:46px;height:52px;border:1.5px solid #e5e7eb;border-radius:10px;text-align:center;font-size:20px;font-weight:700;font-family:'Vazirmatn',sans-serif;color:#111;outline:none;}
     .otp-input:focus{border-color:#1d4ed8;}
     .timer{text-align:center;font-size:13px;color:#888;margin-bottom:8px;}
@@ -82,7 +82,7 @@
       <div class="step" id="stp2"><div class="step-dot">۲</div><div class="step-lbl">کد تایید</div></div>
       <div class="step" id="stp3"><div class="step-dot">۳</div><div class="step-lbl">اطلاعات</div></div>
     </div>
-
+ 
     <!-- Step 1: Phone -->
     <div id="step1">
       <div class="fg">
@@ -93,7 +93,7 @@
       <button class="btn-submit" id="sendOtpBtn" onclick="sendOtp()">دریافت کد تایید</button>
       <div class="login-link">قبلاً ثبت‌نام کرده‌اید؟ <a href="/login">ورود به حساب</a></div>
     </div>
-
+ 
     <!-- Step 2: OTP -->
     <div id="step2" style="display:none">
       <div style="text-align:center;margin-bottom:16px">
@@ -101,18 +101,19 @@
         <div id="displayPhone" style="font-size:18px;font-weight:800;color:#1d4ed8;direction:ltr;margin-top:4px"></div>
       </div>
       <div class="otp-wrap">
-        <input class="otp-input" maxlength="1" id="o1" oninput="otpNext(this,'o2')"/>
-        <input class="otp-input" maxlength="1" id="o2" oninput="otpNext(this,'o3')"/>
-        <input class="otp-input" maxlength="1" id="o3" oninput="otpNext(this,'o4')"/>
-        <input class="otp-input" maxlength="1" id="o4" oninput="otpNext(this,'o5')"/>
-        <input class="otp-input" maxlength="1" id="o5" oninput="otpNext(this,null)"/>
+        <input class="otp-input" maxlength="1" id="o1" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,'o2')"/>
+        <input class="otp-input" maxlength="1" id="o2" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,'o3')"/>
+        <input class="otp-input" maxlength="1" id="o3" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,'o4')"/>
+        <input class="otp-input" maxlength="1" id="o4" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,'o5')"/>
+        <input class="otp-input" maxlength="1" id="o5" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,null)"/>
+        <input type="text" id="otpHidden" autocomplete="one-time-code" inputmode="numeric" maxlength="5" style="position:absolute;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;border:none" oninput="handleOtpAutofill(this.value)"/>
       </div>
       <div class="timer" id="timerBox">کد تا <span id="timerVal">۲:۰۰</span> دقیقه معتبر است</div>
       <div class="err" id="otpErr" style="text-align:center"></div>
       <button class="btn-submit" id="verifyBtn" onclick="verifyOtp()">تایید کد</button>
       <div class="resend">کد دریافت نکردید؟ <button id="resendBtn" onclick="resendOtp()" disabled>ارسال مجدد</button></div>
     </div>
-
+ 
     <!-- Step 3: Profile form -->
     <div id="step3" style="display:none">
       <div class="section-title"><i class="ti ti-user"></i>اطلاعات شخصی</div>
@@ -127,7 +128,7 @@
           <input class="finput" id="f_national" placeholder="۱۰ رقم" maxlength="10" style="direction:ltr"/>
         </div>
       </div>
-
+ 
       <div class="section-title" style="margin-top:4px"><i class="ti ti-building-store"></i>اطلاعات فروشگاه</div>
       <div class="fg">
         <label class="flabel">نام فروشگاه <span class="req">*</span></label>
@@ -144,7 +145,7 @@
           <input class="finput" id="f_postal" placeholder="۱۰ رقم" maxlength="10" style="direction:ltr"/>
         </div>
       </div>
-
+ 
       <div class="section-title" style="margin-top:4px"><i class="ti ti-map-pin"></i>آدرس</div>
       <div class="fg-grid">
         <div class="fg">
@@ -163,7 +164,7 @@
         <input class="finput" id="f_address" placeholder="خیابان، کوچه، پلاک"/>
         <div class="err" id="addrErr"></div>
       </div>
-
+ 
       <div class="section-title" style="margin-top:4px"><i class="ti ti-lock"></i>رمز عبور</div>
       <div class="fg-grid">
         <div class="fg">
@@ -176,7 +177,7 @@
           <input class="finput" type="password" id="f_pass2" placeholder="تکرار رمز"/>
         </div>
       </div>
-
+ 
       <div class="section-title" style="margin-top:4px"><i class="ti ti-photo"></i>تصاویر</div>
       <div class="fg-grid">
         <div class="fg">
@@ -201,10 +202,10 @@
           <div class="err" id="shopImgErr"></div>
         </div>
       </div>
-
+ 
       <button class="btn-submit" id="completeBtn" onclick="completeProfile()">تکمیل ثبت‌نام</button>
     </div>
-
+ 
     <!-- Step 4: Pending -->
     <div id="step4" style="display:none">
       <div class="pending-card">
@@ -216,25 +217,25 @@
     </div>
   </div>
 </div>
-
+ 
 <script>
 let currentPhone = '';
 let timerInterval = null;
 let timerSeconds = 120;
-
+ 
 // Replace history so back button goes to index, not back into registration
 history.replaceState(null, '', '/register');
 window.addEventListener('popstate', function() {
   window.location.replace('/');
 });
-
+ 
 // Check if registration is open
 fetch('https://onpartpadmin.liara.run/api/settings').then(r=>r.json()).then(s=>{
   if(s.open_register === '0'){
     document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:20px;font-family:Vazirmatn,sans-serif"><div><i class="ti ti-lock" style="font-size:60px;color:#1d4ed8;display:block;margin-bottom:16px"></i><div style="font-size:18px;font-weight:800;color:#111;margin-bottom:8px">ثبت‌نام غیرفعال است</div><div style="font-size:14px;color:#888">ثبت‌نام کاربران جدید موقتاً بسته است.</div></div></div>`;
   }
 }).catch(()=>{});
-
+ 
 function showStep(n){
   [1,2,3,4].forEach(i=>document.getElementById('step'+i).style.display = i===n?'block':'none');
   const steps = document.querySelectorAll('.step');
@@ -245,10 +246,10 @@ function showStep(n){
   });
   if(n===4) document.querySelector('.step-ind').style.display='none';
 }
-
+ 
 function showErr(id, msg){ const e=document.getElementById(id); if(e){e.textContent=msg; e.style.display='block';} }
 function hideErr(id){ const e=document.getElementById(id); if(e) e.style.display='none'; }
-
+ 
 function startTimer(){
   clearInterval(timerInterval);
   timerSeconds = 120;
@@ -264,7 +265,7 @@ function startTimer(){
     }
   }, 1000);
 }
-
+ 
 function updateTimerDisplay(){
   const m = Math.floor(timerSeconds/60);
   const s = timerSeconds % 60;
@@ -272,7 +273,7 @@ function updateTimerDisplay(){
   document.getElementById('timerVal').textContent = `${fa(m)}:${fa(s).padStart(2,'0')}`;
   document.getElementById('timerBox').innerHTML = `کد تا <span id="timerVal">${fa(m)}:${fa(s).padStart(2,'0')}</span> دقیقه معتبر است`;
 }
-
+ 
 async function sendOtp(){
   const phone = document.getElementById('phoneInput').value.trim();
   hideErr('phoneErr');
@@ -290,18 +291,23 @@ async function sendOtp(){
     if(!res.ok){ showErr('phoneErr', data.message||'خطا در ارسال کد'); return; }
     document.getElementById('displayPhone').textContent = phone;
     ['o1','o2','o3','o4','o5'].forEach(id=>document.getElementById(id).value='');
+    const h=document.getElementById('otpHidden'); if(h) h.value='';
     hideErr('otpErr');
     showStep(2);
     startTimer();
-    setTimeout(()=>document.getElementById('o1').focus(), 100);
+    setTimeout(()=>{
+      document.getElementById('o1').focus();
+      const hid=document.getElementById('otpHidden');
+      if(hid) hid.focus();
+    }, 100);
   }catch(e){
     btn.disabled = false; btn.textContent = 'دریافت کد تایید';
     showErr('phoneErr','خطا در ارتباط با سرور');
   }
 }
-
+ 
 async function resendOtp(){ await sendOtp(); }
-
+ 
 function otpNext(el, nextId){
   el.value = el.value.replace(/[^0-9]/g,'');
   if(el.value && nextId) document.getElementById(nextId).focus();
@@ -310,7 +316,14 @@ function otpNext(el, nextId){
     if(allFilled) verifyOtp();
   }
 }
-
+ 
+function handleOtpAutofill(val){
+  val = val.replace(/\D/g,'').slice(0,5);
+  const ids=['o1','o2','o3','o4','o5'];
+  ids.forEach((id,i)=>{ document.getElementById(id).value = val[i]||''; });
+  if(val.length===5) verifyOtp();
+}
+ 
 async function verifyOtp(){
   const code = ['o1','o2','o3','o4','o5'].map(id=>document.getElementById(id).value).join('');
   hideErr('otpErr');
@@ -340,14 +353,14 @@ async function verifyOtp(){
     showErr('otpErr','خطا در ارتباط با سرور');
   }
 }
-
+ 
 function previewImg(input, previewId){
   const file = input.files[0];
   const prev = document.getElementById(previewId);
   if(file){ prev.src = URL.createObjectURL(file); prev.style.display='block'; }
   else prev.style.display='none';
 }
-
+ 
 async function completeProfile(){
   const name = document.getElementById('f_name').value.trim();
   const shop = document.getElementById('f_shop').value.trim();
@@ -357,10 +370,10 @@ async function completeProfile(){
   const pw1 = document.getElementById('f_pass').value;
   const pw2 = document.getElementById('f_pass2').value;
   const shopImg = document.getElementById('f_shopimg').files[0];
-
+ 
   let valid = true;
   ['nameErr','shopErr','provErr','cityErr','addrErr','passErr','shopImgErr'].forEach(id=>hideErr(id));
-
+ 
   if(!name){ showErr('nameErr','نام و نام‌خانوادگی الزامی است'); valid=false; }
   if(!shop){ showErr('shopErr','نام فروشگاه الزامی است'); valid=false; }
   if(!province){ showErr('provErr','استان الزامی است'); valid=false; }
@@ -370,13 +383,13 @@ async function completeProfile(){
   if(pw1 !== pw2){ showErr('passErr','رمز عبور و تکرار آن یکسان نیستند'); valid=false; }
   if(!shopImg){ showErr('shopImgErr','عکس تابلو فروشگاه اجباری است'); valid=false; }
   if(!valid) return;
-
+ 
   const btn = document.getElementById('completeBtn');
   btn.disabled = true; btn.textContent = 'در حال ثبت...';
-
+ 
   try{
     const token = sessionStorage.getItem('op_token');
-
+ 
     // Step 1: Save text fields first (fast)
     const jsonData = {
       name, shop_name: shop, province, city, address,
@@ -388,7 +401,7 @@ async function completeProfile(){
     if(national) jsonData.national_code = national;
     if(phoneFixed) jsonData.phone_fixed = phoneFixed;
     if(postal) jsonData.postal_code = postal;
-
+ 
     const res = await fetch('https://onpartpadmin.liara.run/api/users/me',{
       method:'PUT',
       headers:{'Authorization':'Bearer '+token, 'Content-Type':'application/json'},
@@ -397,7 +410,7 @@ async function completeProfile(){
     const data = await res.json();
     btn.disabled = false; btn.textContent = 'تکمیل ثبت‌نام';
     if(!res.ok){ alert(data.message||'خطا در ذخیره اطلاعات'); return; }
-
+ 
     // Step 2: Upload files in background (non-blocking)
     const idCard = document.getElementById('f_idcard').files[0];
     if(idCard || shopImg){
@@ -408,7 +421,7 @@ async function completeProfile(){
         method:'PUT', headers:{'Authorization':'Bearer '+token}, body:fd
       }).catch(()=>{});
     }
-
+ 
     // Always show success page
     sessionStorage.removeItem('op_token');
     sessionStorage.removeItem('op_user');
