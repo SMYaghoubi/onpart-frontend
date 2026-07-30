@@ -101,13 +101,12 @@
         <div id="displayPhone" style="font-size:18px;font-weight:800;color:#1d4ed8;direction:ltr;margin-top:4px"></div>
       </div>
       <div class="otp-wrap">
-        <input class="otp-input" maxlength="1" id="o1" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,'o2')"/>
-        <input class="otp-input" maxlength="1" id="o2" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,'o3')"/>
-        <input class="otp-input" maxlength="1" id="o3" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,'o4')"/>
-        <input class="otp-input" maxlength="1" id="o4" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,'o5')"/>
-        <input class="otp-input" maxlength="1" id="o5" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,null)"/>
-        <input type="text" id="otpHidden" autocomplete="one-time-code" inputmode="numeric" maxlength="5" style="position:absolute;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;border:none" oninput="handleOtpAutofill(this.value)"/>
-      </div>
+  <input class="otp-input" maxlength="5" id="o1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" oninput="handleOtpInput(this)"/>
+  <input class="otp-input" maxlength="1" id="o2" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,'o3')"/>
+  <input class="otp-input" maxlength="1" id="o3" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,'o4')"/>
+  <input class="otp-input" maxlength="1" id="o4" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,'o5')"/>
+  <input class="otp-input" maxlength="1" id="o5" inputmode="numeric" pattern="[0-9]*" oninput="otpNext(this,null)"/>
+</div>
       <div class="timer" id="timerBox">کد تا <span id="timerVal">۲:۰۰</span> دقیقه معتبر است</div>
       <div class="err" id="otpErr" style="text-align:center"></div>
       <button class="btn-submit" id="verifyBtn" onclick="verifyOtp()">تایید کد</button>
@@ -317,11 +316,18 @@ function otpNext(el, nextId){
   }
 }
  
-function handleOtpAutofill(val){
-  val = val.replace(/\D/g,'').slice(0,5);
-  const ids=['o1','o2','o3','o4','o5'];
-  ids.forEach((id,i)=>{ document.getElementById(id).value = val[i]||''; });
-  if(val.length===5) verifyOtp();
+function handleOtpInput(el){
+  const digits = el.value.replace(/\D/g,'');
+  if(digits.length > 1){
+    // Autofilled or pasted full code
+    el.value = digits[0]||'';
+    const ids=['o2','o3','o4','o5'];
+    ids.forEach((id,i)=>{ document.getElementById(id).value = digits[i+1]||''; });
+    if(digits.length>=5) verifyOtp();
+    else document.getElementById('o'+Math.min(digits.length+1,5)).focus();
+  } else {
+    otpNext(el,'o2');
+  }
 }
  
 async function verifyOtp(){
