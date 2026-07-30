@@ -282,9 +282,9 @@ async function sendOtp(){
   btn.disabled = true; btn.textContent = 'در حال ارسال...';
   try{
     const res = await fetch('https://onpartpadmin.liara.run/api/auth/send-otp',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({phone})
-    });
+  method:'POST',headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({phone, purpose:'register'})
+});
     const data = await res.json();
     btn.disabled = false; btn.textContent = 'دریافت کد تایید';
     if(!res.ok){ showErr('phoneErr', data.message||'خطا در ارسال کد'); return; }
