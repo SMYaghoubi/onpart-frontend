@@ -22,17 +22,19 @@ function toJalali(dateStr){
     return `${fa(jy)}/${fa(String(jm).padStart(2,'0'))}/${fa(String(jd).padStart(2,'0'))}`;
   }catch(e){return dateStr||'—';}
 }
-
+ 
 // OnPart Shared Components
 const OnPart = {
-
+ 
+  CART_API: 'https://onpartpadmin.liara.run/api/cart',
+ 
   renderNavbar(activePage) {
     activePage = activePage || '';
     var token = sessionStorage.getItem('op_token');
     var user = {};
     try { user = JSON.parse(sessionStorage.getItem('op_user') || '{}'); } catch(e){}
     var isLoggedIn = !!(token && user.id);
-
+ 
     // Block admin/partner from shop pages (unless they explicitly set allow flag)
     if(isLoggedIn && (user.role === 'admin' || user.role === 'partner')) {
       if(!sessionStorage.getItem('allow_shop')) {
@@ -40,11 +42,11 @@ const OnPart = {
         return;
       }
     }
-
+ 
     var userName = user.name || '';
     var userPhone = user.phone || '';
     var userAv = userName ? userName[0] : '?';
-
+ 
     var nav = '<nav class="op-nav">';
     nav += '<div class="op-nav-logo"><a href="/"><img src="/images/logo.png" style="height:38px;object-fit:contain"/></a></div>';
     nav += '<div class="op-nav-links">';
@@ -59,20 +61,20 @@ const OnPart = {
     nav += '<div id="navUserArea" class="op-hide-mobile"></div>';
     nav += '<button class="op-burger" onclick="OnPart.toggleMenu()"><i class="ti ti-menu-2"></i></button>';
     nav += '</div></nav>';
-
+ 
     // Mobile overlay
     nav += '<div class="op-mobile-overlay" id="mobileOverlay" onclick="OnPart.closeMenu()"></div>';
     nav += '<div class="op-mobile-menu" id="mobileMenu">';
     nav += '<div class="op-mob-header"><img src="/images/logo.png" style="height:36px;object-fit:contain"/>';
     nav += '<button onclick="OnPart.closeMenu()" style="background:none;border:none;cursor:pointer;font-size:22px;color:#555"><i class="ti ti-x"></i></button></div>';
-
+ 
     if(isLoggedIn) {
       nav += '<div class="op-mob-user">';
       nav += '<div class="op-mob-av">' + userAv + '</div>';
       nav += '<div><div class="op-mob-name">' + userName + '</div><div class="op-mob-phone">' + userPhone + '</div></div>';
       nav += '</div>';
     }
-
+ 
     nav += '<div class="op-mob-links">';
     nav += '<a href="/shop" class="op-mob-link' + (activePage==='shop'?' active':'') + '"><i class="ti ti-home"></i>\u0635\u0641\u062d\u0647 \u0627\u0635\u0644\u06cc</a>';
     nav += '<a href="/profile" class="op-mob-link' + (activePage==='profile'?' active':'') + '"><i class="ti ti-user"></i>\u067e\u0631\u0648\u0641\u0627\u06cc\u0644 \u0645\u0646</a>';
@@ -80,7 +82,7 @@ const OnPart = {
     nav += '<a href="/payment" class="op-mob-link' + (activePage==='payment'?' active':'') + '"><i class="ti ti-file-invoice"></i>ثبت فیش واریزی</a>';
     
     nav += '</div>';
-
+ 
     nav += '<div class="op-mob-footer">';
     nav += '<div style="font-size:13px;color:#888;margin-bottom:12px;display:flex;align-items:center;gap:6px"><i class="ti ti-phone" style="color:#1d4ed8"></i>02165280448</div>';
     if(isLoggedIn) {
@@ -89,9 +91,9 @@ const OnPart = {
       nav += '<a href="/login" class="op-mob-login"><i class="ti ti-login"></i>\u0648\u0631\u0648\u062f \u0628\u0647 \u062d\u0633\u0627\u0628</a>';
     }
     nav += '</div></div>';
-
+ 
     document.getElementById('navbar-placeholder').innerHTML = nav;
-
+ 
     // Desktop user area
     var area = document.getElementById('navUserArea');
     if(area) {
@@ -104,9 +106,9 @@ const OnPart = {
         area.innerHTML = '<a href="/login" style="background:#1d4ed8;color:#fff;border-radius:7px;padding:7px 14px;font-size:12.5px;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:5px"><i class="ti ti-login" style="font-size:14px"></i>\u0648\u0631\u0648\u062f</a>';
       }
     }
-
+ 
     OnPart.updateCartCount();
-
+ 
     // Load site settings (phone number) dynamically
     fetch('https://onpartpadmin.liara.run/api/settings').then(function(r){return r.json();}).then(function(s){
       if(s.site_phone){
@@ -120,7 +122,7 @@ const OnPart = {
       }
     }).catch(function(){});
   },
-
+ 
   toggleMenu: function() {
     var m = document.getElementById('mobileMenu');
     var o = document.getElementById('mobileOverlay');
@@ -129,7 +131,7 @@ const OnPart = {
     o.classList.toggle('show');
     document.body.style.overflow = m.classList.contains('open') ? 'hidden' : '';
   },
-
+ 
   closeMenu: function() {
     var m = document.getElementById('mobileMenu');
     var o = document.getElementById('mobileOverlay');
@@ -137,7 +139,7 @@ const OnPart = {
     if(o) o.classList.remove('show');
     document.body.style.overflow = '';
   },
-
+ 
   openCart: function() {
     // If cart panel exists on page, open it
     var panel = document.getElementById('cartPanel');
@@ -148,33 +150,77 @@ const OnPart = {
       window.location.href = '/shop';
     }
   },
-
-  getCart: function() {
-    try { return JSON.parse(localStorage.getItem('op_cart') || '[]'); } catch(e){ return []; }
+ 
+  // ── Server-backed cart ──
+  // getCart now returns a Promise resolving to an array of
+  // {product_id, quantity, description, code, price, stock, car, brand}
+  getCart: async function() {
+    var token = sessionStorage.getItem('op_token');
+    if(!token) return [];
+    try {
+      var res = await fetch(this.CART_API, { headers: { 'Authorization': 'Bearer ' + token } });
+      if(!res.ok) return [];
+      var rows = await res.json();
+      // Normalize to also expose qty/code for backward compatibility
+      return rows.map(function(r){
+        return {
+          product_id: r.product_id,
+          qty: Number(r.quantity) || 0,
+          code: r.code,
+          desc: r.description,
+          price: Number(r.price) || 0,
+          stock: r.stock,
+          car: r.car,
+          brand: r.brand
+        };
+      });
+    } catch(e){ return []; }
   },
-
-  saveCart: function(cart) {
-    localStorage.setItem('op_cart', JSON.stringify(cart));
+ 
+  // Update (or remove, if qty<=0) a single item's quantity on the server
+  setCartItem: async function(productId, qty) {
+    var token = sessionStorage.getItem('op_token');
+    if(!token) return false;
+    try {
+      var res = await fetch(this.CART_API + '/item', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ product_id: productId, quantity: qty })
+      });
+      this.updateCartCount();
+      return res.ok;
+    } catch(e){ return false; }
+  },
+ 
+  addToCart: async function(product, qty) {
+    qty = qty || 1;
+    var token = sessionStorage.getItem('op_token');
+    if(!token) { this.toast('لطفاً ابتدا وارد حساب کاربری شوید', 'error'); return false; }
+    var cart = await this.getCart();
+    var existing = cart.find(function(c){ return c.product_id === product.id; });
+    var newQty = (existing ? existing.qty : 0) + qty;
+    return this.setCartItem(product.id, newQty);
+  },
+ 
+  clearCart: async function() {
+    var token = sessionStorage.getItem('op_token');
+    if(!token) return;
+    try {
+      await fetch(this.CART_API, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+    } catch(e){}
     this.updateCartCount();
   },
-
-  updateCartCount: function() {
-    var cart = this.getCart();
-    var total = cart.reduce(function(s,i){ return s+(i.qty||0); }, 0);
+ 
+  updateCartCount: async function() {
     var el = document.getElementById('cartCount');
-    if(el) el.textContent = this.fa(total);
+    if(!el) return;
+    var token = sessionStorage.getItem('op_token');
+    if(!token) { el.textContent = this.fa(0); return; }
+    var cart = await this.getCart();
+    var total = cart.reduce(function(s,i){ return s+(i.qty||0); }, 0);
+    el.textContent = this.fa(total);
   },
-
-  addToCart: function(product, qty) {
-    qty = qty || 1;
-    var cart = this.getCart();
-    var idx = -1;
-    for(var i=0;i<cart.length;i++) { if(cart[i].code===product.code){idx=i;break;} }
-    if(idx >= 0) cart[idx].qty += qty;
-    else { var p = {}; for(var k in product) p[k]=product[k]; p.qty=qty; cart.push(p); }
-    this.saveCart(cart);
-  },
-
+ 
   toast: function(msg, type) {
     type = type || 'success';
     var colors = { success: '#16a34a', error: '#dc2626', info: '#1d4ed8' };
@@ -184,16 +230,16 @@ const OnPart = {
     document.body.appendChild(t);
     setTimeout(function(){ t.remove(); }, 3000);
   },
-
+ 
   fa: function(n) { return n.toString().replace(/\d/g, function(d){ return '\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9'[d]; }); },
   fmt: function(n) { return this.fa(Number(n).toLocaleString()); },
-
+ 
   logout: function() {
     sessionStorage.removeItem('op_token');
     sessionStorage.removeItem('op_user');
     window.location.href = '/login';
   },
-
+ 
   checkAuth: function() {
     const token = sessionStorage.getItem('op_token');
     if(!token) { window.location.href = '/login'; return false; }
@@ -207,7 +253,7 @@ const OnPart = {
     return true;
   }
 };
-
+ 
 // Inject styles
 var navStyle = document.createElement('style');
 navStyle.textContent = '.op-nav{background:#fff;border-bottom:1px solid #e5e7eb;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.06)}.op-nav-logo{display:flex;align-items:center}.op-nav-links{display:flex;align-items:center;gap:4px}.op-nav-link{font-size:13.5px;font-weight:600;color:#444;text-decoration:none;padding:6px 12px;border-radius:7px;transition:all .15s}.op-nav-link:hover,.op-nav-link.active{background:#eff6ff;color:#1d4ed8}.op-nav-right{display:flex;align-items:center;gap:12px}.op-nav-phone{font-size:12.5px;color:#666;display:flex;align-items:center;gap:5px;direction:ltr}.op-cart-wrap{position:relative;width:36px;height:36px;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#555}.op-cart-wrap:hover{background:#eff6ff;color:#1d4ed8;border-color:#1d4ed8}.op-cart-badge{position:absolute;top:-6px;left:-6px;background:#1d4ed8;color:#fff;border-radius:10px;padding:1px 5px;font-size:10px;font-weight:700;min-width:16px;text-align:center}.op-burger{display:none;background:none;border:none;cursor:pointer;font-size:22px;color:#333;padding:4px}.op-mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998}.op-mobile-overlay.show{display:block}.op-mobile-menu{position:fixed;top:0;right:-100%;bottom:0;width:280px;background:#fff;z-index:999;transition:right .3s ease;display:flex;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,.15)}.op-mobile-menu.open{right:0}.op-mob-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f0f0f0}.op-mob-user{display:flex;align-items:center;gap:12px;padding:16px 20px;background:#f8fafc;border-bottom:1px solid #f0f0f0}.op-mob-av{width:40px;height:40px;background:#1d4ed8;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;flex-shrink:0}.op-mob-name{font-size:14px;font-weight:700;color:#111}.op-mob-phone{font-size:12px;color:#aaa;direction:ltr}.op-mob-links{flex:1;padding:12px 0;overflow-y:auto}.op-mob-link{display:flex;align-items:center;gap:12px;padding:14px 20px;font-size:14px;font-weight:600;color:#444;text-decoration:none;transition:background .15s;border-bottom:1px solid #f8f8f8}.op-mob-link i{font-size:18px;color:#1d4ed8;width:22px}.op-mob-link:hover,.op-mob-link.active{background:#eff6ff;color:#1d4ed8}.op-mob-footer{padding:20px;border-top:1px solid #f0f0f0}.op-mob-logout{width:100%;background:#fee2e2;color:#dc2626;border:none;border-radius:10px;padding:12px;font-family:Vazirmatn,sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}.op-mob-login{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#1d4ed8;color:#fff;border-radius:10px;padding:12px;font-size:14px;font-weight:700;text-decoration:none}@media (max-width:768px){.op-nav{padding:0 16px}.op-nav-links{display:none}.op-hide-mobile{display:none!important}.op-burger{display:flex}}';
