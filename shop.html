@@ -145,7 +145,7 @@
   <div class="search-block">
     <div class="search-box">
       <div class="sb-top">
-        <input class="sb-input" id="fText" placeholder="جستجو بر اساس نام کالا یا کد محصول..." oninput="doFilter()"/>
+        <input class="sb-input" id="fText" placeholder="جستجو بر اساس نام کالا یا کد محصول..." oninput="scheduleFilter()"/>
         <button class="sb-btn" onclick="doFilter()"><i class="ti ti-search"></i></button>
       </div>
       <div class="sb-filters">
@@ -367,7 +367,7 @@
       }
       document.getElementById('tbody').innerHTML = filtered.map((p,i) => { var stockB=p.stock?'<span class="chip ch-green">موجود</span>':'<span class="chip ch-red">ناموجود</span>'; var flowB='<span class="chip '+(p.flow?'ch-sky':'ch-gray')+'">'+(p.flow?'دارد':'ندارد')+'</span>';
         const q = qtys[p.id]||0, tot = q*p.price;
-        return `<tr>
+        return `<tr id="productRow_${p.id}">
           <td class="td-hide-mob"><div class="sel-dot${sel[i]?' on':''}" onclick="toggleSel(${i})"></div></td>
           <td class="td-code td-hide-mob">${p.code}</td>
           <td class="td-desc" style="position:relative">
@@ -395,10 +395,10 @@
           <td class="td-price">${canShowPrice()?fmt(p.price):'<a href="/login" style="color:#1d4ed8;font-size:11px">ورود برای مشاهده</a>'}</td>
           <td><div class="qty-wrap">
             <button class="qbtn" onclick="chg(${p.id},-1)">−</button>
-            <input class="qinp" value="${fa(q)}" onchange="setQ(${p.id},this.value)"/>
+            <input class="qinp" id="productQty_${p.id}" value="${fa(q)}" onchange="setQ(${p.id},this.value)"/>
             <button class="qbtn" onclick="chg(${p.id},1)">+</button>
           </div></td>
-          <td class="td-price td-hide-mob">${tot?fmt(tot):''}</td>
+          <td class="td-price td-hide-mob" id="productTotal_${p.id}">${tot?fmt(tot):''}</td>
         </tr>`;
       }).join('');
       updateCartCount();
@@ -417,10 +417,11 @@
       quantity = Math.max(0, Number(quantity) || 0);
       const previous = qtys[productId] || 0;
       qtys[productId] = quantity;
-      render();
+      updateProductRow(productId);
+      updateCartCount();
 
       const saveTask = (cartSaveQueues[productId] || Promise.resolve())
-        .then(() => OnPart.setCartItem(productId, quantity));
+        .then(() => OnPart.setCartItem(productId, quantity, { refreshCount: false }));
       cartSaveQueues[productId] = saveTask.catch(() => false);
       const saved = await saveTask;
       if(!saved) {
@@ -428,7 +429,8 @@
           if(previous > 0) qtys[productId] = previous;
           else delete qtys[productId];
         }
-        render();
+        updateProductRow(productId);
+        updateCartCount();
         OnPart.toast('ذخیره سبد خرید انجام نشد؛ دوباره تلاش کنید', 'error');
         return false;
       }
@@ -445,6 +447,16 @@
       await persistCartQuantity(productId, parseInt(normalized, 10)||0);
     }
 
+    function updateProductRow(productId) {
+      const product = products.find(p => p.id === productId);
+      if(!product) return;
+      const quantity = qtys[productId] || 0;
+      const input = document.getElementById('productQty_' + productId);
+      const total = document.getElementById('productTotal_' + productId);
+      if(input) input.value = fa(quantity);
+      if(total) total.textContent = quantity ? fmt(quantity * product.price) : '';
+    }
+
     function updateTotalBar(){
       const total=products.reduce((s,p)=>s+(qtys[p.id]||0)*p.price,0);
       const bar=document.getElementById('totalBar');
@@ -454,7 +466,13 @@
         else bar.style.display='none';
       }
     }
+    let filterTimer;
+    function scheduleFilter(){
+      clearTimeout(filterTimer);
+      filterTimer = setTimeout(doFilter, 250);
+    }
     function doFilter(){
+      clearTimeout(filterTimer);
       const t=document.getElementById('fText').value;
       const car=document.getElementById('fCar').value;
       const br=document.getElementById('fBrand').value;
