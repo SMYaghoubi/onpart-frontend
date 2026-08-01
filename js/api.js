@@ -4,6 +4,40 @@
 
 const API = {
   BASE_URL: 'https://onpartpadmin.liara.run',
+  TIMEOUT_MS: 15000,
+
+  async request(path, options = {}) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), options.timeout || this.TIMEOUT_MS);
+    const isForm = options.body instanceof FormData;
+    const headers = {
+      ...this.headers(),
+      ...(options.headers || {})
+    };
+    if(isForm) delete headers['Content-Type'];
+
+    try {
+      const res = await fetch(this.BASE_URL + path, {
+        ...options,
+        headers,
+        signal: controller.signal
+      });
+      const type = res.headers.get('content-type') || '';
+      const data = type.includes('application/json') ? await res.json() : await res.text();
+      if(!res.ok) {
+        const error = new Error((data && data.message) || 'خطا در ارتباط با سرور');
+        error.status = res.status;
+        error.data = data;
+        throw error;
+      }
+      return data;
+    } catch(error) {
+      if(error.name === 'AbortError') throw new Error('زمان پاسخ‌گویی سرور بیش از حد طول کشید');
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
+  },
 
   // ── HEADERS ──
   headers() {

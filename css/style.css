@@ -290,3 +290,27 @@ input, select, textarea { font-family: inherit; }
   .sidebar-overlay.show { display: block; }
   .main { margin-right: 0 !important; }
 }
+
+/* Shared accessibility and interaction states */
+:focus-visible {
+  outline: 3px solid rgba(29, 78, 216, .35);
+  outline-offset: 2px;
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed !important;
+  opacity: .55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

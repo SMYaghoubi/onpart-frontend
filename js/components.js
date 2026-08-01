@@ -48,7 +48,7 @@ const OnPart = {
     var userAv = userName ? userName[0] : '?';
  
     var nav = '<nav class="op-nav">';
-    nav += '<div class="op-nav-logo"><a href="/"><img src="/images/logo.png" style="height:38px;object-fit:contain"/></a></div>';
+    nav += '<div class="op-nav-logo"><a href="/" aria-label="صفحه اصلی آن‌پارت"><img src="/images/logo.png" alt="آن‌پارت" style="height:38px;object-fit:contain"/></a></div>';
     nav += '<div class="op-nav-links">';
     nav += '<a href="/shop" class="op-nav-link' + (activePage==='shop'?' active':'') + '">صفحه اصلی</a>';
     nav += '<a href="/profile" class="op-nav-link' + (activePage==='profile'?' active':'') + '">پروفایل من</a>';
@@ -57,16 +57,16 @@ const OnPart = {
     nav += '</div>';
     nav += '<div class="op-nav-right">';
     nav += '<div class="op-nav-phone op-hide-mobile"><i class="ti ti-phone"></i>02165280448</div>';
-    nav += '<div class="op-cart-wrap" onclick="OnPart.openCart()"><i class="ti ti-shopping-cart"></i><div class="op-cart-badge" id="cartCount">\u06f0</div></div>';
+    nav += '<div class="op-cart-wrap" role="button" tabindex="0" aria-label="بازکردن سبد خرید" onclick="OnPart.openCart()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();OnPart.openCart()}"><i class="ti ti-shopping-cart"></i><div class="op-cart-badge" id="cartCount">\u06f0</div></div>';
     nav += '<div id="navUserArea" class="op-hide-mobile"></div>';
-    nav += '<button class="op-burger" onclick="OnPart.toggleMenu()"><i class="ti ti-menu-2"></i></button>';
+    nav += '<button class="op-burger" onclick="OnPart.toggleMenu()" aria-label="بازکردن منو"><i class="ti ti-menu-2"></i></button>';
     nav += '</div></nav>';
  
     // Mobile overlay
     nav += '<div class="op-mobile-overlay" id="mobileOverlay" onclick="OnPart.closeMenu()"></div>';
     nav += '<div class="op-mobile-menu" id="mobileMenu">';
-    nav += '<div class="op-mob-header"><img src="/images/logo.png" style="height:36px;object-fit:contain"/>';
-    nav += '<button onclick="OnPart.closeMenu()" style="background:none;border:none;cursor:pointer;font-size:22px;color:#555"><i class="ti ti-x"></i></button></div>';
+    nav += '<div class="op-mob-header"><img src="/images/logo.png" alt="آن‌پارت" style="height:36px;object-fit:contain"/>';
+    nav += '<button onclick="OnPart.closeMenu()" aria-label="بستن منو" style="background:none;border:none;cursor:pointer;font-size:22px;color:#555"><i class="ti ti-x"></i></button></div>';
  
     if(isLoggedIn) {
       nav += '<div class="op-mob-user">';

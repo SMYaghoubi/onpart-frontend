@@ -65,6 +65,9 @@
       .qty-cell { display:flex; align-items:center; gap:4px; }
       .qbtn { width:28px!important; height:28px!important; font-size:15px!important; }
       .qinp { width:32px!important; font-size:12px!important; }
+      .qbtn { min-width:44px!important; height:44px!important; }
+      .qinp { width:48px!important; height:44px!important; font-size:14px!important; }
+      .qty-wrap { width:100%;margin-top:10px;justify-content:flex-end; }
       /* Search */
       .sb-wrap { flex-wrap:wrap; gap:8px; padding:10px 14px!important; }
       .sb-input { font-size:14px; }
@@ -72,6 +75,8 @@
       .sb-filter { font-size:12px; padding:6px 10px; }
       /* Cart panel */
       .cart-panel { width:100%!important; right:0!important; border-radius:20px 20px 0 0!important; }
+      .cart-panel { top:auto!important;height:min(82vh,680px); }
+      .filter-summary { padding:8px 14px 0; }
       /* Page info bar */
       .pg-bar { padding:8px 14px!important; font-size:12px; }
     }
@@ -103,6 +108,20 @@
     .qbtn { width: 22px; height: 22px; border: 1px solid #e5e7eb; border-radius: 5px; background: #f9fafb; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #555; padding: 0; line-height: 1; }
     .qbtn:hover { background: #dbeafe; border-color: #1d4ed8; color: #1d4ed8; }
     .qinp { width: 32px; height: 22px; border: 1px solid #e5e7eb; border-radius: 5px; text-align: center; font-family: 'Vazirmatn', sans-serif; font-size: 12px; font-weight: 600; outline: none; }
+    .qty-wrap.is-saving { opacity:.62; }
+    .qty-wrap.is-saving .qbtn,.qty-wrap.is-saving .qinp { pointer-events:none; }
+    .qty-status { min-width:14px; font-size:13px; color:#16a34a; display:inline-flex; align-items:center; justify-content:center; }
+    .qty-status.saving { color:#1d4ed8; animation:qtyPulse .8s ease-in-out infinite alternate; }
+    .qty-status.error { color:#dc2626; }
+    @keyframes qtyPulse { to { opacity:.35; } }
+    .filter-summary { display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 28px 0; }
+    .filter-chip { border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:20px;padding:5px 10px;font-size:11.5px;display:inline-flex;align-items:center;gap:5px; }
+    .clear-filters { border:none;background:transparent;color:#dc2626;font-family:Vazirmatn,sans-serif;font-size:11.5px;cursor:pointer;padding:5px 8px; }
+    .skeleton-row td { padding:12px 10px; }
+    .skeleton-line { height:13px;border-radius:7px;background:linear-gradient(90deg,#eef2f7 25%,#f8fafc 50%,#eef2f7 75%);background-size:200% 100%;animation:skeleton 1.2s infinite; }
+    @keyframes skeleton { to { background-position:-200% 0; } }
+    .cart-remove { border:none;background:#fee2e2;color:#dc2626;border-radius:7px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center; }
+    .cart-panel:focus { outline:none; }
 
     .desc-info-btn{background:none;border:none;color:#bbb;cursor:pointer;font-size:13px;margin-right:4px;vertical-align:middle;transition:color .15s;}
     .desc-info-btn:hover{color:#1d4ed8;}
@@ -180,6 +199,8 @@
     </div>
   </div>
 
+  <div class="filter-summary" id="filterSummary" aria-live="polite"></div>
+
   <!-- Actions -->
   <div class="action-bar">
     <button class="ab ab-cart" onclick="openCart()">
@@ -238,10 +259,10 @@
 
   <!-- Cart Panel -->
   <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
-  <div class="cart-panel" id="cartPanel">
+  <div class="cart-panel" id="cartPanel" role="dialog" aria-modal="true" aria-labelledby="cartPanelTitle" tabindex="-1">
     <div class="cart-head">
-      <div class="cart-title">سبد خرید</div>
-      <button class="cart-close" onclick="closeCart()"><i class="ti ti-x"></i></button>
+      <div class="cart-title" id="cartPanelTitle">سبد خرید</div>
+      <button class="cart-close" onclick="closeCart()" aria-label="بستن سبد خرید"><i class="ti ti-x"></i></button>
     </div>
     <div class="cart-body" id="cartBody"><div style="text-align:center;padding:40px;color:#aaa">سبد خرید خالی است</div></div>
     <div class="cart-foot">
@@ -256,6 +277,9 @@
     OnPart.renderNavbar('shop');
     const fa = n => n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
     const fmt = n => fa(n.toLocaleString());
+    const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    })[char]);
     let currencyUnit = 'تومان';
     const fmtPrice = n => fmt(n) + ' ' + currencyUnit;
 
@@ -272,8 +296,7 @@
 
     async function checkShopSettings(){
       try {
-        const res = await fetch('https://onpartpadmin.liara.run/api/settings');
-        shopSettings = await res.json();
+        shopSettings = await API.request('/api/settings');
 
         if(shopSettings.currency) currencyUnit = shopSettings.currency;
         const ph = document.getElementById('priceHeader');
@@ -310,11 +333,9 @@
     }
 
     async function loadProducts(){
+      renderSkeleton();
       try {
-        const token = sessionStorage.getItem('op_token');
-        const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
-        const res = await fetch(API.BASE_URL + '/api/products?limit=999999', { headers });
-        const data = await res.json();
+        const data = await API.request('/api/products?limit=999999');
         products = (data.products || data).map(p => ({
           id: p.id,
           desc: p.description,
@@ -329,7 +350,11 @@
           note: p.note || ''
         }));
       } catch(e) {
-        console.log('API unavailable, using cached data');
+        products = [];
+        filtered = [];
+        document.getElementById('tbody').innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px;color:#dc2626"><i class="ti ti-wifi-off" style="font-size:32px;display:block;margin-bottom:8px"></i>دریافت محصولات انجام نشد<br><button onclick="loadProducts()" style="margin-top:12px;border:none;border-radius:8px;padding:8px 14px;background:#1d4ed8;color:#fff;font-family:Vazirmatn;cursor:pointer">تلاش دوباره</button></td></tr>';
+        document.getElementById('pgInfo').textContent = 'خطا در بارگذاری';
+        return;
       }
       filtered = [...products];
       // Populate category filter from products
@@ -356,6 +381,14 @@
 
     const qtys = {}, sel = {}, cartSaveQueues = {};
 
+    function renderSkeleton(){
+      const body = document.getElementById('tbody');
+      if(!body) return;
+      body.innerHTML = Array.from({length:8}, () =>
+        '<tr class="skeleton-row"><td colspan="11"><div class="skeleton-line"></div></td></tr>'
+      ).join('');
+    }
+
     function render() {
       if(!products.length){
         document.getElementById('tbody').innerHTML = `<tr><td colspan="11" style="text-align:center;padding:40px;color:#aaa"><i class="ti ti-package" style="font-size:32px;display:block;margin-bottom:8px"></i>در حال بارگذاری محصولات...</td></tr>`;
@@ -367,36 +400,38 @@
       }
       document.getElementById('tbody').innerHTML = filtered.map((p,i) => { var stockB=p.stock?'<span class="chip ch-green">موجود</span>':'<span class="chip ch-red">ناموجود</span>'; var flowB='<span class="chip '+(p.flow?'ch-sky':'ch-gray')+'">'+(p.flow?'دارد':'ندارد')+'</span>';
         const q = qtys[p.id]||0, tot = q*p.price;
+        const safeCode=esc(p.code),safeDesc=esc(p.desc),safeNote=esc(p.note||'—'),safeCar=esc(p.car),safeBrand=esc(p.brand),safeCat=esc(p.cat);
         return `<tr id="productRow_${p.id}">
           <td class="td-hide-mob"><div class="sel-dot${sel[i]?' on':''}" onclick="toggleSel(${i})"></div></td>
-          <td class="td-code td-hide-mob">${p.code}</td>
+          <td class="td-code td-hide-mob">${safeCode}</td>
           <td class="td-desc" style="position:relative">
-            <div class="prod-code-mob td-show-mob"><span style="color:#bbb;font-size:9px">کد: </span>${p.code}</div>
-            <div class="prod-name">${p.desc}${p.note?`<button class="desc-info-btn" onclick="toggleDescPopup(event,${i})" title="توضیحات اضافه"><i class="ti ti-info-circle"></i></button>`:''}</div>
+            <div class="prod-code-mob td-show-mob"><span style="color:#bbb;font-size:9px">کد: </span>${safeCode}</div>
+            <div class="prod-name">${safeDesc}${p.note?`<button class="desc-info-btn" onclick="toggleDescPopup(event,${i})" title="توضیحات اضافه" aria-label="نمایش توضیحات ${safeDesc}"><i class="ti ti-info-circle"></i></button>`:''}</div>
             <div class="desc-popup" id="descPopup_${i}">
               <div class="desc-popup-title">توضیحات اضافه</div>
-              <div style="font-size:11.5px;color:#444;line-height:1.8;white-space:pre-wrap">${p.note||'—'}</div>
+              <div style="font-size:11.5px;color:#444;line-height:1.8;white-space:pre-wrap">${safeNote}</div>
             </div>
             <div class="prod-meta">
-              <span style="font-size:10px;color:#666;display:inline-flex;align-items:center;gap:2px"><i class="ti ti-car" style="font-size:10px"></i>${p.car}</span>
+              <span style="font-size:10px;color:#666;display:inline-flex;align-items:center;gap:2px"><i class="ti ti-car" style="font-size:10px"></i>${safeCar}</span>
               <span style="color:#ddd;margin:0 3px">·</span>
-              <span style="font-size:10px;color:#666">${p.brand}</span>
+              <span style="font-size:10px;color:#666">${safeBrand}</span>
               <span style="color:#ddd;margin:0 3px">·</span>
               <span class="stock-col">${stockB}</span>
               <span class="td-hide-mob" style="color:#ddd;margin:0 3px">·</span>
               <span class="td-hide-mob">${flowB}</span>
             </div>
           </td>
-          <td class="td-hide-mob"><span class="chip ch-blue">${p.car}</span></td>
-          <td class="td-hide-mob"><span class="chip ch-sky">${p.brand}</span></td>
-          <td class="td-hide-mob"><span class="chip ch-gray">${p.cat}</span></td>
+          <td class="td-hide-mob"><span class="chip ch-blue">${safeCar}</span></td>
+          <td class="td-hide-mob"><span class="chip ch-sky">${safeBrand}</span></td>
+          <td class="td-hide-mob"><span class="chip ch-gray">${safeCat}</span></td>
           <td class="td-hide-mob">${flowB}</td>
           <td class="td-hide-mob stock-col">${stockB}</td>
           <td class="td-price">${canShowPrice()?fmt(p.price):'<a href="/login" style="color:#1d4ed8;font-size:11px">ورود برای مشاهده</a>'}</td>
-          <td><div class="qty-wrap">
-            <button class="qbtn" onclick="chg(${p.id},-1)">−</button>
-            <input class="qinp" id="productQty_${p.id}" value="${fa(q)}" onchange="setQ(${p.id},this.value)"/>
-            <button class="qbtn" onclick="chg(${p.id},1)">+</button>
+          <td><div class="qty-wrap" id="productQtyWrap_${p.id}">
+            <button class="qbtn" onclick="chg(${p.id},-1)" aria-label="کاهش تعداد ${safeDesc}" ${p.stock?'':'disabled'}>−</button>
+            <input class="qinp" id="productQty_${p.id}" value="${fa(q)}" onchange="setQ(${p.id},this.value)" aria-label="تعداد ${safeDesc}" inputmode="numeric" ${p.stock?'':'disabled'}/>
+            <button class="qbtn" onclick="chg(${p.id},1)" aria-label="افزایش تعداد ${safeDesc}" ${p.stock?'':'disabled'}>+</button>
+            <span class="qty-status" id="productQtyStatus_${p.id}" aria-live="polite"></span>
           </div></td>
           <td class="td-price td-hide-mob" id="productTotal_${p.id}">${tot?fmt(tot):''}</td>
         </tr>`;
@@ -415,10 +450,20 @@
       }
 
       quantity = Math.max(0, Number(quantity) || 0);
+      const product = products.find(p => p.id === productId);
+      if(!product || (!product.stock && quantity > 0)) {
+        OnPart.toast('این کالا موجود نیست', 'error');
+        return false;
+      }
+      if(product.stockQty > 0 && quantity > product.stockQty) {
+        quantity = product.stockQty;
+        OnPart.toast('تعداد انتخابی بیشتر از موجودی کالا بود', 'info');
+      }
       const previous = qtys[productId] || 0;
       qtys[productId] = quantity;
       updateProductRow(productId);
       updateCartCount();
+      setProductSaving(productId, true);
 
       const saveTask = (cartSaveQueues[productId] || Promise.resolve())
         .then(() => OnPart.setCartItem(productId, quantity, { refreshCount: false }));
@@ -431,9 +476,11 @@
         }
         updateProductRow(productId);
         updateCartCount();
+        setProductSaving(productId, false, true);
         OnPart.toast('ذخیره سبد خرید انجام نشد؛ دوباره تلاش کنید', 'error');
         return false;
       }
+      setProductSaving(productId, false);
       return true;
     }
 
@@ -455,6 +502,18 @@
       const total = document.getElementById('productTotal_' + productId);
       if(input) input.value = fa(quantity);
       if(total) total.textContent = quantity ? fmt(quantity * product.price) : '';
+    }
+
+    function setProductSaving(productId, saving, failed) {
+      const wrap = document.getElementById('productQtyWrap_' + productId);
+      const status = document.getElementById('productQtyStatus_' + productId);
+      if(wrap) wrap.classList.toggle('is-saving', saving);
+      if(!status) return;
+      status.className = 'qty-status' + (saving ? ' saving' : failed ? ' error' : '');
+      status.innerHTML = saving
+        ? '<i class="ti ti-loader-2" aria-hidden="true"></i>'
+        : failed ? '<i class="ti ti-alert-circle" aria-hidden="true"></i>' : '';
+      status.setAttribute('aria-label', saving ? 'در حال ذخیره' : failed ? 'خطا در ذخیره' : '');
     }
 
     function updateTotalBar(){
@@ -479,6 +538,32 @@
       const cat=document.getElementById('fCat').value;
       filtered=products.filter(p=>(!t||p.desc.includes(t)||p.code.includes(t))&&(!car||p.car===car)&&(!br||p.brand===br)&&(!cat||p.cat.includes(cat)));
       render();
+      updateFilterSummary();
+    }
+
+    function updateFilterSummary(){
+      const summary=document.getElementById('filterSummary');
+      if(!summary) return;
+      const values=[
+        ['جست‌وجو',document.getElementById('fText').value.trim()],
+        ['خودرو',document.getElementById('fCar').value],
+        ['برند',document.getElementById('fBrand').value],
+        ['گروه',document.getElementById('fCat').value]
+      ].filter(item=>item[1]);
+      summary.innerHTML=values.map(item=>'<span class="filter-chip">'+esc(item[0])+': '+esc(item[1])+'</span>').join('')
+        +(values.length?'<button class="clear-filters" onclick="clearFilters()"><i class="ti ti-x"></i> پاک‌کردن فیلترها</button>':'');
+    }
+
+    function clearFilters(){
+      document.getElementById('fText').value='';
+      document.getElementById('fCar').value='';
+      document.getElementById('fBrand').value='';
+      document.getElementById('fCat').value='';
+      document.getElementById('lblCar').textContent='نام خودرو';
+      document.getElementById('lblBrand').textContent='برند';
+      document.getElementById('lblCat').textContent='گروه کالایی';
+      doFilter();
+      document.getElementById('fText').focus();
     }
 
     function updateCartCount(){
@@ -519,7 +604,7 @@
       document.getElementById('cartBody').innerHTML = items.length
         ? items.map(p=>`<div class="cart-item">
             <div class="cart-item-info">
-              <div class="cart-item-name">${p.desc.slice(0,50)}...</div>
+              <div class="cart-item-name">${esc(p.desc.slice(0,50))}${p.desc.length>50?'…':''}</div>
               <div class="cart-item-price">${fmtPrice(p.price)}</div>
             </div>
             <div style="display:flex;align-items:center;gap:6px">
@@ -528,17 +613,30 @@
               <button class="qbtn" onclick="cartChg(${p.id},1)">+</button>
             </div>
             <div class="cart-item-qty">${fmt(p.qty*p.price)} ت</div>
+            <button class="cart-remove" onclick="removeCartItem(${p.id})" aria-label="حذف ${esc(p.desc)} از سبد"><i class="ti ti-trash"></i></button>
           </div>`).join('')
         : '<div style="text-align:center;padding:40px;color:#aaa">سبد خرید خالی است</div>';
       document.getElementById('cartTotal').textContent = fmtPrice(total);
       document.getElementById('cartOverlay').classList.add('show');
       document.getElementById('cartPanel').classList.add('show');
+      document.body.style.overflow='hidden';
+      setTimeout(()=>document.getElementById('cartPanel').focus(),0);
+    }
+
+    async function removeCartItem(productId){
+      await persistCartQuantity(productId,0);
+      openCart();
     }
 
     function closeCart(){
       document.getElementById('cartOverlay').classList.remove('show');
       document.getElementById('cartPanel').classList.remove('show');
+      document.body.style.overflow='';
     }
+
+    document.addEventListener('keydown',function(e){
+      if(e.key==='Escape'&&document.getElementById('cartPanel').classList.contains('show')) closeCart();
+    });
 
     async function checkout(){
       const items = products.map(p=>({product_id:p.id,qty:qtys[p.id]||0})).filter(p=>p.qty>0);
@@ -556,18 +654,10 @@
       if(btn){ btn.disabled = true; btn.textContent = 'در حال ثبت...'; }
 
       try {
-        const res = await fetch(`${API.BASE_URL}/api/orders`, {
+        const data = await API.request('/api/orders', {
           method: 'POST',
-          headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
           body: JSON.stringify({items: orderItems})
         });
-        const data = await res.json();
-
-        if(!res.ok){
-          OnPart.toast(data.message || 'خطا در ثبت سفارش', 'error');
-          if(btn){ btn.disabled = false; btn.textContent = 'ثبت سفارش'; }
-          return;
-        }
 
         // Clear cart on success
         await OnPart.clearCart();
@@ -580,7 +670,7 @@
 
         setTimeout(()=>{ window.location.href = '/orders'; }, 1200);
       } catch(e){
-        OnPart.toast('خطا در ارتباط با سرور', 'error');
+        OnPart.toast(e.message || 'خطا در ارتباط با سرور', 'error');
       } finally {
         if(btn){ btn.disabled = false; btn.textContent = 'ثبت سفارش'; }
       }
@@ -619,8 +709,7 @@
 
     async function loadAnnouncements(){
       try {
-        var res = await fetch(API.BASE_URL + '/api/announcements');
-        var data = await res.json();
+        var data = await API.request('/api/announcements');
         shopAnnouncements = data.announcements || [];
         var list = document.getElementById('notifList');
         if(!shopAnnouncements.length){
