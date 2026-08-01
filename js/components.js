@@ -178,7 +178,7 @@ const OnPart = {
   },
  
   // Update (or remove, if qty<=0) a single item's quantity on the server
-  setCartItem: async function(productId, qty) {
+  setCartItem: async function(productId, qty, options) {
     var token = sessionStorage.getItem('op_token');
     if(!token) return false;
     try {
@@ -187,7 +187,7 @@ const OnPart = {
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ product_id: productId, quantity: qty })
       });
-      this.updateCartCount();
+      if(!options || options.refreshCount !== false) this.updateCartCount();
       return res.ok;
     } catch(e){ return false; }
   },
