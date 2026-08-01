@@ -337,22 +337,24 @@
       const catSel = document.getElementById('fCat');
       catSel.innerHTML = '<option value="">همه گروه‌ها</option>' + cats.map(c=>`<option>${c}</option>`).join('');
 
-      // Restore cart quantities from localStorage
+      // Restore the signed-in user's cart from the server/database.
+      Object.keys(qtys).forEach(key => delete qtys[key]);
       try {
-        const savedCart = JSON.parse(localStorage.getItem('op_cart') || '[]');
-        if(savedCart.length){
-          savedCart.forEach(item => {
-            const idx = products.findIndex(p => p.code === item.code);
-            if(idx >= 0 && item.qty > 0) qtys[idx] = item.qty;
-          });
-        }
-      } catch(e){}
+        const serverCart = await OnPart.getCart();
+        serverCart.forEach(item => {
+          const productId = Number(item.product_id);
+          const quantity = Number(item.qty) || 0;
+          if(productId && quantity > 0) qtys[productId] = quantity;
+        });
+      } catch(e) {
+        OnPart.toast('خطا در بارگذاری سبد خرید', 'error');
+      }
 
       render();
       document.getElementById('pgInfo').textContent = `${fa(products.length)} محصول`;
     }
 
-    const qtys = {}, sel = {};
+    const qtys = {}, sel = {}, cartSaveQueues = {};
 
     function render() {
       if(!products.length){
@@ -364,7 +366,7 @@
         return;
       }
       document.getElementById('tbody').innerHTML = filtered.map((p,i) => { var stockB=p.stock?'<span class="chip ch-green">موجود</span>':'<span class="chip ch-red">ناموجود</span>'; var flowB='<span class="chip '+(p.flow?'ch-sky':'ch-gray')+'">'+(p.flow?'دارد':'ندارد')+'</span>';
-        const q = qtys[i]||0, tot = q*p.price;
+        const q = qtys[p.id]||0, tot = q*p.price;
         return `<tr>
           <td class="td-hide-mob"><div class="sel-dot${sel[i]?' on':''}" onclick="toggleSel(${i})"></div></td>
           <td class="td-code td-hide-mob">${p.code}</td>
@@ -392,9 +394,9 @@
           <td class="td-hide-mob stock-col">${stockB}</td>
           <td class="td-price">${canShowPrice()?fmt(p.price):'<a href="/login" style="color:#1d4ed8;font-size:11px">ورود برای مشاهده</a>'}</td>
           <td><div class="qty-wrap">
-            <button class="qbtn" onclick="chg(${i},-1)">−</button>
-            <input class="qinp" value="${fa(q)}" onchange="setQ(${i},this.value)"/>
-            <button class="qbtn" onclick="chg(${i},1)">+</button>
+            <button class="qbtn" onclick="chg(${p.id},-1)">−</button>
+            <input class="qinp" value="${fa(q)}" onchange="setQ(${p.id},this.value)"/>
+            <button class="qbtn" onclick="chg(${p.id},1)">+</button>
           </div></td>
           <td class="td-price td-hide-mob">${tot?fmt(tot):''}</td>
         </tr>`;
@@ -404,11 +406,47 @@
     }
 
     function toggleSel(i){sel[i]=!sel[i];render();}
-    function chg(i,d){qtys[i]=(qtys[i]||0)+d;if(qtys[i]<0)qtys[i]=0;render();}
-    function setQ(i,v){qtys[i]=parseInt(v)||0;render();}
+    async function persistCartQuantity(productId, quantity) {
+      const token = sessionStorage.getItem('op_token');
+      if(!token) {
+        OnPart.toast('لطفاً ابتدا وارد حساب کاربری شوید', 'error');
+        window.location.href = '/login';
+        return false;
+      }
+
+      quantity = Math.max(0, Number(quantity) || 0);
+      const previous = qtys[productId] || 0;
+      qtys[productId] = quantity;
+      render();
+
+      const saveTask = (cartSaveQueues[productId] || Promise.resolve())
+        .then(() => OnPart.setCartItem(productId, quantity));
+      cartSaveQueues[productId] = saveTask.catch(() => false);
+      const saved = await saveTask;
+      if(!saved) {
+        if(qtys[productId] === quantity) {
+          if(previous > 0) qtys[productId] = previous;
+          else delete qtys[productId];
+        }
+        render();
+        OnPart.toast('ذخیره سبد خرید انجام نشد؛ دوباره تلاش کنید', 'error');
+        return false;
+      }
+      return true;
+    }
+
+    async function chg(productId,d){
+      await persistCartQuantity(productId, (qtys[productId]||0)+d);
+    }
+    async function setQ(productId,v){
+      const normalized = String(v)
+        .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+        .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+      await persistCartQuantity(productId, parseInt(normalized, 10)||0);
+    }
 
     function updateTotalBar(){
-      const total=filtered.reduce((s,p,i)=>s+(qtys[i]||0)*p.price,0);
+      const total=products.reduce((s,p)=>s+(qtys[p.id]||0)*p.price,0);
       const bar=document.getElementById('totalBar');
       const val=document.getElementById('totalBarVal');
       if(bar&&val){
@@ -432,10 +470,6 @@
       if(el1) el1.textContent = fa(count);
       if(el2) el2.textContent = fa(count);
       updateTotalBar();
-      if(el2) el2.textContent = fa(count);
-      // Save to localStorage for persistence
-      const cartItems = products.map((p,i)=>({...p,qty:qtys[i]||0})).filter(p=>p.qty>0);
-      localStorage.setItem('op_cart', JSON.stringify(cartItems));
     }
 
     function toggleDescPopup(e, i){
@@ -449,20 +483,20 @@
       }
     });
 
-    function cartChg(i,d){
-      qtys[i]=(qtys[i]||0)+d;
-      if(qtys[i]<0)qtys[i]=0;
-      render();
+    async function cartChg(productId,d){
+      await persistCartQuantity(productId, (qtys[productId]||0)+d);
       openCart();
     }
-    function cartSetQ(i,v){
-      qtys[i]=parseInt(v)||0;
-      render();
+    async function cartSetQ(productId,v){
+      const normalized = String(v)
+        .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+        .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+      await persistCartQuantity(productId, parseInt(normalized, 10)||0);
       openCart();
     }
 
     function openCart(){
-      const items = products.map((p,i)=>({...p,qty:qtys[i]||0,idx:i})).filter(p=>p.qty>0);
+      const items = products.map(p=>({...p,qty:qtys[p.id]||0})).filter(p=>p.qty>0);
       const total = items.reduce((s,p)=>s+p.qty*p.price,0);
       document.getElementById('cartBody').innerHTML = items.length
         ? items.map(p=>`<div class="cart-item">
@@ -471,9 +505,9 @@
               <div class="cart-item-price">${fmtPrice(p.price)}</div>
             </div>
             <div style="display:flex;align-items:center;gap:6px">
-              <button class="qbtn" onclick="cartChg(${p.idx},-1)">−</button>
-              <input class="qinp" value="${fa(p.qty)}" onchange="cartSetQ(${p.idx},this.value)" style="width:32px"/>
-              <button class="qbtn" onclick="cartChg(${p.idx},1)">+</button>
+              <button class="qbtn" onclick="cartChg(${p.id},-1)">−</button>
+              <input class="qinp" value="${fa(p.qty)}" onchange="cartSetQ(${p.id},this.value)" style="width:32px"/>
+              <button class="qbtn" onclick="cartChg(${p.id},1)">+</button>
             </div>
             <div class="cart-item-qty">${fmt(p.qty*p.price)} ت</div>
           </div>`).join('')
@@ -489,14 +523,14 @@
     }
 
     async function checkout(){
-      const items = products.map((p,i)=>({id:i,qty:qtys[i]||0})).filter(p=>p.qty>0);
+      const items = products.map(p=>({product_id:p.id,qty:qtys[p.id]||0})).filter(p=>p.qty>0);
       if(!items.length){OnPart.toast('سبد خرید خالی است','error');return;}
 
       const token = sessionStorage.getItem('op_token');
       if(!token){ OnPart.toast('لطفاً ابتدا وارد حساب کاربری شوید','error'); window.location.href='/login'; return; }
 
       const orderItems = items.map(it => ({
-        product_id: products[it.id].id,
+        product_id: it.product_id,
         quantity: it.qty
       }));
 
@@ -518,8 +552,8 @@
         }
 
         // Clear cart on success
+        await OnPart.clearCart();
         Object.keys(qtys).forEach(k => delete qtys[k]);
-        localStorage.removeItem('op_cart');
         updateCartCount();
 
         OnPart.toast('سفارش با موفقیت ثبت شد!');
