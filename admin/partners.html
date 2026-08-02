@@ -227,6 +227,7 @@ function renderTable(){
       <td><div style="display:flex;gap:6px;justify-content:center">
         <button class="ab" style="background:#eff6ff;color:#1d4ed8" onclick="openDetail(${i})" title="مشاهده"><i class="ti ti-eye"></i></button>
         <button class="ab" style="background:#fef3c7;color:#d97706" onclick="openEdit(${i})" title="ویرایش"><i class="ti ti-edit"></i></button>
+        ${s.status==='approved'?`<a class="ab" style="background:#ede9fe;color:#7c3aed;text-decoration:none" href="supplier-access.html?supplier=${s.id}" title="دسترسی پنل"><i class="ti ti-key"></i></a>`:''}
         ${s.status==='pending'?`<button class="ab" style="background:#f0fdf4;color:#16a34a" onclick="approveSupplier(${s.id})" title="تایید"><i class="ti ti-check"></i></button>
         <button class="ab" style="background:#fee2e2;color:#dc2626" onclick="openRejectModal(${s.id})" title="رد"><i class="ti ti-x"></i></button>`:''}
         <button class="ab" style="background:#fee2e2;color:#dc2626" onclick="deleteSupplier(${s.id})" title="حذف"><i class="ti ti-trash"></i></button>

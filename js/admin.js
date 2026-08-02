@@ -12,6 +12,7 @@ const Admin = {
     { id:'payments',  label:'پرداخت‌ها',       icon:'ti-credit-card',      href:'payments.html', perm:'payments', badge:'payments' },
     { id:'users',     label:'کاربران',         icon:'ti-users',            href:'users.html',    perm:'users' },
     { id:'partners',  label:'تامین‌کنندگان',   icon:'ti-building-store',   href:'partners.html', perm:'partners' },
+    { id:'supplier_updates', label:'تغییرات تأمین‌کنندگان', icon:'ti-file-check', href:'supplier-updates.html', perm:'partners', badge:'supplier_updates' },
     { id:'admins',    label:'مدیران',          icon:'ti-shield-lock',      href:'admins.html',   perm:'admins' },
     { id:'credit',    label:'اعتبارات',        icon:'ti-id-badge',         href:'credit.html',   perm:'credit' },
     { id:'shipping',  label:'حمل و نقل',        icon:'ti-truck',            href:'shipping.html', perm:'orders' },
@@ -24,7 +25,7 @@ const Admin = {
   sections: [
     { label:'داشبورد',    items:['dashboard'] },
     { label:'فروش',       items:['orders','products','payments','shipping'] },
-    { label:'کاربران',    items:['users','partners','admins','credit'] },
+    { label:'کاربران',    items:['users','partners','supplier_updates','admins','credit'] },
     { label:'ارتباطات',   items:['sms','announcements','reports'] },
     { label:'تنظیمات',    items:['settings'] },
   ],
