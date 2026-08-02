@@ -26,7 +26,14 @@ function toJalali(dateStr){
 // OnPart Shared Components
 const OnPart = {
  
+  API_BASE: 'https://onpartpadmin.liara.run',
   CART_API: 'https://onpartpadmin.liara.run/api/cart',
+  _notificationStarted: false,
+  _notificationStream: null,
+  _notificationPoll: null,
+  _notificationSoundReady: false,
+  _pendingNotificationSound: null,
+  _notificationAudios: null,
  
   renderNavbar(activePage) {
     activePage = activePage || '';
@@ -108,6 +115,7 @@ const OnPart = {
     }
  
     OnPart.updateCartCount();
+    OnPart.initUserNotifications();
  
     // Load site settings (phone number) dynamically
     fetch('https://onpartpadmin.liara.run/api/settings').then(function(r){return r.json();}).then(function(s){
@@ -233,10 +241,101 @@ const OnPart = {
  
   fa: function(n) { return n.toString().replace(/\d/g, function(d){ return '\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9'[d]; }); },
   fmt: function(n) { return this.fa(Number(n).toLocaleString()); },
+
+  initUserNotifications: function() {
+    var token = sessionStorage.getItem('op_token');
+    var page = (location.pathname || '').replace(/\/+$/, '');
+    if(!token || this._notificationStarted || page === '/shop' || page === '/shop.html') return;
+    this._notificationStarted = true;
+
+    var self = this;
+    var files = {
+      default: '/audio/onpart-notification.mp3',
+      order_submitted: '/audio/order-status/order-submitted.mp3',
+      pending_customer: '/audio/order-status/pending-customer.mp3',
+      pending_payment: '/audio/order-status/pending-payment.mp3',
+      preparing: '/audio/order-status/preparing.mp3',
+      shipping: '/audio/order-status/shipping.mp3'
+    };
+    this._notificationAudios = {};
+    Object.keys(files).forEach(function(key){
+      var audio = new Audio(files[key]);
+      audio.preload = 'auto';
+      self._notificationAudios[key] = audio;
+    });
+
+    function unlockSounds(){
+      if(self._notificationSoundReady) return;
+      var tasks = Object.keys(self._notificationAudios).map(function(key){
+        var audio = self._notificationAudios[key];
+        audio.muted = true;
+        return audio.play().then(function(){
+          audio.pause(); audio.currentTime = 0; audio.muted = false;
+        }).catch(function(){ audio.muted = false; });
+      });
+      Promise.allSettled(tasks).then(function(results){
+        self._notificationSoundReady = results.some(function(result){ return result.status === 'fulfilled'; });
+        if(self._notificationSoundReady && self._pendingNotificationSound){
+          var pending = self._pendingNotificationSound;
+          self._pendingNotificationSound = null;
+          self.playUserNotificationSound(pending);
+        }
+      });
+    }
+    document.addEventListener('pointerdown', unlockSounds, { passive:true });
+    document.addEventListener('keydown', unlockSounds, { passive:true });
+
+    async function refreshNotifications(notify){
+      try {
+        var response = await fetch(self.API_BASE + '/api/user-notifications', {
+          headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('op_token') }
+        });
+        if(!response.ok) return;
+        var data = await response.json();
+        var rows = data.notifications || [];
+        var newestId = rows.reduce(function(max,row){ return Math.max(max, Number(row.id)||0); }, 0);
+        var previousId = Number(sessionStorage.getItem('op_last_user_notification_id') || 0);
+        if(!previousId){
+          sessionStorage.setItem('op_last_user_notification_id', String(newestId));
+          return;
+        }
+        var newRows = rows.filter(function(row){ return Number(row.id) > previousId; }).sort(function(a,b){ return Number(a.id)-Number(b.id); });
+        if(newestId > previousId) sessionStorage.setItem('op_last_user_notification_id', String(newestId));
+        if(notify && newRows.length){
+          newRows.forEach(function(row){
+            self.playUserNotificationSound(row.sound_key || 'default');
+            self.toast(row.title || 'وضعیت سفارش به‌روزرسانی شد', row.type === 'warning' ? 'error' : 'info');
+            window.dispatchEvent(new CustomEvent('onpart:user-notification', { detail: row }));
+          });
+        }
+      } catch(e) {}
+    }
+
+    refreshNotifications(false).then(function(){
+      if(window.EventSource){
+        self._notificationStream = new EventSource(self.API_BASE + '/api/announcements/stream');
+        self._notificationStream.addEventListener('user-notification', function(){ refreshNotifications(true); });
+      }
+      self._notificationPoll = setInterval(function(){ refreshNotifications(true); }, 20000);
+    });
+    document.addEventListener('visibilitychange', function(){ if(!document.hidden) refreshNotifications(true); });
+  },
+
+  playUserNotificationSound: function(soundKey) {
+    var key = this._notificationAudios && this._notificationAudios[soundKey] ? soundKey : 'default';
+    if(!this._notificationSoundReady){ this._pendingNotificationSound = key; return; }
+    try {
+      var audios = this._notificationAudios;
+      Object.keys(audios).forEach(function(audioKey){ audios[audioKey].pause(); });
+      audios[key].currentTime = 0;
+      audios[key].play().catch(function(){});
+    } catch(e) {}
+  },
  
   logout: function() {
     sessionStorage.removeItem('op_token');
     sessionStorage.removeItem('op_user');
+    sessionStorage.removeItem('op_last_user_notification_id');
     window.location.href = '/login';
   },
  

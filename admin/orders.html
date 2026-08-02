@@ -376,17 +376,19 @@ function gotoPage(p){page=p;renderTable();}
 
 // ── DELETE ──
 async function deleteOrder(id,btn){
-  if(!confirm('آیا مطمئن هستید می‌خواهید این سفارش را برای همیشه حذف کنید؟\nاین عمل قابل بازگشت نیست و از پنل کاربر هم حذف می‌شود.'))return;
+  if(!confirm('آیا مطمئن هستید می‌خواهید این سفارش را برای همیشه حذف کنید؟\nسفارش از پنل مشتری حذف و بدهی مرتبط با آن نیز تسویه می‌شود.'))return;
+  let result;
   try{
     const token=sessionStorage.getItem('op_token');
     const res=await fetch(`${API.BASE_URL}/api/orders/${id}`,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
-    if(!res.ok){ const d=await res.json(); throw new Error(d.message||'خطا در حذف'); }
+    result=await res.json();
+    if(!res.ok) throw new Error(result.message||'خطا در حذف');
   }catch(e){ toast(e.message||'خطا در حذف سفارش',false); return; }
   orders=orders.filter(o=>o.id!==id);
   filtered=filtered.filter(o=>o.id!==id);
   btn.closest('tr').remove();
   updateStats();
-  toast('سفارش با موفقیت حذف شد');
+  toast(`سفارش حذف و بدهی مشتری اصلاح شد؛ بدهی فعلی ${fmt(result.debt||0)} تومان`);
 }
 
 // ── DETAIL ──

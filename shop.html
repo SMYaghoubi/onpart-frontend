@@ -778,6 +778,10 @@
         var results = await Promise.all(requests);
         var publicItems = (results[0].announcements || []).map(function(a){ return Object.assign({_key:'a-'+a.id},a); });
         var userItems = results[1] ? (results[1].notifications || []).map(function(a){ return Object.assign({_key:'u-'+a.id},a); }) : [];
+        if(userItems.length){
+          var newestUserNotificationId = userItems.reduce(function(max,item){ return Math.max(max, Number(item.id)||0); }, 0);
+          if(newestUserNotificationId) sessionStorage.setItem('op_last_user_notification_id', String(newestUserNotificationId));
+        }
         shopAnnouncements = publicItems.concat(userItems).sort(function(a,b){ return new Date(b.created_at)-new Date(a.created_at); });
         var list = document.getElementById('notifList');
         if(!shopAnnouncements.length){

@@ -474,7 +474,9 @@ function exportUsers(){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='users.csv';a.click();
 }
 
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadUsers()});
 loadUsers();
+setInterval(loadUsers,30000);
 </script>
 </body>
 </html>

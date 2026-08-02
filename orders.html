@@ -469,8 +469,9 @@ async function rejectInvoice(id){
   if(res.ok)loadMyOrders(); else alert('خطا در رد');
 }
 
+window.addEventListener('onpart:user-notification',function(){ loadMyOrders(); });
 loadMyOrders();
-setInterval(loadMyOrders,60000);
+setInterval(loadMyOrders,30000);
 </script>
 </body>
 </html>
