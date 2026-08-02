@@ -225,7 +225,6 @@
     <div style="padding:14px 16px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between">
       <span style="font-size:14px;font-weight:700;color:#111">اعلان‌ها</span>
       <div style="display:flex;align-items:center;gap:6px">
-        <button onclick="unlockAnnouncementSound();playAnnouncementSound()" style="background:#eff6ff;color:#1d4ed8;border:none;border-radius:7px;padding:5px 8px;cursor:pointer;font-family:Vazirmatn;font-size:10.5px"><i class="ti ti-volume"></i> تست صدا</button>
         <button onclick="toggleNotif()" aria-label="بستن اعلان‌ها" style="background:none;border:none;cursor:pointer;font-size:18px;color:#888"><i class="ti ti-x"></i></button>
       </div>
     </div>
@@ -716,22 +715,54 @@
     }
 
     var shopAnnouncements = [];
-    var announcementAudio = new Audio('/audio/onpart-notification.mp3');
-    announcementAudio.preload = 'auto';
+    var announcementSoundFiles = {
+      default: '/audio/onpart-notification.mp3',
+      order_submitted: '/audio/order-status/order-submitted.mp3',
+      pending_customer: '/audio/order-status/pending-customer.mp3',
+      pending_payment: '/audio/order-status/pending-payment.mp3',
+      preparing: '/audio/order-status/preparing.mp3',
+      shipping: '/audio/order-status/shipping.mp3'
+    };
+    var announcementAudios = {};
+    Object.keys(announcementSoundFiles).forEach(function(key){
+      var audio = new Audio(announcementSoundFiles[key]);
+      audio.preload = 'auto';
+      announcementAudios[key] = audio;
+    });
     var announcementSoundUnlocked = false;
+    var pendingAnnouncementSound = null;
     var announcementStream = null;
     var announcementPolling = null;
 
     function unlockAnnouncementSound(){
+      if(announcementSoundUnlocked) return;
       announcementSoundUnlocked = true;
+      var priming = Object.keys(announcementAudios).map(function(key){
+        var audio = announcementAudios[key];
+        audio.muted = true;
+        return audio.play().then(function(){
+          audio.pause();
+          audio.currentTime = 0;
+          audio.muted = false;
+        }).catch(function(){ audio.muted = false; });
+      });
+      Promise.allSettled(priming).then(function(){
+        if(pendingAnnouncementSound){
+          var soundKey = pendingAnnouncementSound;
+          pendingAnnouncementSound = null;
+          playAnnouncementSound(soundKey);
+        }
+      });
     }
 
-    function playAnnouncementSound(){
-      if(!announcementSoundUnlocked) return;
+    function playAnnouncementSound(soundKey){
+      var key = announcementAudios[soundKey] ? soundKey : 'default';
+      if(!announcementSoundUnlocked){ pendingAnnouncementSound = key; return; }
       try {
-        announcementAudio.pause();
-        announcementAudio.currentTime = 0;
-        announcementAudio.play().catch(function(){});
+        Object.keys(announcementAudios).forEach(function(audioKey){ announcementAudios[audioKey].pause(); });
+        var audio = announcementAudios[key];
+        audio.currentTime = 0;
+        audio.play().catch(function(){ pendingAnnouncementSound = key; });
       } catch(e) {}
     }
 
@@ -768,8 +799,9 @@
             + '</div></div></div>';
         }).join('');
         updateNotifDot();
-        if(notifyNew && shopAnnouncements.some(function(a){ return previousIds.indexOf(a._key) === -1; })) {
-          playAnnouncementSound();
+        var newItems = notifyNew ? shopAnnouncements.filter(function(a){ return previousIds.indexOf(a._key) === -1; }) : [];
+        if(newItems.length) {
+          playAnnouncementSound(newItems[0].sound_key || 'default');
           OnPart.toast('اعلان جدید دریافت شد', 'info');
         }
       } catch(e){}
