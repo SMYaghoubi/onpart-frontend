@@ -49,25 +49,27 @@
       .ab-cart { max-width:90px; justify-content:center; }
       .td-hide-mob { display:none!important; }
       .td-show-mob { display:block!important; }
-      .table-wrap { padding: 8px 0 24px; overflow-x:hidden; }
-      .tbl { border-radius:0; box-shadow:none; }
+      .table-wrap { padding: 10px 12px 24px; overflow-x:hidden; }
+      .tbl { display:block; border-radius:0; box-shadow:none; background:transparent; }
       .tbl thead { display:none; }
-      .tbl tbody tr { display:flex; flex-wrap:wrap; align-items:center; padding:12px 14px; border-bottom:1px solid #f0f0f0; background:#fff; gap:0; }
-      .tbl tbody tr td { border:none; padding:0; white-space:normal; }
+      .tbl tbody { display:flex; flex-direction:column; gap:10px; }
+      .tbl tbody tr { display:grid; grid-template-columns:1fr; padding:14px; border:1px solid #e5e7eb; border-radius:14px; background:#fff; box-shadow:0 2px 8px rgba(15,23,42,.04); }
+      .tbl tbody tr td { display:block; width:100%; border:none; padding:0; white-space:normal; min-width:0; }
       /* Description cell takes full width */
-      .td-desc { flex:1; min-width:0; padding-left:8px!important; }
-      .td-desc .prod-name { font-size:12.5px!important; font-weight:600; line-height:1.5; white-space:normal!important; }
-      .prod-code-mob { font-size:10px!important; color:#bbb; margin-bottom:4px; display:block!important; }
-      .prod-meta { display:flex!important; flex-wrap:wrap; gap:4px; margin-top:4px; }
+      .td-desc { min-width:0; padding:0!important; }
+      .td-desc .prod-name { font-size:14px!important; font-weight:700; line-height:1.7; white-space:normal!important; overflow-wrap:anywhere; }
+      .prod-code-mob { font-size:11px!important; color:#94a3b8; margin-bottom:5px; display:block!important; direction:ltr; text-align:right; }
+      .prod-meta { display:flex!important; align-items:center; flex-wrap:wrap; gap:5px; margin-top:7px; line-height:1.6; }
       /* Price and stock cells */
-      td:has(.price-val), .price-cell { font-size:13px; font-weight:700; color:#1d4ed8; white-space:nowrap; }
+      .unit-price-cell { display:flex!important; align-items:center; justify-content:space-between; margin-top:12px; padding:10px 0!important; border-top:1px solid #eef2f7!important; color:#1d4ed8!important; font-size:14px!important; font-weight:800!important; white-space:nowrap!important; }
+      .unit-price-cell::before { content:'قیمت واحد'; color:#64748b; font-size:11.5px; font-weight:500; }
       /* Quantity cell */
-      .qty-cell { display:flex; align-items:center; gap:4px; }
-      .qbtn { width:28px!important; height:28px!important; font-size:15px!important; }
-      .qinp { width:32px!important; font-size:12px!important; }
+      td.qty-cell { display:block!important; }
       .qbtn { min-width:44px!important; height:44px!important; }
       .qinp { width:48px!important; height:44px!important; font-size:14px!important; }
-      .qty-wrap { width:100%;margin-top:10px;justify-content:flex-end; }
+      .qty-wrap { width:100%; margin:0; padding-top:10px; border-top:1px solid #eef2f7; justify-content:flex-end; }
+      .qty-wrap::before { content:'تعداد'; margin-left:auto; color:#64748b; font-size:11.5px; font-weight:500; }
+      .qty-status { min-width:18px; }
       /* Search */
       .sb-wrap { flex-wrap:wrap; gap:8px; padding:10px 14px!important; }
       .sb-input { font-size:14px; }
@@ -426,8 +428,8 @@
           <td class="td-hide-mob"><span class="chip ch-gray">${safeCat}</span></td>
           <td class="td-hide-mob">${flowB}</td>
           <td class="td-hide-mob stock-col">${stockB}</td>
-          <td class="td-price">${canShowPrice()?fmt(p.price):'<a href="/login" style="color:#1d4ed8;font-size:11px">ورود برای مشاهده</a>'}</td>
-          <td><div class="qty-wrap" id="productQtyWrap_${p.id}">
+          <td class="td-price unit-price-cell">${canShowPrice()?fmt(p.price):'<a href="/login" style="color:#1d4ed8;font-size:11px">ورود برای مشاهده</a>'}</td>
+          <td class="qty-cell"><div class="qty-wrap" id="productQtyWrap_${p.id}">
             <button class="qbtn" onclick="chg(${p.id},-1)" aria-label="کاهش تعداد ${safeDesc}" ${p.stock?'':'disabled'}>−</button>
             <input class="qinp" id="productQty_${p.id}" value="${fa(q)}" onchange="setQ(${p.id},this.value)" aria-label="تعداد ${safeDesc}" inputmode="numeric" ${p.stock?'':'disabled'}/>
             <button class="qbtn" onclick="chg(${p.id},1)" aria-label="افزایش تعداد ${safeDesc}" ${p.stock?'':'disabled'}>+</button>
