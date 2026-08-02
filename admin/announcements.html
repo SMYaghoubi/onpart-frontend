@@ -165,18 +165,11 @@ let announcements = [], filtered = [];
 async function loadAnnouncements() {
   const token = sessionStorage.getItem('op_token');
   try {
-    const res = await fetch(`${API.BASE_URL}/api/announcements/admin`, {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
-    if (res.ok) {
-      announcements = await res.json();
-      updateStats();
-      renderTable();
-    } else {
-      document.getElementById('tbody').innerHTML = '<tr><td colspan="7" style="padding:40px;color:#dc2626">خطا در بارگذاری</td></tr>';
-    }
+    announcements = await API.request('/api/announcements/admin');
+    updateStats();
+    renderTable();
   } catch (e) {
-    document.getElementById('tbody').innerHTML = '<tr><td colspan="7" style="padding:40px;color:#dc2626">خطا در اتصال</td></tr>';
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="7" style="padding:40px;color:#dc2626">${Admin.escape(e.message||'خطا در اتصال')}</td></tr>`;
   }
 }
 
@@ -208,9 +201,9 @@ function renderTable() {
 
   tbody.innerHTML = filtered.map(a => `
     <tr>
-      <td style="font-weight:600;text-align:right">${a.title}</td>
-      <td><div class="ann-preview">${a.body}</div></td>
-      <td><span class="badge ${typeCls[a.type]||'b-blue'}">${typeLabels[a.type]||a.type}</span></td>
+      <td style="font-weight:600;text-align:right">${Admin.escape(a.title)}</td>
+      <td><div class="ann-preview">${Admin.escape(a.body)}</div></td>
+      <td><span class="badge ${typeCls[a.type]||'b-blue'}">${typeLabels[a.type]||'اطلاع‌رسانی'}</span></td>
       <td><span class="badge ${a.is_active?'b-green':'b-gray'}">${a.is_active?'فعال':'غیرفعال'}</span></td>
       <td style="font-size:11.5px;color:#888">${fmtDate(a.created_at)}</td>
       <td style="font-size:11.5px;color:#888">${a.expires_at ? fmtDate(a.expires_at) : '—'}</td>
@@ -269,54 +262,36 @@ async function saveAnnouncement() {
   const method = id ? 'PUT' : 'POST';
 
   try {
-    const res = await fetch(url, {
+    await API.request(url.replace(API.BASE_URL, ''), {
       method,
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify(payload)
     });
-    if (res.ok) {
-      Admin.toast(id ? 'اعلان ویرایش شد' : 'اعلان ایجاد شد');
-      closeModal();
-      loadAnnouncements();
-    } else {
-      const d = await res.json();
-      Admin.toast(d.message || 'خطا', 'error');
-    }
+    Admin.toast(id ? 'اعلان ویرایش شد' : 'اعلان ایجاد شد');
+    closeModal();
+    loadAnnouncements();
   } catch (e) {
-    Admin.toast('خطا در اتصال', 'error');
+    Admin.toast(e.message || 'خطا در اتصال', 'error');
   }
 }
 
 async function toggleAnnouncement(id) {
-  const token = sessionStorage.getItem('op_token');
   try {
-    const res = await fetch(`${API.BASE_URL}/api/announcements/${id}/toggle`, {
-      method: 'PATCH',
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
-    if (res.ok) {
-      Admin.toast('وضعیت تغییر کرد');
-      loadAnnouncements();
-    }
+    await API.request(`/api/announcements/${id}/toggle`, { method: 'PATCH' });
+    Admin.toast('وضعیت تغییر کرد');
+    loadAnnouncements();
   } catch (e) {
-    Admin.toast('خطا', 'error');
+    Admin.toast(e.message || 'خطا', 'error');
   }
 }
 
 async function deleteAnnouncement(id) {
   if (!confirm('این اعلان حذف شود؟')) return;
-  const token = sessionStorage.getItem('op_token');
   try {
-    const res = await fetch(`${API.BASE_URL}/api/announcements/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
-    if (res.ok) {
-      Admin.toast('حذف شد');
-      loadAnnouncements();
-    }
+    await API.request(`/api/announcements/${id}`, { method: 'DELETE' });
+    Admin.toast('حذف شد');
+    loadAnnouncements();
   } catch (e) {
-    Admin.toast('خطا', 'error');
+    Admin.toast(e.message || 'خطا', 'error');
   }
 }
 
