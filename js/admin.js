@@ -13,6 +13,7 @@ const Admin = {
     { id:'users',     label:'کاربران',         icon:'ti-users',            href:'users.html',    perm:'users' },
     { id:'partners',  label:'تامین‌کنندگان',   icon:'ti-building-store',   href:'partners.html', perm:'partners' },
     { id:'admins',    label:'مدیران',          icon:'ti-shield-lock',      href:'admins.html',   perm:'admins' },
+    { id:'credit',    label:'اعتبارات',        icon:'ti-id-badge',         href:'credit.html',   perm:'credit' },
     { id:'shipping',  label:'حمل و نقل',        icon:'ti-truck',            href:'shipping.html', perm:'orders' },
     { id:'sms',       label:'پیامک',           icon:'ti-message-2',        href:'sms.html',      perm:'sms' },
     { id:'announcements', label:'اعلان‌ها',    icon:'ti-speakerphone',     href:'announcements.html', perm:null },
@@ -29,7 +30,24 @@ const Admin = {
   ],
 
   getUser() {
-    return JSON.parse(sessionStorage.getItem('op_user') || '{}');
+    try { return JSON.parse(sessionStorage.getItem('op_user') || '{}'); }
+    catch (_) { return {}; }
+  },
+
+  escape(value) {
+    return (typeof API !== 'undefined' && API.escapeHtml)
+      ? API.escapeHtml(value)
+      : String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  },
+
+  safeLink(value) {
+    const link = String(value || '').trim();
+    if (!link) return '';
+    try {
+      const url = new URL(link, window.location.href);
+      if (url.origin !== window.location.origin) return '';
+      return url.href;
+    } catch (_) { return ''; }
   },
 
   getPerms() {
@@ -43,18 +61,19 @@ const Admin = {
     if (!perm) return true;
     const perms = this.getPerms();
     if (!perms) return true; // super admin
-    return perms.includes(perm);
+    return Array.isArray(perms) && perms.includes(perm);
   },
 
   renderSidebar(active = '') {
     // Security check: only admin/partner roles can access the admin panel
-    if (!this.protect()) return;
+    const activePage = this.pages.find(page => page.id === active);
+    if (!this.protect(activePage ? activePage.perm : null)) return;
 
     const user = this.getUser();
     let html = `
     <div class="sidebar">
       <div class="sb-logo" style="justify-content:center;padding:22px 16px">
-        <img src="../images/logo.png" style="height:54px;object-fit:contain"/>
+        <img src="../images/logo.png" alt="لوگوی آن‌پارت" style="height:54px;object-fit:contain"/>
       </div>`;
 
     this.sections.forEach(sec => {
@@ -63,14 +82,6 @@ const Admin = {
         return p && this.hasPerm(p.perm);
       });
 
-    // Load notification badge after render
-    setTimeout(() => {
-      this.loadNotifs();
-      // Poll every 30 seconds for new notifications
-      if(!this._notifInterval) {
-        this._notifInterval = setInterval(() => this.loadNotifs(), 60000);
-      }
-    }, 500);
       if (!visibleItems.length) return;
 
       html += `<div class="sb-section"><div class="sb-lbl">${sec.label}</div>`;
@@ -99,7 +110,7 @@ const Admin = {
       <div class="sb-user">
         <div class="sb-av"><i class="ti ti-user"></i></div>
         <div>
-          <div class="sb-un">${user.name || 'مدیر سیستم'}</div>
+          <div class="sb-un">${this.escape(user.name || 'مدیر سیستم')}</div>
           <div class="sb-ur">${user.role === 'admin' ? 'Super Admin' : 'بازاریاب'}</div>
         </div>
         <i class="ti ti-logout sb-logout" onclick="Admin.logout()" title="خروج"></i>
@@ -107,6 +118,12 @@ const Admin = {
     </div>`;
 
     document.getElementById('sidebar-placeholder').innerHTML = html;
+
+    // Load once after render, then refresh at a controlled interval.
+    setTimeout(() => this.loadNotifs(), 500);
+    if(!this._notifInterval) {
+      this._notifInterval = setInterval(() => this.loadNotifs(), 60000);
+    }
 
     // Create overlay only (the blue hamburger button is in topbar)
     if(!document.getElementById('sidebarOverlay')){
@@ -143,7 +160,7 @@ const Admin = {
   renderTopbar(title = '', icon = 'ti-layout-dashboard') {
     document.getElementById('topbar-placeholder').innerHTML = `
     <div class="topbar">
-      <div class="topbar-title"><i class="ti ${icon}"></i>${title}</div>
+      <div class="topbar-title"><i class="ti ${this.escape(icon)}"></i>${this.escape(title)}</div>
       <div class="topbar-right">
         <a href="/shop.html" onclick="sessionStorage.setItem('allow_shop','1')" style="display:flex;align-items:center;gap:5px;background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0;border-radius:8px;padding:6px 12px;text-decoration:none;font-size:12px;font-weight:600;font-family:Vazirmatn,sans-serif" title="مشاهده فروشگاه"><i class="ti ti-external-link" style="font-size:14px"></i>فروشگاه</a>
         <div class="sb-burger" onclick="Admin.toggleSidebar()" title="منو"><i class="ti ti-menu-2"></i></div>
@@ -187,7 +204,11 @@ const Admin = {
       background:#0f172a;color:#fff;border-radius:12px;padding:12px 24px;
       font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px;
       z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.3);white-space:nowrap;`;
-    t.innerHTML = `<i class="ti ti-${type==='success'?'check':'x'}" style="color:${colors[type]||colors.success};font-size:18px"></i>${msg}`;
+    const icon = document.createElement('i');
+    icon.className = `ti ti-${type==='success'?'check':'x'}`;
+    icon.style.cssText = `color:${colors[type]||colors.success};font-size:18px`;
+    t.appendChild(icon);
+    t.appendChild(document.createTextNode(String(msg ?? '')));
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 3000);
   },
@@ -246,18 +267,23 @@ const Admin = {
         list.innerHTML = '<div style="text-align:center;padding:32px;color:#aaa;font-size:13px">هیچ اعلانی وجود ندارد</div>';
         return;
       }
-      list.innerHTML = notifs.map(n => `
-        <div onclick="Admin.goNotif(${n.id},'${n.link||''}')" style="display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-bottom:1px solid #f7f7f7;cursor:pointer;background:${n.is_read?'#fff':'#f0f7ff'};transition:background .15s">
+      list.innerHTML = notifs.map(n => {
+        const type = Object.prototype.hasOwnProperty.call(typeIcon, n.type) ? n.type : 'default';
+        const id = Number.isInteger(Number(n.id)) ? Number(n.id) : 0;
+        const link = encodeURIComponent(this.safeLink(n.link));
+        return `
+        <div onclick="Admin.goNotif(${id},decodeURIComponent('${link}'))" style="display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-bottom:1px solid #f7f7f7;cursor:pointer;background:${n.is_read?'#fff':'#f0f7ff'};transition:background .15s">
           <div style="width:34px;height:34px;border-radius:50%;background:${typeColor[n.type]||'#888'}22;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <i class="ti ${typeIcon[n.type]||'ti-bell'}" style="color:${typeColor[n.type]||'#888'};font-size:15px"></i>
+            <i class="ti ${typeIcon[type]||'ti-bell'}" style="color:${typeColor[type]||'#888'};font-size:15px"></i>
           </div>
           <div style="flex:1;min-width:0">
-            <div style="font-size:12.5px;font-weight:${n.is_read?600:700};color:#111">${n.title}</div>
-            <div style="font-size:11.5px;color:#888;margin-top:2px">${n.body||''}</div>
+            <div style="font-size:12.5px;font-weight:${n.is_read?600:700};color:#111">${this.escape(n.title||'اعلان')}</div>
+            <div style="font-size:11.5px;color:#888;margin-top:2px">${this.escape(n.body||'')}</div>
             <div style="font-size:10.5px;color:#bbb;margin-top:3px">${new Date(n.created_at).toLocaleString('fa-IR')}</div>
           </div>
           ${!n.is_read ? '<div style="width:7px;height:7px;background:#1d4ed8;border-radius:50%;margin-top:5px;flex-shrink:0"></div>' : ''}
-        </div>`).join('');
+        </div>`;
+      }).join('');
     } catch(e) {}
   },
 
@@ -281,7 +307,8 @@ const Admin = {
     const token = sessionStorage.getItem('op_token');
     const API_URL = (typeof API !== 'undefined') ? API.BASE_URL : 'https://onpartpadmin.liara.run';
     await fetch(`${API_URL}/api/notifications/${id}/read`, {method:'PATCH', headers:{'Authorization':'Bearer '+token}});
-    if (link) window.location.href = link;
+    const safeLink = this.safeLink(link);
+    if (safeLink) window.location.href = safeLink;
     else document.getElementById('notifPanel').style.display = 'none';
     this.loadNotifs();
   },

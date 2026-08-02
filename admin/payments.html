@@ -230,18 +230,18 @@ function renderTable(){
   document.getElementById('payTbody').innerHTML=filtered.slice(start,end).map((p,i)=>`
     <tr>
       <td style="text-align:right"><div class="user-cell">
-        <div class="u-av" style="background:${colors[i%colors.length]}">${(p.user_name||'؟')[0]}</div>
-        <div><div style="font-weight:600">${p.user_name||'—'}</div><div style="font-size:11px;color:#aaa">${p.user_phone||''}</div></div>
+        <div class="u-av" style="background:${colors[i%colors.length]}">${Admin.escape((p.user_name||'؟')[0])}</div>
+        <div><div style="font-weight:600">${Admin.escape(p.user_name||'—')}</div><div style="font-size:11px;color:#aaa">${Admin.escape(p.user_phone||'')}</div></div>
       </div></td>
       <td>${p.pay_date?.slice(0,10)||'—'}</td>
       <td style="font-weight:700">${fmt(p.amount)}</td>
-      <td><span class="badge b-blue">${p.bank||'—'}</span></td>
-      <td style="font-family:monospace;font-size:12px;color:#666">${p.track_number||'—'}</td>
+      <td><span class="badge b-blue">${Admin.escape(p.bank||'—')}</span></td>
+      <td style="font-family:monospace;font-size:12px;color:#666">${Admin.escape(p.track_number||'—')}</td>
       <td><div style="display:flex;gap:6px">
         <button style="background:#eff6ff;color:#1d4ed8;border:none;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:600;cursor:pointer" onclick="openModal(${i})"><i class="ti ti-file-text"></i> مشاهده</button>
         <button style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:600;cursor:pointer" onclick="deletePayment(${p.id},this)"><i class="ti ti-trash"></i></button>
       </div></td>
-      <td><span class="badge ${sBadge[p.status]||'b-gray'}">${sLabel[p.status]||p.status}</span></td>
+      <td><span class="badge ${sBadge[p.status]||'b-gray'}">${sLabel[p.status]||'نامشخص'}</span></td>
       <td><div class="action-btns">
         <button class="ab ab-view" onclick="openModal(${i})"><i class="ti ti-eye"></i></button>
         ${p.status==='pending'?`
@@ -273,22 +273,22 @@ function openModal(i){
       <div class="m-av" style="background:${colors[i%colors.length]}">${(p.user_name||'؟')[0]}</div>
       <div style="flex:1">
         <div style="font-size:20px;font-weight:900">${fmt(p.amount)} تومان</div>
-        <div style="font-size:12px;color:rgba(255,255,255,.7)">${p.user_name} — ${p.bank}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7)">${Admin.escape(p.user_name||'—')} — ${Admin.escape(p.bank||'—')}</div>
       </div>
-      <span class="badge ${sBadge[p.status]||'b-gray'}">${sLabel[p.status]||p.status}</span>
+      <span class="badge ${sBadge[p.status]||'b-gray'}">${sLabel[p.status]||'نامشخص'}</span>
     </div>
     <div class="info-grid">
       <div class="info-box"><div class="info-lbl">تاریخ واریز</div><div class="info-val">${toJalali(p.pay_date||p.created_at)||'—'}</div></div>
-      <div class="info-box"><div class="info-lbl">بانک مبدأ</div><div class="info-val">${p.bank||'—'}</div></div>
-      <div class="info-box"><div class="info-lbl">کارت مبدأ</div><div class="info-val" style="direction:ltr;font-family:monospace">${p.src_card||'—'}</div></div>
-      <div class="info-box"><div class="info-lbl">حساب مقصد</div><div class="info-val" style="direction:ltr;font-family:monospace">${p.dest_account||'—'}</div></div>
-      <div class="info-box"><div class="info-lbl">شماره پیگیری</div><div class="info-val" style="direction:ltr;font-family:monospace">${p.track_number||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">بانک مبدأ</div><div class="info-val">${Admin.escape(p.bank||'—')}</div></div>
+      <div class="info-box"><div class="info-lbl">کارت مبدأ</div><div class="info-val" style="direction:ltr;font-family:monospace">${Admin.escape(p.src_card||'—')}</div></div>
+      <div class="info-box"><div class="info-lbl">حساب مقصد</div><div class="info-val" style="direction:ltr;font-family:monospace">${Admin.escape(p.dest_account||'—')}</div></div>
+      <div class="info-box"><div class="info-lbl">شماره پیگیری</div><div class="info-val" style="direction:ltr;font-family:monospace">${Admin.escape(p.track_number||'—')}</div></div>
       <div class="info-box"><div class="info-lbl">مبلغ</div><div class="info-val">${fmt(p.amount)} تومان</div></div>
     </div>
     ${p.receipt_file ? `
-    <a class="receipt-zone" href="https://onpartpadmin.liara.run/uploads/${p.receipt_file}" target="_blank" style="text-decoration:none;cursor:pointer">
+    <a class="receipt-zone" href="https://onpartpadmin.liara.run/uploads/${encodeURIComponent(p.receipt_file)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;cursor:pointer">
       ${/\.(jpg|jpeg|png)$/i.test(p.receipt_file)
-        ? `<img src="https://onpartpadmin.liara.run/uploads/${p.receipt_file}" style="max-width:100%;max-height:220px;border-radius:8px;display:block;margin:0 auto 8px"/>`
+        ? `<img src="https://onpartpadmin.liara.run/uploads/${encodeURIComponent(p.receipt_file)}" alt="تصویر فیش پرداخت" style="max-width:100%;max-height:220px;border-radius:8px;display:block;margin:0 auto 8px"/>`
         : `<i class="ti ti-file-type-pdf" style="font-size:32px;color:#dc2626"></i>`}
       <span style="font-size:13px;color:#1d4ed8;font-weight:600">مشاهده فیش در اندازه کامل</span>
     </a>` : `
@@ -297,7 +297,7 @@ function openModal(i){
       <span style="font-size:13px;color:#999">فیشی آپلود نشده است</span>
     </div>`}
     ${isPending?`<textarea class="reject-note" rows="2" placeholder="دلیل رد (اختیاری)..." id="rejectNote"></textarea>`:''}
-    ${p.note?`<div style="background:#fee2e2;border-radius:9px;padding:10px;font-size:13px;color:#dc2626"><strong>دلیل رد:</strong> ${p.note}</div>`:''}`;
+    ${p.note?`<div style="background:#fee2e2;border-radius:9px;padding:10px;font-size:13px;color:#dc2626"><strong>دلیل رد:</strong> ${Admin.escape(p.note)}</div>`:''}`;
 
   document.getElementById('modalFoot').innerHTML=isPending?`
     <button class="btn-approve" onclick="approvePayment()"><i class="ti ti-check"></i>تأیید پرداخت</button>
@@ -310,9 +310,7 @@ function openModal(i){
 function closeModal(){document.getElementById('modal').classList.remove('show');}
 
 function toast(msg,ok=true){
-  const t=document.getElementById('toast');
-  t.innerHTML=`<i class="ti ti-${ok?'check':'x'}" style="color:${ok?'#4ade80':'#f87171'};font-size:18px"></i>${msg}`;
-  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
+  Admin.toast(msg,ok?'success':'error');
 }
 
 async function approvePayment(){

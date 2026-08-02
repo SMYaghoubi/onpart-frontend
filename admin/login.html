@@ -59,12 +59,12 @@
 
   <div class="card">
     <div class="logo-wrap">
-      <img src="../images/logo.png" style="height:44px;object-fit:contain"/>
+      <img src="../images/logo.png" alt="لوگوی آن‌پارت" style="height:44px;object-fit:contain"/>
       <div class="logo-name">On<span>Part</span></div>
       <div class="logo-sub">پنل مدیریت سامانه بازاریابان</div>
     </div>
 
-    <div class="alert" id="errorAlert">
+    <div class="alert" id="errorAlert" role="alert" aria-live="polite">
       <i class="ti ti-alert-circle"></i>
       <span id="errorMsg">نام کاربری یا رمز عبور اشتباه است</span>
     </div>
@@ -102,6 +102,7 @@
     </div>
   </div>
 
+  <script src="../js/api.js"></script>
   <script>
     function togglePw(){
       const inp = document.getElementById('password');
@@ -139,24 +140,14 @@
       btn.disabled = true;
 
       try {
-        // TODO: Replace with real API call
-        // const res = await fetch('/api/admin/login', {
-        //   method: 'POST',
-        //   headers: {'Content-Type':'application/json'},
-        //   body: JSON.stringify({username, password})
-        // });
-        // const data = await res.json();
-        // if(!data.token) throw new Error(data.message || 'خطا');
-        // sessionStorage.setItem('op_token', data.token);
-        // sessionStorage.setItem('op_user', JSON.stringify(data.user));
-
-        const res = await fetch('https://onpartpadmin.liara.run/api/auth/login', {
+        const data = await API.request('/api/auth/login', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({username, password})
         });
-        const data = await res.json();
-        if(!res.ok) throw new Error(data.message || 'نام کاربری یا رمز اشتباه است');
+        if(!data.token || !data.user) throw new Error('پاسخ ورود نامعتبر است');
+        if(data.user.role !== 'admin' && data.user.role !== 'partner') {
+          throw new Error('این حساب اجازه ورود به پنل مدیریت را ندارد');
+        }
         sessionStorage.setItem('op_token', data.token);
         sessionStorage.setItem('op_user', JSON.stringify(data.user));
         window.location.href = '/admin';

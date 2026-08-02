@@ -211,9 +211,7 @@ Admin.renderSidebar('settings');
 Admin.renderTopbar('تنظیمات سایت','ti-settings');
 
 function toast(msg,ok=true){
-  const t=document.getElementById('toast');
-  t.innerHTML=`<i class="ti ti-${ok?'check':'x'}" style="color:${ok?'#4ade80':'#f87171'};font-size:18px"></i>${msg}`;
-  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
+  Admin.toast(msg,ok?'success':'error');
 }
 
 function setToggle(id, isOn){
@@ -356,12 +354,13 @@ async function changeAdminPw(){
 
 function createBankItem(b){
   b = b || {};
+  const logoUrl = API.safeUrl(b.logo);
   const div = document.createElement('div');
   div.className = 'bank-item';
   div.innerHTML = `
     <div class="bank-item-logo">
       <div class="bank-logo-preview" id="logoPreview_${Date.now()}">
-        ${b.logo ? `<img src="${b.logo}"/>` : '<i class="ti ti-building-bank"></i>'}
+        ${logoUrl ? `<img src="${Admin.escape(logoUrl)}" alt="لوگوی ${Admin.escape(b.name||'بانک')}"/>` : '<i class="ti ti-building-bank"></i>'}
       </div>
       <div style="flex:1">
         <div style="font-size:12px;color:#888;margin-bottom:6px">لوگو بانک (اختیاری)</div>
@@ -370,11 +369,11 @@ function createBankItem(b){
       </div>
     </div>
     <div class="bank-item-grid">
-      <div class="fg" style="margin:0"><label>نام بانک</label><input class="finput" placeholder="مثلاً بانک ملت" value="${b.name||''}" style="padding:8px 10px"/></div>
-      <div class="fg" style="margin:0"><label>نام صاحب حساب</label><input class="finput" placeholder="نام و نام خانوادگی" value="${b.owner||''}" style="padding:8px 10px"/></div>
-      <div class="fg" style="margin:0"><label>شماره کارت</label><input class="finput" placeholder="XXXX-XXXX-XXXX-XXXX" value="${b.card||''}" style="direction:ltr;padding:8px 10px"/></div>
-      <div class="fg" style="margin:0"><label>شماره حساب</label><input class="finput" placeholder="شماره حساب" value="${b.account||''}" style="direction:ltr;padding:8px 10px"/></div>
-      <div class="fg" style="margin:0;grid-column:1/-1"><label>شماره شبا</label><input class="finput" placeholder="IR..." value="${b.sheba||''}" style="direction:ltr;padding:8px 10px"/></div>
+      <div class="fg" style="margin:0"><label>نام بانک</label><input class="finput" placeholder="مثلاً بانک ملت" value="${Admin.escape(b.name||'')}" style="padding:8px 10px"/></div>
+      <div class="fg" style="margin:0"><label>نام صاحب حساب</label><input class="finput" placeholder="نام و نام خانوادگی" value="${Admin.escape(b.owner||'')}" style="padding:8px 10px"/></div>
+      <div class="fg" style="margin:0"><label>شماره کارت</label><input class="finput" placeholder="XXXX-XXXX-XXXX-XXXX" value="${Admin.escape(b.card||'')}" style="direction:ltr;padding:8px 10px"/></div>
+      <div class="fg" style="margin:0"><label>شماره حساب</label><input class="finput" placeholder="شماره حساب" value="${Admin.escape(b.account||'')}" style="direction:ltr;padding:8px 10px"/></div>
+      <div class="fg" style="margin:0;grid-column:1/-1"><label>شماره شبا</label><input class="finput" placeholder="IR..." value="${Admin.escape(b.sheba||'')}" style="direction:ltr;padding:8px 10px"/></div>
     </div>
     <div class="bank-item-del">
       <button onclick="this.closest('.bank-item').remove()" style="background:#fee2e2;color:#dc2626;border:none;border-radius:7px;padding:7px 14px;font-family:Vazirmatn,sans-serif;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px"><i class="ti ti-trash"></i>حذف حساب</button>
@@ -391,7 +390,12 @@ function previewLogo(input){
   const reader = new FileReader();
   reader.onload = function(e){
     const preview = input.closest('.bank-item-logo').querySelector('.bank-logo-preview');
-    preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:contain"/>`;
+    preview.replaceChildren();
+    const image = document.createElement('img');
+    image.src = e.target.result;
+    image.alt = 'پیش‌نمایش لوگوی بانک';
+    image.style.cssText = 'width:100%;height:100%;object-fit:contain';
+    preview.appendChild(image);
     input.dataset.logo = e.target.result;
   };
   reader.readAsDataURL(input.files[0]);
@@ -407,7 +411,17 @@ if(logoInputEl){
     const reader=new FileReader();
     reader.onload=function(ev){
       const zone = document.getElementById("logoZone");
-      if(zone) zone.innerHTML=`<img src="${ev.target.result}" style="max-height:80px;border-radius:8px;margin:0 auto;display:block"/><div style="font-size:12px;color:#16a34a;margin-top:8px;text-align:center">✓ لوگو انتخاب شد</div>`;
+      if(zone) {
+        zone.replaceChildren();
+        const image = document.createElement('img');
+        image.src = ev.target.result;
+        image.alt = 'پیش‌نمایش لوگوی سایت';
+        image.style.cssText = 'max-height:80px;border-radius:8px;margin:0 auto;display:block';
+        const note = document.createElement('div');
+        note.style.cssText = 'font-size:12px;color:#16a34a;margin-top:8px;text-align:center';
+        note.textContent = '✓ لوگو انتخاب شد';
+        zone.append(image, note);
+      }
     };
     reader.readAsDataURL(file);
     toast("لوگو آپلود شد — پس از ذخیره اعمال می‌شود");

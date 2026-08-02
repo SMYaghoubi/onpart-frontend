@@ -301,9 +301,7 @@ let orders=[],filtered=[],allProducts=[],curOrderId=null,curSmsPhone='',noItemCo
 const PER=15;let page=1;
 
 function toast(msg,ok=true){
-  const t=document.getElementById('toast');
-  t.innerHTML=`<i class="ti ti-${ok?'check':'x'}" style="color:${ok?'#4ade80':'#f87171'};font-size:18px"></i>${msg}`;
-  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
+  Admin.toast(msg,ok?'success':'error');
 }
 
 // ── LOAD ──
@@ -356,17 +354,17 @@ function renderTable(){
     <tr>
       <td style="font-weight:700">#${fa(o.id)}</td>
       <td style="text-align:right"><div style="display:flex;align-items:center;gap:8px">
-        <div class="u-av" style="background:${colors[i%colors.length]}">${(o.user_name||'؟')[0]}</div>
-        <div><div style="font-weight:600">${o.user_name||'—'}</div><div style="font-size:11px;color:#aaa">${o.user_phone||''}</div></div>
+        <div class="u-av" style="background:${colors[i%colors.length]}">${Admin.escape((o.user_name||'؟')[0])}</div>
+        <div><div style="font-weight:600">${Admin.escape(o.user_name||'—')}</div><div style="font-size:11px;color:#aaa">${Admin.escape(o.user_phone||'')}</div></div>
       </div></td>
       <td>${toJalali(o.created_at)||'—'}</td>
       <td>${fa(o.items_count||0)} قلم</td>
       <td style="font-weight:700">${fmt(o.total||0)}</td>
-      <td><span class="badge ${statusBadge[o.status]||'b-amber'}">${statusLabels[o.status]||o.status}</span></td>
+      <td><span class="badge ${statusBadge[o.status]||'b-amber'}">${statusLabels[o.status]||'نامشخص'}</span></td>
       <td><div class="action-btns">
         <button class="ab ab-view" onclick="openDetail(${i})" title="مشاهده"><i class="ti ti-eye"></i></button>
         <button class="ab ab-edit" onclick="openInvoiceEdit(${i})" title="ویرایش فاکتور"><i class="ti ti-file-invoice"></i></button>
-        <button class="ab ab-sms" onclick="openSms('${o.user_phone||''}','${o.user_name||''}')" title="پیامک"><i class="ti ti-message-2"></i></button>
+        <button class="ab ab-sms" onclick="openSms(decodeURIComponent('${encodeURIComponent(o.user_phone||'')}'),decodeURIComponent('${encodeURIComponent(o.user_name||'')}'))" title="پیامک"><i class="ti ti-message-2"></i></button>
         <button class="ab ab-del" onclick="deleteOrder(${o.id},this)" title="حذف"><i class="ti ti-trash"></i></button>
       </div></td>
     </tr>`).join('');
@@ -399,8 +397,8 @@ async function openDetail(i){
   const idx=statusList.indexOf(o.status);
   document.getElementById('detailBody').innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-      <div style="background:#f8fafc;border-radius:9px;padding:12px"><div style="font-size:11px;color:#aaa;margin-bottom:3px">مشتری</div><div style="font-weight:700">${o.user_name||'—'}</div></div>
-      <div style="background:#f8fafc;border-radius:9px;padding:12px"><div style="font-size:11px;color:#aaa;margin-bottom:3px">موبایل</div><div style="font-weight:700;direction:ltr">${o.user_phone||'—'}</div></div>
+      <div style="background:#f8fafc;border-radius:9px;padding:12px"><div style="font-size:11px;color:#aaa;margin-bottom:3px">مشتری</div><div style="font-weight:700">${Admin.escape(o.user_name||'—')}</div></div>
+      <div style="background:#f8fafc;border-radius:9px;padding:12px"><div style="font-size:11px;color:#aaa;margin-bottom:3px">موبایل</div><div style="font-weight:700;direction:ltr">${Admin.escape(o.user_phone||'—')}</div></div>
       <div style="background:#f8fafc;border-radius:9px;padding:12px"><div style="font-size:11px;color:#aaa;margin-bottom:3px">تاریخ</div><div style="font-weight:700">${toJalali(o.created_at)||'—'}</div></div>
       <div style="background:#f8fafc;border-radius:9px;padding:12px"><div style="font-size:11px;color:#aaa;margin-bottom:3px">مبلغ</div><div style="font-weight:700;color:#1d4ed8">${fmt(o.total||0)} تومان</div></div>
     </div>
@@ -455,8 +453,8 @@ async function loadDetailItems(orderId){
     el.innerHTML=items.map(it=>`
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eef0f3;font-size:12.5px">
         <div style="flex:1">
-          <div style="font-weight:600;color:#222">${it.description||'محصول حذف‌شده'}</div>
-          <div style="font-size:10.5px;color:#aaa;font-family:monospace;margin-top:2px">کد: ${it.code||'—'}${it.brand?' · '+it.brand:''}</div>
+          <div style="font-weight:600;color:#222">${Admin.escape(it.description||'محصول حذف‌شده')}</div>
+          <div style="font-size:10.5px;color:#aaa;font-family:monospace;margin-top:2px">کد: ${Admin.escape(it.code||'—')}${it.brand?' · '+Admin.escape(it.brand):''}</div>
         </div>
         <div style="color:#888;white-space:nowrap;margin:0 10px">${fa(it.quantity)} × ${fmt(it.price)}${it.discount?` (${fa(it.discount)}٪-)`:''}</div>
         <div style="font-weight:700;color:#1d4ed8;white-space:nowrap">${fmt(it.total)} ت</div>
