@@ -217,7 +217,7 @@ const OnPart = {
     var token = sessionStorage.getItem('op_token');
     if(!token) { el.textContent = this.fa(0); return; }
     var cart = await this.getCart();
-    var total = cart.reduce(function(s,i){ return s+(i.qty||0); }, 0);
+    var total = cart.filter(function(i){ return Number(i.qty) > 0; }).length;
     el.textContent = this.fa(total);
   },
  
