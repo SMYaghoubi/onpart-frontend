@@ -181,7 +181,10 @@ function updateStats() {
 
 function fmtDate(d) {
   if (!d) return '—';
-  return new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }).format(new Date(d));
+  const date = new Date(d);
+  if (Number.isNaN(date.getTime())) return '—';
+  const time = Admin.fa(String(date.getHours()).padStart(2,'0')) + ':' + Admin.fa(String(date.getMinutes()).padStart(2,'0'));
+  return toJalali(date.toISOString()) + ' - ' + time;
 }
 
 function renderTable() {

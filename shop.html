@@ -224,7 +224,10 @@
   <div id="notifPanel" style="display:none;position:fixed;top:64px;left:16px;width:300px;background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:600;border:1px solid #e5e7eb;overflow:hidden">
     <div style="padding:14px 16px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between">
       <span style="font-size:14px;font-weight:700;color:#111">اعلان‌ها</span>
-      <button onclick="toggleNotif()" style="background:none;border:none;cursor:pointer;font-size:18px;color:#888"><i class="ti ti-x"></i></button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button onclick="unlockAnnouncementSound();playAnnouncementSound()" style="background:#eff6ff;color:#1d4ed8;border:none;border-radius:7px;padding:5px 8px;cursor:pointer;font-family:Vazirmatn;font-size:10.5px"><i class="ti ti-volume"></i> تست صدا</button>
+        <button onclick="toggleNotif()" aria-label="بستن اعلان‌ها" style="background:none;border:none;cursor:pointer;font-size:18px;color:#888"><i class="ti ti-x"></i></button>
+      </div>
     </div>
     <div id="notifList" style="max-height:300px;overflow-y:auto">
       <div style="padding:20px;text-align:center;color:#aaa;font-size:13px">
@@ -729,24 +732,7 @@
       } catch(e) {}
     }
 
-    function playAnnouncementSound(){
-      if(!announcementSoundUnlocked) return;
-      if('speechSynthesis' in window && 'SpeechSynthesisUtterance' in window){
-        try {
-          var utterance = new SpeechSynthesisUtterance('آن پارت');
-          utterance.lang = 'fa-IR';
-          utterance.rate = 0.88;
-          utterance.pitch = 1;
-          utterance.volume = 0.95;
-          var voices = window.speechSynthesis.getVoices();
-          var persianVoice = voices.find(function(voice){ return /^fa(?:-|_)/i.test(voice.lang); });
-          if(persianVoice) utterance.voice = persianVoice;
-          window.speechSynthesis.cancel();
-          window.speechSynthesis.speak(utterance);
-          return;
-        } catch(e) {}
-      }
-      // Short chime fallback for devices without speech synthesis.
+    function playFallbackChime(){
       if(!announcementAudio || announcementAudio.state !== 'running') return;
       try {
         var now = announcementAudio.currentTime;
@@ -764,6 +750,29 @@
           oscillator.stop(now + delay + 0.24);
         });
       } catch(e) {}
+    }
+
+    function playAnnouncementSound(){
+      if(!announcementSoundUnlocked) return;
+      if('speechSynthesis' in window && 'SpeechSynthesisUtterance' in window){
+        try {
+          var voices = window.speechSynthesis.getVoices();
+          var persianVoice = voices.find(function(voice){ return /^fa(?:-|_)/i.test(voice.lang); });
+          var englishVoice = voices.find(function(voice){ return /^en(?:-|_)/i.test(voice.lang); });
+          var utterance = new SpeechSynthesisUtterance(persianVoice ? 'آن پارت' : 'On Part');
+          utterance.lang = persianVoice ? 'fa-IR' : 'en-US';
+          if(persianVoice) utterance.voice = persianVoice;
+          else if(englishVoice) utterance.voice = englishVoice;
+          utterance.rate = 0.82;
+          utterance.pitch = 1;
+          utterance.volume = 1;
+          utterance.onerror = playFallbackChime;
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.speak(utterance);
+          return;
+        } catch(e) {}
+      }
+      playFallbackChime();
     }
 
     ['pointerdown','keydown'].forEach(function(eventName){
