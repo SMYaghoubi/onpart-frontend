@@ -716,63 +716,23 @@
     }
 
     var shopAnnouncements = [];
-    var announcementAudio = null;
+    var announcementAudio = new Audio('/audio/onpart-notification.mp3');
+    announcementAudio.preload = 'auto';
     var announcementSoundUnlocked = false;
     var announcementStream = null;
     var announcementPolling = null;
 
     function unlockAnnouncementSound(){
       announcementSoundUnlocked = true;
-      if(announcementAudio) return;
-      try {
-        var AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if(!AudioContextClass) return;
-        announcementAudio = new AudioContextClass();
-        if(announcementAudio.state === 'suspended') announcementAudio.resume();
-      } catch(e) {}
-    }
-
-    function playFallbackChime(){
-      if(!announcementAudio || announcementAudio.state !== 'running') return;
-      try {
-        var now = announcementAudio.currentTime;
-        var gain = announcementAudio.createGain();
-        gain.gain.setValueAtTime(0.0001, now);
-        gain.gain.exponentialRampToValueAtTime(0.16, now + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.48);
-        gain.connect(announcementAudio.destination);
-        [0, 0.16].forEach(function(delay){
-          var oscillator = announcementAudio.createOscillator();
-          oscillator.type = 'sine';
-          oscillator.frequency.setValueAtTime(delay ? 1046 : 784, now + delay);
-          oscillator.connect(gain);
-          oscillator.start(now + delay);
-          oscillator.stop(now + delay + 0.24);
-        });
-      } catch(e) {}
     }
 
     function playAnnouncementSound(){
       if(!announcementSoundUnlocked) return;
-      if('speechSynthesis' in window && 'SpeechSynthesisUtterance' in window){
-        try {
-          var voices = window.speechSynthesis.getVoices();
-          var persianVoice = voices.find(function(voice){ return /^fa(?:-|_)/i.test(voice.lang); });
-          var englishVoice = voices.find(function(voice){ return /^en(?:-|_)/i.test(voice.lang); });
-          var utterance = new SpeechSynthesisUtterance(persianVoice ? 'آن پارت' : 'On Part');
-          utterance.lang = persianVoice ? 'fa-IR' : 'en-US';
-          if(persianVoice) utterance.voice = persianVoice;
-          else if(englishVoice) utterance.voice = englishVoice;
-          utterance.rate = 0.82;
-          utterance.pitch = 1;
-          utterance.volume = 1;
-          utterance.onerror = playFallbackChime;
-          window.speechSynthesis.cancel();
-          window.speechSynthesis.speak(utterance);
-          return;
-        } catch(e) {}
-      }
-      playFallbackChime();
+      try {
+        announcementAudio.pause();
+        announcementAudio.currentTime = 0;
+        announcementAudio.play().catch(function(){});
+      } catch(e) {}
     }
 
     ['pointerdown','keydown'].forEach(function(eventName){
