@@ -708,9 +708,47 @@
     }
 
     var shopAnnouncements = [];
+    var announcementAudio = null;
+    var announcementStream = null;
+    var announcementPolling = null;
 
-    async function loadAnnouncements(){
+    function unlockAnnouncementSound(){
+      if(announcementAudio) return;
       try {
+        var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if(!AudioContextClass) return;
+        announcementAudio = new AudioContextClass();
+        if(announcementAudio.state === 'suspended') announcementAudio.resume();
+      } catch(e) {}
+    }
+
+    function playAnnouncementSound(){
+      if(!announcementAudio || announcementAudio.state !== 'running') return;
+      try {
+        var now = announcementAudio.currentTime;
+        var gain = announcementAudio.createGain();
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.16, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.48);
+        gain.connect(announcementAudio.destination);
+        [0, 0.16].forEach(function(delay){
+          var oscillator = announcementAudio.createOscillator();
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(delay ? 1046 : 784, now + delay);
+          oscillator.connect(gain);
+          oscillator.start(now + delay);
+          oscillator.stop(now + delay + 0.24);
+        });
+      } catch(e) {}
+    }
+
+    ['pointerdown','keydown'].forEach(function(eventName){
+      document.addEventListener(eventName, unlockAnnouncementSound, { once:true, passive:true });
+    });
+
+    async function loadAnnouncements(notifyNew){
+      try {
+        var previousIds = shopAnnouncements.map(function(a){ return Number(a.id); });
         var data = await API.request('/api/announcements');
         shopAnnouncements = data.announcements || [];
         var list = document.getElementById('notifList');
@@ -733,7 +771,21 @@
             + '</div></div></div>';
         }).join('');
         updateNotifDot();
+        if(notifyNew && shopAnnouncements.some(function(a){ return previousIds.indexOf(Number(a.id)) === -1; })) {
+          playAnnouncementSound();
+          OnPart.toast('اعلان جدید دریافت شد', 'info');
+        }
       } catch(e){}
+    }
+
+    function connectAnnouncementStream(){
+      if(!window.EventSource || announcementStream) return;
+      announcementStream = new EventSource(API.BASE_URL + '/api/announcements/stream');
+      announcementStream.addEventListener('announcement', function(){ loadAnnouncements(true); });
+      announcementStream.onerror = function(){
+        // EventSource reconnects automatically. Polling remains as a fallback.
+      };
+      if(!announcementPolling) announcementPolling = setInterval(function(){ loadAnnouncements(true); }, 30000);
     }
     document.addEventListener('click', function(e){
       var p = document.getElementById('notifPanel');
@@ -743,7 +795,7 @@
       }
     });
 
-    checkShopSettings().then(function(ok){ if(ok){ loadProducts(); loadAnnouncements(); } });
+    checkShopSettings().then(function(ok){ if(ok){ loadProducts(); loadAnnouncements(false).then(connectAnnouncementStream); } });
   </script>
 </body>
 </html>
