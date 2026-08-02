@@ -187,7 +187,7 @@
             <div class="req-lbl">اختیاری</div>
           </div>
           <input type="file" id="f_idcard" accept="image/*" style="display:none" onchange="previewImg(this,'prev_idcard')"/>
-          <img id="prev_idcard" class="preview"/>
+          <img id="prev_idcard" class="preview" alt="پیش‌نمایش کارت ملی"/>
         </div>
         <div class="fg">
           <label class="flabel">عکس تابلو فروشگاه <span class="req">*</span></label>
@@ -197,7 +197,7 @@
             <div class="req-lbl">اجباری</div>
           </div>
           <input type="file" id="f_shopimg" accept="image/*" style="display:none" onchange="previewImg(this,'prev_shopimg')"/>
-          <img id="prev_shopimg" class="preview"/>
+          <img id="prev_shopimg" class="preview" alt="پیش‌نمایش تصویر فروشگاه"/>
           <div class="err" id="shopImgErr"></div>
         </div>
       </div>
@@ -217,6 +217,7 @@
   </div>
 </div>
  
+<script src="js/api.js"></script>
 <script>
 let currentPhone = '';
 let timerInterval = null;

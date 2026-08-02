@@ -95,7 +95,7 @@
 <body>
 
 <div style="background:#fff;border-bottom:1px solid #e5e7eb;height:56px;display:flex;align-items:center;padding:0 28px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.06)">
-  <a href="/"><img src="images/logo.png" style="height:38px;object-fit:contain"/></a>
+  <a href="/" aria-label="صفحه اصلی آن‌پارت"><img src="images/logo.png" alt="آن‌پارت" style="height:38px;object-fit:contain"/></a>
   <a href="/" style="margin-right:auto;display:flex;align-items:center;gap:6px;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 14px;text-decoration:none;color:#555;font-size:13px;font-weight:600;font-family:Vazirmatn,sans-serif"><i class="ti ti-arrow-right"></i>بازگشت به صفحه اصلی</a>
 </div>
 
@@ -296,7 +296,14 @@ function renderBrands(){
   brands.forEach(b => {
     const tag = document.createElement('div');
     tag.className = 'brand-tag';
-    tag.innerHTML = `${b}<button type="button" onclick="removeBrand('${b}')" title="حذف">×</button>`;
+    tag.appendChild(document.createTextNode(b));
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.title = 'حذف';
+    removeBtn.setAttribute('aria-label', `حذف برند ${b}`);
+    removeBtn.textContent = '×';
+    removeBtn.addEventListener('click', () => removeBrand(b));
+    tag.appendChild(removeBtn);
     wrap.appendChild(tag);
   });
   wrap.appendChild(inp);

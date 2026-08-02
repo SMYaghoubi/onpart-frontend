@@ -39,6 +39,38 @@ const API = {
     }
   },
 
+  escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[char]);
+  },
+
+  safeUrl(value) {
+    try {
+      const url = new URL(String(value || ''), window.location.origin);
+      return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+    } catch (_) {
+      return '';
+    }
+  },
+
+  installFetchTimeout() {
+    if(window.__onpartFetchTimeoutInstalled) return;
+    window.__onpartFetchTimeoutInstalled = true;
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = (input, options = {}) => {
+      if(options.signal) return nativeFetch(input, options);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), this.TIMEOUT_MS);
+      return nativeFetch(input, { ...options, signal: controller.signal })
+        .finally(() => clearTimeout(timeout));
+    };
+  },
+
   // ── HEADERS ──
   headers() {
     const token = sessionStorage.getItem('op_token');
@@ -270,3 +302,5 @@ const API = {
     return res.json();
   }
 };
+
+API.installFetchTimeout();

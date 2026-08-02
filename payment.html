@@ -366,6 +366,8 @@
     }
  
     let allBanks = [];
+    const safeText = value => API.escapeHtml(value == null ? '' : value);
+    const safeCopyValue = value => encodeURIComponent(String(value == null ? '' : value));
  
     function updateDestOptions(){
       const type = document.getElementById('destType').value;
@@ -376,7 +378,7 @@
           if(type==='card'){ val=b.card||''; lbl=`${b.name} — ${b.owner} — ${b.card||'ندارد'}`; }
           else if(type==='account'){ val=b.account||''; lbl=`${b.name} — ${b.owner} — ${b.account||'ندارد'}`; }
           else { val=b.sheba||''; lbl=`${b.name} — ${b.owner} — ${b.sheba||'ندارد'}`; }
-          return val ? `<option value="${val}">${lbl}</option>` : '';
+          return val ? `<option value="${safeText(val)}">${safeText(lbl)}</option>` : '';
         }).filter(Boolean).join('');
     }
  
@@ -395,32 +397,33 @@
           document.getElementById('bankCards').innerHTML = banks.map((b,i)=>{
             const color=colors[i%colors.length];
             const av=b.name?b.name[0]:'ب';
-            const logoHtml=b.logo?`<img src="${b.logo}" style="width:36px;height:36px;object-fit:contain"/>`:`<span>${av}</span>`;
+            const logoUrl=API.safeUrl(b.logo);
+            const logoHtml=logoUrl?`<img src="${safeText(logoUrl)}" alt="لوگوی ${safeText(b.name||'بانک')}" style="width:36px;height:36px;object-fit:contain"/>`:`<span>${safeText(av)}</span>`;
             const logoBg=b.logo?'transparent':color;
             return `<div class="bank-card">
               <div class="bank-head">
                 <div class="bank-logo" style="background:${logoBg}">${logoHtml}</div>
-                <div><div class="bank-name">${b.name||'بانک'}</div><div class="bank-owner">${b.owner||''}</div></div>
+                <div><div class="bank-name">${safeText(b.name||'بانک')}</div><div class="bank-owner">${safeText(b.owner||'')}</div></div>
               </div>
               ${b.card?`<div class="bank-row">
                 <span class="bank-lbl">شماره کارت</span>
                 <div style="display:flex;align-items:center;gap:6px">
-                  <span class="bank-val" style="direction:ltr;letter-spacing:1px">${b.card}</span>
-                  <button onclick="copyText('${b.card}',this)" class="copy-mini"><i class="ti ti-copy"></i></button>
+                  <span class="bank-val" style="direction:ltr;letter-spacing:1px">${safeText(b.card)}</span>
+                  <button onclick="copyText(decodeURIComponent('${safeCopyValue(b.card)}'),this)" class="copy-mini" aria-label="کپی شماره کارت"><i class="ti ti-copy"></i></button>
                 </div>
               </div>`:''}
               ${b.account?`<div class="bank-row">
                 <span class="bank-lbl">شماره حساب</span>
                 <div style="display:flex;align-items:center;gap:6px">
-                  <span class="bank-val" style="direction:ltr">${b.account}</span>
-                  <button onclick="copyText('${b.account}',this)" class="copy-mini"><i class="ti ti-copy"></i></button>
+                  <span class="bank-val" style="direction:ltr">${safeText(b.account)}</span>
+                  <button onclick="copyText(decodeURIComponent('${safeCopyValue(b.account)}'),this)" class="copy-mini" aria-label="کپی شماره حساب"><i class="ti ti-copy"></i></button>
                 </div>
               </div>`:''}
               ${b.sheba?`<div class="bank-row">
                 <span class="bank-lbl">شبا</span>
                 <div style="display:flex;align-items:center;gap:6px">
-                  <span class="bank-val" style="direction:ltr;font-size:11px">${b.sheba}</span>
-                  <button onclick="copyText('${b.sheba}',this)" class="copy-mini"><i class="ti ti-copy"></i></button>
+                  <span class="bank-val" style="direction:ltr;font-size:11px">${safeText(b.sheba)}</span>
+                  <button onclick="copyText(decodeURIComponent('${safeCopyValue(b.sheba)}'),this)" class="copy-mini" aria-label="کپی شماره شبا"><i class="ti ti-copy"></i></button>
                 </div>
               </div>`:''}
             </div>`;
@@ -465,23 +468,23 @@
               <div class="hist-icon ${statusIcon[p.status]||'hi-pending'}"><i class="ti ti-${statusGlyph[p.status]||'clock'}"></i></div>
               <div style="flex:1">
                 <div class="hist-amount">${OnPart.fmt(p.amount||0)} تومان</div>
-                <div class="hist-date">${formatPayDate(p.pay_date||p.created_at)} — ${p.bank||''}</div>
+                <div class="hist-date">${formatPayDate(p.pay_date||p.created_at)} — ${safeText(p.bank||'')}</div>
               </div>
-              <span class="badge ${statusBadge[p.status]||'b-amber'}">${statusText[p.status]||p.status}</span>
+              <span class="badge ${statusBadge[p.status]||'b-amber'}">${statusText[p.status]||'نامشخص'}</span>
               <i class="ti ti-chevron-down" id="histChev_${i}" style="color:#bbb;font-size:14px;transition:transform .2s"></i>
             </div>
             <div id="histDetail_${i}" style="display:none;margin-top:10px;padding:12px;background:#f8fafc;border-radius:10px;font-size:12.5px">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-                <div><span style="color:#aaa">شماره پیگیری:</span><div style="font-weight:600;direction:ltr">${p.track_number||'—'}</div></div>
-                <div><span style="color:#aaa">کارت مبدأ:</span><div style="font-weight:600;direction:ltr">${p.src_card||'—'}</div></div>
-                <div><span style="color:#aaa">حساب مقصد:</span><div style="font-weight:600;direction:ltr">${p.dest_account||'—'}</div></div>
-                <div><span style="color:#aaa">بانک:</span><div style="font-weight:600">${p.bank||'—'}</div></div>
+                <div><span style="color:#aaa">شماره پیگیری:</span><div style="font-weight:600;direction:ltr">${safeText(p.track_number||'—')}</div></div>
+                <div><span style="color:#aaa">کارت مبدأ:</span><div style="font-weight:600;direction:ltr">${safeText(p.src_card||'—')}</div></div>
+                <div><span style="color:#aaa">حساب مقصد:</span><div style="font-weight:600;direction:ltr">${safeText(p.dest_account||'—')}</div></div>
+                <div><span style="color:#aaa">بانک:</span><div style="font-weight:600">${safeText(p.bank||'—')}</div></div>
               </div>
               ${p.receipt_file ? `
                 <div style="margin-top:8px">
                   <div style="color:#aaa;margin-bottom:6px">تصویر فیش:</div>
-                  <a href="${API_BASE}/uploads/${p.receipt_file}" target="_blank">
-                    <img src="${API_BASE}/uploads/${p.receipt_file}" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:contain;border:1px solid #e5e7eb"/>
+                  <a href="${API_BASE}/uploads/${encodeURIComponent(p.receipt_file)}" target="_blank" rel="noopener noreferrer">
+                    <img src="${API_BASE}/uploads/${encodeURIComponent(p.receipt_file)}" alt="تصویر فیش پرداخت" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:contain;border:1px solid #e5e7eb"/>
                   </a>
                 </div>` : '<div style="color:#bbb;font-size:12px">فیشی آپلود نشده</div>'}
             </div>
@@ -518,10 +521,8 @@ const pdpWdNames=['شنبه','یک‌شنبه','دوشنبه','سه‌شنبه',
 const toFa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 const pad2=n=>String(n).padStart(2,'0');
 let pdpY=1404,pdpM=3,pdpSD=null,pdpSM=null,pdpSY=null,pdpShowY=false;
- 
-function toFa(n){return String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);}
- 
-function jToG(jy,jm,jd){
+
+function pdpJtoG(jy,jm,jd){
   let gy=jy+621,leap,g_d_no,j_d_no,j_np,i;
   const g_d_m=[31,28,31,30,31,30,31,31,30,31,30,31];
   const j_d_m=[31,31,31,31,31,31,30,30,30,30,30,29];

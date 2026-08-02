@@ -81,6 +81,7 @@
 </head>
 <body>
 <script src="js/components.js"></script>
+<script src="js/api.js"></script>
 <div id="navbar-placeholder"></div>
 <script>OnPart.renderNavbar('orders');</script>
 
@@ -187,6 +188,8 @@ function toJalali(d,withTime){
 
 const statusLabels={pending_expert:'منتظر کارشناس',pending_customer:'منتظر تایید شما',pending_payment:'منتظر پرداخت',preparing:'آماده‌سازی',shipping:'ارسال شده',delivered:'تحویل شده',cancelled:'ابطال شده'};
 const methodFa={post:'پست',tipax:'تیپاکس',snap:'خودرو سواری',motorbike:'موتورسیکلت',van:'وانت',truck:'کامیونت'};
+const safeText=value=>API.escapeHtml(value==null?'':value);
+const safeStatus=value=>Object.prototype.hasOwnProperty.call(statusLabels,value)?value:'pending_expert';
 
 let myOrders=[];
 
@@ -359,11 +362,12 @@ function renderOrders(){
   tbody.innerHTML=filtered.map((o,i)=>{
     const hasShip=o.shipping_method&&(o.status==='shipping'||o.status==='delivered');
     const idx=myOrders.indexOf(o);
+    const status=safeStatus(o.status);
     return `<tr>
       <td style="font-weight:600;color:#aaa">${OnPart.fa(i+1)}</td>
       <td style="font-weight:700;color:#1d4ed8">#${OnPart.fa(o.id)}</td>
       <td style="font-size:11.5px;color:#555">${toJalali(o.created_at,true)}</td>
-      <td><span class="badge st-${o.status}">${statusLabels[o.status]||o.status}</span></td>
+      <td><span class="badge st-${status}">${statusLabels[status]}</span></td>
       <td style="font-weight:700">
         ${OnPart.fmt(o.total)} ت
         ${o.discount_percent>0?`<div style="font-size:10px;color:#16a34a">${OnPart.fa(o.discount_percent)}٪ تخفیف</div>`:''}
@@ -392,10 +396,11 @@ function openItems(i){
   const o=myOrders[i];
   const items=o.items||[];
   const subtotal=items.reduce((s,it)=>s+(it.price*it.quantity),0);
+  const status=safeStatus(o.status);
   document.getElementById('itemsModalBody').innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">
       <div style="font-size:13px;color:#555">سفارش <strong style="color:#1d4ed8">#${OnPart.fa(o.id)}</strong> — ${toJalali(o.created_at,true)}</div>
-      <span class="badge st-${o.status}">${statusLabels[o.status]||o.status}</span>
+      <span class="badge st-${status}">${statusLabels[status]}</span>
     </div>
     ${items.length?`<div style="overflow-x:auto">
       <table class="itbl">
@@ -410,9 +415,9 @@ function openItems(i){
         </tr></thead>
         <tbody>
           ${items.map(it=>`<tr>
-            <td style="direction:ltr;font-family:monospace;font-size:11.5px">${it.code||'—'}</td>
-            <td style="text-align:right;font-weight:500">${it.description||'—'}</td>
-            <td style="font-size:11.5px">${it.car||'—'}</td>
+            <td style="direction:ltr;font-family:monospace;font-size:11.5px">${safeText(it.code||'—')}</td>
+            <td style="text-align:right;font-weight:500">${safeText(it.description||'—')}</td>
+            <td style="font-size:11.5px">${safeText(it.car||'—')}</td>
             <td>${OnPart.fa(it.quantity)}</td>
             <td>${OnPart.fmt(it.price)} ت</td>
             <td>${it.discount?`<span style="color:#16a34a;font-weight:600">${OnPart.fa(it.discount)}٪</span>`:'—'}</td>
@@ -432,15 +437,16 @@ function openItems(i){
 function openShip(i){
   const o=myOrders[i];
   const isPost=o.shipping_method==='post'||o.shipping_method==='tipax';
+  const shippingMethod=methodFa[o.shipping_method]||'—';
   document.getElementById('shipModalBody').innerHTML=`
     <div class="info-grid">
-      <div class="info-box"><div class="info-lbl">روش ارسال</div><div class="info-val">${methodFa[o.shipping_method]||o.shipping_method||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">روش ارسال</div><div class="info-val">${shippingMethod}</div></div>
       <div class="info-box"><div class="info-lbl">تاریخ ارسال</div><div class="info-val">${toJalali(o.updated_at,true)}</div></div>
-      ${isPost?`<div class="info-box" style="grid-column:1/-1"><div class="info-lbl">کد رهگیری</div><div class="info-val" style="direction:ltr;font-size:18px;letter-spacing:2px;font-family:monospace">${o.shipping_tracking||'—'}</div></div>`:`
-      <div class="info-box"><div class="info-lbl">نام راننده</div><div class="info-val">${o.shipping_driver_name||'—'}</div></div>
-      <div class="info-box"><div class="info-lbl">موبایل راننده</div><div class="info-val" style="direction:ltr">${o.shipping_driver_phone||'—'}</div></div>
-      <div class="info-box"><div class="info-lbl">نوع وسیله</div><div class="info-val">${methodFa[o.shipping_vehicle]||o.shipping_vehicle||'—'}</div></div>
-      <div class="info-box"><div class="info-lbl">شماره پلاک</div><div class="info-val" style="direction:ltr">${o.shipping_plate||'—'}</div></div>
+      ${isPost?`<div class="info-box" style="grid-column:1/-1"><div class="info-lbl">کد رهگیری</div><div class="info-val" style="direction:ltr;font-size:18px;letter-spacing:2px;font-family:monospace">${safeText(o.shipping_tracking||'—')}</div></div>`:`
+      <div class="info-box"><div class="info-lbl">نام راننده</div><div class="info-val">${safeText(o.shipping_driver_name||'—')}</div></div>
+      <div class="info-box"><div class="info-lbl">موبایل راننده</div><div class="info-val" style="direction:ltr">${safeText(o.shipping_driver_phone||'—')}</div></div>
+      <div class="info-box"><div class="info-lbl">نوع وسیله</div><div class="info-val">${methodFa[o.shipping_vehicle]||'—'}</div></div>
+      <div class="info-box"><div class="info-lbl">شماره پلاک</div><div class="info-val" style="direction:ltr">${safeText(o.shipping_plate||'—')}</div></div>
       <div class="info-box"><div class="info-lbl">تعداد بسته</div><div class="info-val">${OnPart.fa(o.shipping_packages||1)} بسته</div></div>`}
     </div>
     ${o.delivery_code?`<div class="delivery-code-box">
