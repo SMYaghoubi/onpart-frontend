@@ -2,6 +2,9 @@
 const API_BASE = 'https://onpartpadmin.liara.run';
 
 const Admin = {
+  _adminNotificationAudio: null,
+  _adminNotificationSoundReady: false,
+  _adminNotificationStream: null,
 
   // All pages with permission keys
   pages: [
@@ -121,9 +124,10 @@ const Admin = {
     document.getElementById('sidebar-placeholder').innerHTML = html;
 
     // Load once after render, then refresh at a controlled interval.
-    setTimeout(() => this.loadNotifs(), 500);
+    this.initAdminNotifications();
+    setTimeout(() => { this.loadNotifs(false); this.loadBadges(); }, 500);
     if(!this._notifInterval) {
-      this._notifInterval = setInterval(() => this.loadNotifs(), 60000);
+      this._notifInterval = setInterval(() => { this.loadNotifs(true); this.loadBadges(); }, 20000);
     }
 
     // Create overlay only (the blue hamburger button is in topbar)
@@ -150,7 +154,7 @@ const Admin = {
         if(el){ if(n>0){el.textContent=this.fa(n);el.style.display='block';}else el.style.display='none'; }
       };
       const [oRes,pRes] = await Promise.all([
-        fetch(BASE+'/api/orders?limit=200',{headers:h}).catch(()=>null),
+        fetch(BASE+'/api/orders?limit=200&admin=1',{headers:h}).catch(()=>null),
         fetch(BASE+'/api/payments',{headers:h}).catch(()=>null),
       ]);
       if(oRes&&oRes.ok){ const d=await oRes.json(); setBadge('orders',d.filter(o=>o.status==='pending_expert').length); }
@@ -243,7 +247,37 @@ const Admin = {
     return true;
   },
 
-  async loadNotifs() {
+  initAdminNotifications() {
+    if (this._adminNotificationAudio) return;
+    const audio = new Audio('/audio/onpart-notification.mp3');
+    audio.preload = 'auto';
+    this._adminNotificationAudio = audio;
+    const unlock = () => {
+      if (this._adminNotificationSoundReady) return;
+      audio.muted = true;
+      audio.play().then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.muted = false;
+        this._adminNotificationSoundReady = true;
+      }).catch(() => { audio.muted = false; });
+    };
+    ['pointerdown','touchstart','click','keydown'].forEach(event =>
+      document.addEventListener(event, unlock, { passive: true })
+    );
+    if (window.EventSource) {
+      this._adminNotificationStream = new EventSource(API_BASE + '/api/announcements/stream');
+      this._adminNotificationStream.addEventListener('admin-notification', () => this.loadNotifs(true));
+    }
+  },
+
+  playAdminNotificationSound() {
+    if (!this._adminNotificationSoundReady || !this._adminNotificationAudio) return;
+    this._adminNotificationAudio.currentTime = 0;
+    this._adminNotificationAudio.play().catch(() => { this._adminNotificationSoundReady = false; });
+  },
+
+  async loadNotifs(notify = false) {
     const token = sessionStorage.getItem('op_token');
     if (!token) return;
     try {
@@ -251,6 +285,18 @@ const Admin = {
       const res = await fetch(`${API_URL}/api/notifications`, {headers: {'Authorization': 'Bearer ' + token}});
       if (!res.ok) return;
       const data = await res.json();
+      const notifs = data.notifications || [];
+      const newestId = notifs.reduce((max, n) => Math.max(max, Number(n.id) || 0), 0);
+      const storedId = sessionStorage.getItem('op_last_admin_notification_id');
+      const previousId = Number(storedId || 0);
+      if (storedId === null) sessionStorage.setItem('op_last_admin_notification_id', String(newestId));
+      else if (newestId > previousId) {
+        sessionStorage.setItem('op_last_admin_notification_id', String(newestId));
+        if (notify) {
+          this.playAdminNotificationSound();
+          window.dispatchEvent(new CustomEvent('onpart:admin-notification'));
+        }
+      }
       const count = data.unreadCount || 0;
       const dot = document.getElementById('notifDot');
       const badge = document.getElementById('notifCount');
@@ -261,7 +307,6 @@ const Admin = {
       }
       const list = document.getElementById('notifList');
       if (!list) return;
-      const notifs = data.notifications || [];
       const typeIcon = {order: 'ti-shopping-bag', payment: 'ti-cash', user: 'ti-user-plus', credit: 'ti-credit-card'};
       const typeColor = {order: '#1d4ed8', payment: '#16a34a', user: '#9333ea', credit: '#d97706'};
       if (!notifs.length) {

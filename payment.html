@@ -351,6 +351,12 @@
     // Load all data in parallel
     Promise.all([loadUserDebt(), loadBankAccounts(), loadPaymentHistory()])
       .catch(()=>{});
+    function refreshPaymentData(){
+      return Promise.all([loadUserDebt(), loadPaymentHistory()]).catch(()=>{});
+    }
+    window.addEventListener('onpart:user-notification', refreshPaymentData);
+    window.addEventListener('onpart:user-data-changed', refreshPaymentData);
+
  
     function formatPayDate(dateStr){
       if(!dateStr) return '—';

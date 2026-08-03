@@ -397,7 +397,7 @@ function toJalali(dateStr){
 
         // Orders badge
         const pendingOrders = orders.filter(o=>o.status==='pending_expert'||o.status==='pending_customer').length;
-        const b_orders = document.getElementById('badge_orders');
+        const b_orders = document.getElementById('sb_badge_orders');
         if(b_orders){ if(pendingOrders>0){b_orders.textContent=fa(pendingOrders);b_orders.style.display='block';}else b_orders.style.display='none'; }
         const optPending = document.getElementById('opt_pending_orders');
         if(optPending) optPending.textContent = `سفارش در انتظار (${fa(pendingOrders)})`;
@@ -450,7 +450,7 @@ function toJalali(dateStr){
       const payments = res.ok ? await res.json() : [];
       const pending = payments.filter(p=>p.status==='pending');
       document.getElementById('pendingPayBadge').textContent = fa(pending.length);
-      const b_pay = document.getElementById('badge_payments');
+      const b_pay = document.getElementById('sb_badge_payments');
       if(b_pay){ if(pending.length>0){b_pay.textContent=fa(pending.length);b_pay.style.display='block';}else b_pay.style.display='none'; }
       if(pending.length){
         document.getElementById('pendingPayTable').innerHTML = pending.slice(0,5).map(p=>`
@@ -460,6 +460,9 @@ function toJalali(dateStr){
   }
 
   loadDashboard();
+  window.addEventListener('onpart:admin-notification', loadDashboard);
+  setInterval(loadDashboard, 30000);
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) loadDashboard(); });
 </script>
 </body>
 </html>

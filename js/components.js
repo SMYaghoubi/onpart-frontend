@@ -245,8 +245,7 @@ const OnPart = {
 
   initUserNotifications: function() {
     var token = sessionStorage.getItem('op_token');
-    var page = (location.pathname || '').replace(/\/+$/, '');
-    if(!token || this._notificationStarted || page === '/shop' || page === '/shop.html') return;
+    if(!token || this._notificationStarted) return;
     this._notificationStarted = true;
 
     var self = this;
@@ -326,8 +325,15 @@ const OnPart = {
           var payload={};try{payload=JSON.parse(event.data||'{}')}catch(e){}
           refreshNotifications(true, payload.deleted === true);
         });
+        self._notificationStream.addEventListener('user-data-changed', function(event){
+          var payload={};try{payload=JSON.parse(event.data||'{}')}catch(e){}
+          window.dispatchEvent(new CustomEvent('onpart:user-data-changed', { detail: payload }));
+        });
       }
-      self._notificationPoll = setInterval(function(){ refreshNotifications(true); }, 20000);
+      self._notificationPoll = setInterval(function(){
+        refreshNotifications(true);
+        window.dispatchEvent(new CustomEvent('onpart:user-data-changed', { detail: { poll:true } }));
+      }, 20000);
     });
     document.addEventListener('visibilitychange', function(){ if(!document.hidden) refreshNotifications(true); });
   },

@@ -470,6 +470,7 @@ async function rejectInvoice(id){
 }
 
 window.addEventListener('onpart:user-notification',function(){ loadMyOrders(); });
+window.addEventListener('onpart:user-data-changed',function(){ loadMyOrders(); });
 loadMyOrders();
 setInterval(loadMyOrders,30000);
 </script>

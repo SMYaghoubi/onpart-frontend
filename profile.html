@@ -133,6 +133,7 @@ async function loadProfile(){
   }catch(e){ console.error(e); }
 }
 window.addEventListener('onpart:user-notification',function(){ loadProfile(); });
+window.addEventListener('onpart:user-data-changed',function(){ loadProfile(); });
 loadProfile();
 </script>
 </body>
