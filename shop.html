@@ -730,13 +730,14 @@
       announcementAudios[key] = audio;
     });
     var announcementSoundUnlocked = false;
+    var announcementSoundUnlocking = false;
     var pendingAnnouncementSound = null;
     var announcementStream = null;
     var announcementPolling = null;
 
     function unlockAnnouncementSound(){
-      if(announcementSoundUnlocked) return;
-      announcementSoundUnlocked = true;
+      if(announcementSoundUnlocked || announcementSoundUnlocking) return;
+      announcementSoundUnlocking = true;
       var priming = Object.keys(announcementAudios).map(function(key){
         var audio = announcementAudios[key];
         audio.muted = true;
@@ -746,7 +747,9 @@
           audio.muted = false;
         }).catch(function(){ audio.muted = false; });
       });
-      Promise.allSettled(priming).then(function(){
+      Promise.allSettled(priming).then(function(results){
+        announcementSoundUnlocking = false;
+        announcementSoundUnlocked = results.some(function(result){ return result.status === 'fulfilled'; });
         if(pendingAnnouncementSound){
           var soundKey = pendingAnnouncementSound;
           pendingAnnouncementSound = null;
@@ -762,13 +765,14 @@
         Object.keys(announcementAudios).forEach(function(audioKey){ announcementAudios[audioKey].pause(); });
         var audio = announcementAudios[key];
         audio.currentTime = 0;
-        audio.play().catch(function(){ pendingAnnouncementSound = key; });
+        audio.play().catch(function(){ announcementSoundUnlocked = false; pendingAnnouncementSound = key; });
       } catch(e) {}
     }
 
-    ['pointerdown','keydown'].forEach(function(eventName){
-      document.addEventListener(eventName, unlockAnnouncementSound, { once:true, passive:true });
+    ['pointerdown','touchstart','click','keydown'].forEach(function(eventName){
+      document.addEventListener(eventName, unlockAnnouncementSound, { passive:true });
     });
+    unlockAnnouncementSound();
 
     async function loadAnnouncements(notifyNew){
       try {

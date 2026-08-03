@@ -32,6 +32,7 @@ const OnPart = {
   _notificationStream: null,
   _notificationPoll: null,
   _notificationSoundReady: false,
+  _notificationSoundUnlocking: false,
   _pendingNotificationSound: null,
   _notificationAudios: null,
  
@@ -265,7 +266,8 @@ const OnPart = {
     });
 
     function unlockSounds(){
-      if(self._notificationSoundReady) return;
+      if(self._notificationSoundReady || self._notificationSoundUnlocking) return;
+      self._notificationSoundUnlocking = true;
       var tasks = Object.keys(self._notificationAudios).map(function(key){
         var audio = self._notificationAudios[key];
         audio.muted = true;
@@ -274,6 +276,7 @@ const OnPart = {
         }).catch(function(){ audio.muted = false; });
       });
       Promise.allSettled(tasks).then(function(results){
+        self._notificationSoundUnlocking = false;
         self._notificationSoundReady = results.some(function(result){ return result.status === 'fulfilled'; });
         if(self._notificationSoundReady && self._pendingNotificationSound){
           var pending = self._pendingNotificationSound;
@@ -283,9 +286,12 @@ const OnPart = {
       });
     }
     document.addEventListener('pointerdown', unlockSounds, { passive:true });
+    document.addEventListener('touchstart', unlockSounds, { passive:true });
+    document.addEventListener('click', unlockSounds, { passive:true });
     document.addEventListener('keydown', unlockSounds, { passive:true });
+    unlockSounds();
 
-    async function refreshNotifications(notify){
+    async function refreshNotifications(notify, forceRefresh){
       try {
         var response = await fetch(self.API_BASE + '/api/user-notifications', {
           headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('op_token') }
@@ -307,6 +313,8 @@ const OnPart = {
             self.toast(row.title || 'وضعیت سفارش به‌روزرسانی شد', row.type === 'warning' ? 'error' : 'info');
             window.dispatchEvent(new CustomEvent('onpart:user-notification', { detail: row }));
           });
+        } else if(notify && forceRefresh) {
+          window.dispatchEvent(new CustomEvent('onpart:user-notification', { detail: { deleted:true } }));
         }
       } catch(e) {}
     }
@@ -314,7 +322,10 @@ const OnPart = {
     refreshNotifications(false).then(function(){
       if(window.EventSource){
         self._notificationStream = new EventSource(self.API_BASE + '/api/announcements/stream');
-        self._notificationStream.addEventListener('user-notification', function(){ refreshNotifications(true); });
+        self._notificationStream.addEventListener('user-notification', function(event){
+          var payload={};try{payload=JSON.parse(event.data||'{}')}catch(e){}
+          refreshNotifications(true, payload.deleted === true);
+        });
       }
       self._notificationPoll = setInterval(function(){ refreshNotifications(true); }, 20000);
     });
@@ -328,7 +339,11 @@ const OnPart = {
       var audios = this._notificationAudios;
       Object.keys(audios).forEach(function(audioKey){ audios[audioKey].pause(); });
       audios[key].currentTime = 0;
-      audios[key].play().catch(function(){});
+      var self = this;
+      audios[key].play().catch(function(){
+        self._notificationSoundReady = false;
+        self._pendingNotificationSound = key;
+      });
     } catch(e) {}
   },
  
