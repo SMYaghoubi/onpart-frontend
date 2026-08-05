@@ -715,64 +715,7 @@
     }
 
     var shopAnnouncements = [];
-    var announcementSoundFiles = {
-      default: '/audio/onpart-notification.mp3',
-      order_submitted: '/audio/order-status/order-submitted.mp3',
-      pending_customer: '/audio/order-status/pending-customer.mp3',
-      pending_payment: '/audio/order-status/pending-payment.mp3',
-      preparing: '/audio/order-status/preparing.mp3',
-      shipping: '/audio/order-status/shipping.mp3'
-    };
-    var announcementAudios = {};
-    Object.keys(announcementSoundFiles).forEach(function(key){
-      var audio = new Audio(announcementSoundFiles[key]);
-      audio.preload = 'auto';
-      announcementAudios[key] = audio;
-    });
-    var announcementSoundUnlocked = false;
-    var announcementSoundUnlocking = false;
-    var pendingAnnouncementSound = null;
-    var announcementStream = null;
     var announcementPolling = null;
-
-    function unlockAnnouncementSound(){
-      if(announcementSoundUnlocked || announcementSoundUnlocking) return;
-      announcementSoundUnlocking = true;
-      var priming = Object.keys(announcementAudios).map(function(key){
-        var audio = announcementAudios[key];
-        audio.muted = true;
-        return audio.play().then(function(){
-          audio.pause();
-          audio.currentTime = 0;
-          audio.muted = false;
-        }).catch(function(){ audio.muted = false; });
-      });
-      Promise.allSettled(priming).then(function(results){
-        announcementSoundUnlocking = false;
-        announcementSoundUnlocked = results.some(function(result){ return result.status === 'fulfilled'; });
-        if(pendingAnnouncementSound){
-          var soundKey = pendingAnnouncementSound;
-          pendingAnnouncementSound = null;
-          playAnnouncementSound(soundKey);
-        }
-      });
-    }
-
-    function playAnnouncementSound(soundKey){
-      var key = announcementAudios[soundKey] ? soundKey : 'default';
-      if(!announcementSoundUnlocked){ pendingAnnouncementSound = key; return; }
-      try {
-        Object.keys(announcementAudios).forEach(function(audioKey){ announcementAudios[audioKey].pause(); });
-        var audio = announcementAudios[key];
-        audio.currentTime = 0;
-        audio.play().catch(function(){ announcementSoundUnlocked = false; pendingAnnouncementSound = key; });
-      } catch(e) {}
-    }
-
-    ['pointerdown','touchstart','click','keydown'].forEach(function(eventName){
-      document.addEventListener(eventName, unlockAnnouncementSound, { passive:true });
-    });
-    unlockAnnouncementSound();
 
     async function loadAnnouncements(notifyNew){
       try {
@@ -782,10 +725,6 @@
         var results = await Promise.all(requests);
         var publicItems = (results[0].announcements || []).map(function(a){ return Object.assign({_key:'a-'+a.id},a); });
         var userItems = results[1] ? (results[1].notifications || []).map(function(a){ return Object.assign({_key:'u-'+a.id},a); }) : [];
-        if(userItems.length){
-          var newestUserNotificationId = userItems.reduce(function(max,item){ return Math.max(max, Number(item.id)||0); }, 0);
-          if(newestUserNotificationId) sessionStorage.setItem('op_last_user_notification_id', String(newestUserNotificationId));
-        }
         shopAnnouncements = publicItems.concat(userItems).sort(function(a,b){ return new Date(b.created_at)-new Date(a.created_at); });
         var list = document.getElementById('notifList');
         if(!shopAnnouncements.length){
@@ -807,23 +746,18 @@
             + '</div></div></div>';
         }).join('');
         updateNotifDot();
-        var newItems = notifyNew ? shopAnnouncements.filter(function(a){ return previousIds.indexOf(a._key) === -1; }) : [];
+        var newItems = notifyNew ? publicItems.filter(function(a){ return previousIds.indexOf(a._key) === -1; }) : [];
         if(newItems.length) {
-          playAnnouncementSound(newItems[0].sound_key || 'default');
+          OnPart.playUserNotificationSound('default');
           OnPart.toast('اعلان جدید دریافت شد', 'info');
         }
       } catch(e){}
     }
 
-    function connectAnnouncementStream(){
-      if(!window.EventSource || announcementStream) return;
-      announcementStream = new EventSource(API.BASE_URL + '/api/announcements/stream');
-      announcementStream.addEventListener('announcement', function(){ loadAnnouncements(true); });
-      announcementStream.addEventListener('user-notification', function(){ loadAnnouncements(true); });
-      announcementStream.onerror = function(){
-        // EventSource reconnects automatically. Polling remains as a fallback.
-      };
-      if(!announcementPolling) announcementPolling = setInterval(function(){ loadAnnouncements(true); }, 30000);
+    function startAnnouncementUpdates(){
+      window.addEventListener('onpart:announcement', function(){ loadAnnouncements(true); });
+      window.addEventListener('onpart:user-notification', function(){ loadAnnouncements(false); });
+      if(!announcementPolling) announcementPolling = setInterval(function(){ loadAnnouncements(true); }, 5000);
     }
     document.addEventListener('click', function(e){
       var p = document.getElementById('notifPanel');
@@ -833,7 +767,7 @@
       }
     });
 
-    checkShopSettings().then(function(ok){ if(ok){ loadProducts(); loadAnnouncements(false).then(connectAnnouncementStream); } });
+    checkShopSettings().then(function(ok){ if(ok){ loadProducts(); loadAnnouncements(false).then(startAnnouncementUpdates); } });
   </script>
 </body>
 </html>

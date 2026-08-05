@@ -34,7 +34,8 @@ const OnPart = {
   _notificationSoundReady: false,
   _notificationSoundUnlocking: false,
   _pendingNotificationSound: null,
-  _notificationAudios: null,
+  _notificationAudio: null,
+  _notificationSoundFiles: null,
  
   renderNavbar(activePage) {
     activePage = activePage || '';
@@ -249,7 +250,7 @@ const OnPart = {
     this._notificationStarted = true;
 
     var self = this;
-    var files = {
+    this._notificationSoundFiles = {
       default: '/audio/onpart-notification.mp3',
       order_submitted: '/audio/order-status/order-submitted.mp3',
       pending_customer: '/audio/order-status/pending-customer.mp3',
@@ -257,26 +258,23 @@ const OnPart = {
       preparing: '/audio/order-status/preparing.mp3',
       shipping: '/audio/order-status/shipping.mp3'
     };
-    this._notificationAudios = {};
-    Object.keys(files).forEach(function(key){
-      var audio = new Audio(files[key]);
-      audio.preload = 'auto';
-      self._notificationAudios[key] = audio;
-    });
+    this._notificationAudio = new Audio(this._notificationSoundFiles.default);
+    this._notificationAudio.preload = 'auto';
 
     function unlockSounds(){
       if(self._notificationSoundReady || self._notificationSoundUnlocking) return;
       self._notificationSoundUnlocking = true;
-      var tasks = Object.keys(self._notificationAudios).map(function(key){
-        var audio = self._notificationAudios[key];
-        audio.muted = true;
-        return audio.play().then(function(){
-          audio.pause(); audio.currentTime = 0; audio.muted = false;
-        }).catch(function(){ audio.muted = false; });
-      });
-      Promise.allSettled(tasks).then(function(results){
+      var audio = self._notificationAudio;
+      audio.muted = true;
+      audio.play().then(function(){
+        audio.pause();
+        audio.currentTime = 0;
+        audio.muted = false;
+        self._notificationSoundReady = true;
+      }).catch(function(){
+        audio.muted = false;
+      }).finally(function(){
         self._notificationSoundUnlocking = false;
-        self._notificationSoundReady = results.some(function(result){ return result.status === 'fulfilled'; });
         if(self._notificationSoundReady && self._pendingNotificationSound){
           var pending = self._pendingNotificationSound;
           self._pendingNotificationSound = null;
@@ -288,19 +286,23 @@ const OnPart = {
     document.addEventListener('touchstart', unlockSounds, { passive:true });
     document.addEventListener('click', unlockSounds, { passive:true });
     document.addEventListener('keydown', unlockSounds, { passive:true });
-    unlockSounds();
 
+    var refreshInFlight = false;
     async function refreshNotifications(notify, forceRefresh){
+      if(refreshInFlight) return;
+      refreshInFlight = true;
       try {
         var response = await fetch(self.API_BASE + '/api/user-notifications', {
-          headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('op_token') }
+          headers: { 'Authorization': 'Bearer ' + sessionStorage.getItem('op_token') },
+          cache: 'no-store'
         });
         if(!response.ok) return;
         var data = await response.json();
         var rows = data.notifications || [];
         var newestId = rows.reduce(function(max,row){ return Math.max(max, Number(row.id)||0); }, 0);
-        var previousId = Number(sessionStorage.getItem('op_last_user_notification_id') || 0);
-        if(!previousId){
+        var storedId = sessionStorage.getItem('op_last_user_notification_id');
+        var previousId = Number(storedId || 0);
+        if(storedId === null){
           sessionStorage.setItem('op_last_user_notification_id', String(newestId));
           return;
         }
@@ -315,7 +317,10 @@ const OnPart = {
         } else if(notify && forceRefresh) {
           window.dispatchEvent(new CustomEvent('onpart:user-notification', { detail: { deleted:true } }));
         }
-      } catch(e) {}
+      } catch(e) {
+      } finally {
+        refreshInFlight = false;
+      }
     }
 
     refreshNotifications(false).then(function(){
@@ -329,24 +334,38 @@ const OnPart = {
           var payload={};try{payload=JSON.parse(event.data||'{}')}catch(e){}
           window.dispatchEvent(new CustomEvent('onpart:user-data-changed', { detail: payload }));
         });
+        self._notificationStream.addEventListener('announcement', function(event){
+          var payload={};try{payload=JSON.parse(event.data||'{}')}catch(e){}
+          window.dispatchEvent(new CustomEvent('onpart:announcement', { detail: payload }));
+        });
       }
       self._notificationPoll = setInterval(function(){
         refreshNotifications(true);
         window.dispatchEvent(new CustomEvent('onpart:user-data-changed', { detail: { poll:true } }));
-      }, 20000);
+      }, 5000);
     });
-    document.addEventListener('visibilitychange', function(){ if(!document.hidden) refreshNotifications(true); });
+    document.addEventListener('visibilitychange', function(){
+      if(!document.hidden){
+        refreshNotifications(true);
+        window.dispatchEvent(new CustomEvent('onpart:user-data-changed', { detail: { visible:true } }));
+      }
+    });
   },
 
   playUserNotificationSound: function(soundKey) {
-    var key = this._notificationAudios && this._notificationAudios[soundKey] ? soundKey : 'default';
+    var key = this._notificationSoundFiles && this._notificationSoundFiles[soundKey] ? soundKey : 'default';
     if(!this._notificationSoundReady){ this._pendingNotificationSound = key; return; }
     try {
-      var audios = this._notificationAudios;
-      Object.keys(audios).forEach(function(audioKey){ audios[audioKey].pause(); });
-      audios[key].currentTime = 0;
+      var audio = this._notificationAudio;
+      var nextSrc = new URL(this._notificationSoundFiles[key], window.location.origin).href;
+      audio.pause();
+      if(audio.src !== nextSrc){
+        audio.src = this._notificationSoundFiles[key];
+        audio.load();
+      }
+      audio.currentTime = 0;
       var self = this;
-      audios[key].play().catch(function(){
+      audio.play().catch(function(){
         self._notificationSoundReady = false;
         self._pendingNotificationSound = key;
       });
