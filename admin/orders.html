@@ -294,6 +294,7 @@ Admin.renderTopbar('مدیریت سفارشات','ti-shopping-bag');
 const fa=n=>n.toString().replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 const fmt=n=>fa(Number(n).toLocaleString());
 const colors=['#1d4ed8','#16a34a','#d97706','#7c3aed','#0f766e','#dc2626'];
+const paymentLabels={pending:'در انتظار بررسی',approved:'پرداخت تأیید شد',rejected:'پرداخت رد شد'};
 const statusLabels={pending_expert:'منتظر تایید کارشناس',pending_customer:'منتظر تایید مشتری',pending_payment:'منتظر پرداخت',preparing:'آماده‌سازی',shipping:'در ارسال',delivered:'تحویل شده',cancelled:'ابطال شده'};
 const statusBadge={pending_expert:'b-amber',pending_customer:'b-purple',pending_payment:'b-purple',preparing:'b-blue',shipping:'b-teal',delivered:'b-green',cancelled:'b-red'};
 
@@ -360,10 +361,10 @@ function renderTable(){
       <td>${toJalali(o.created_at)||'—'}</td>
       <td>${fa(o.items_count||0)} قلم</td>
       <td style="font-weight:700">${fmt(o.total||0)}</td>
-      <td><span class="badge ${statusBadge[o.status]||'b-amber'}">${statusLabels[o.status]||'نامشخص'}</span></td>
+      <td><span class="badge ${statusBadge[o.status]||'b-amber'}">${statusLabels[o.status]||'نامشخص'}</span> ${o.payment_status?`<span class="badge ${o.payment_status==='approved'?'b-green':o.payment_status==='rejected'?'b-red':'b-amber'}">${paymentLabels[o.payment_status]||o.payment_status}</span>`:``}</td>
       <td><div class="action-btns">
         <button class="ab ab-view" onclick="openDetail(${i})" title="مشاهده"><i class="ti ti-eye"></i></button>
-        <button class="ab ab-edit" onclick="openInvoiceEdit(${i})" title="ویرایش فاکتور"><i class="ti ti-file-invoice"></i></button>
+        <button class="ab ab-edit" onclick="openInvoiceEdit(${i})" title="ویرایش فاکتور"><i class="ti ti-file-invoice"></i></button><a class="ab" href="invoice.html?id=${o.id}" target="_blank" title="چاپ فاکتور" style="background:#ecfdf5;color:#047857;text-decoration:none"><i class="ti ti-printer"></i></a>
         <button class="ab ab-sms" onclick="openSms(decodeURIComponent('${encodeURIComponent(o.user_phone||'')}'),decodeURIComponent('${encodeURIComponent(o.user_name||'')}'))" title="پیامک"><i class="ti ti-message-2"></i></button>
         <button class="ab ab-del" onclick="deleteOrder(${o.id},this)" title="حذف"><i class="ti ti-trash"></i></button>
       </div></td>

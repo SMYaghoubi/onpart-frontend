@@ -313,152 +313,33 @@ function toJalali(dateStr){
   const statusLabel={pending_expert:'منتظر تایید',pending_customer:'منتظر تایید',pending_payment:'منتظر پرداخت',preparing:'آماده‌سازی',shipping:'در ارسال',delivered:'تحویل شده',cancelled:'ابطال'};
 
   async function loadDashboard(){
-    const token = sessionStorage.getItem('op_token');
-    const headers = {'Authorization':'Bearer '+token};
-
-    // Default empty states
-    document.getElementById('recentOrders').innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-size:13px">هنوز سفارشی ثبت نشده</div>';
-    document.getElementById('recentOrdersTable').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px">سفارشی ثبت نشده</td></tr>';
-    document.getElementById('pendingPayTable').innerHTML = '<tr><td colspan="3" style="text-align:center;color:#aaa;padding:16px">پرداختی در انتظار نیست</td></tr>';
-    document.getElementById('chart').innerHTML = '<div style="display:flex;align-items:flex-end;gap:6px;height:100%">' + Array(7).fill(0).map((_,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="flex:1;width:100%;background:#e5e7eb;border-radius:4px 4px 0 0;min-height:4px"></div><div style="font-size:10px;color:#aaa">${['شن','یک','دو','سه','چه','پن','جم'][i]}</div></div>`).join('') + '</div>';
-
-    // Orders
-    try {
-      const res = await fetch(API.BASE_URL+'/api/orders?limit=200&admin=1', {headers});
-      const orders = res.ok ? await res.json() : [];
-
-      document.getElementById('stat_orders').textContent = fa(orders.length);
-      document.getElementById('stat_pending').textContent = fa(orders.filter(o=>o.status==='pending_expert').length);
-      document.getElementById('stat_sales').textContent = fa(Math.round(orders.reduce((s,o)=>s+Number(o.total||0),0)/1000000))+'M';
-
-      // Calculate real month-over-month trends
-      const now = new Date();
-      const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const lastMonthStart = new Date(now.getFullYear(), now.getMonth()-1, 1);
-      const ordersThisMonth = orders.filter(o=>o.created_at && new Date(o.created_at) >= thisMonthStart).length;
-      const ordersLastMonth = orders.filter(o=>o.created_at && new Date(o.created_at) >= lastMonthStart && new Date(o.created_at) < thisMonthStart).length;
-      const salesThisMonth = orders.filter(o=>o.created_at && new Date(o.created_at) >= thisMonthStart).reduce((s,o)=>s+Number(o.total||0),0);
-      const salesLastMonth = orders.filter(o=>o.created_at && new Date(o.created_at) >= lastMonthStart && new Date(o.created_at) < thisMonthStart).reduce((s,o)=>s+Number(o.total||0),0);
-
-      function setTrend(elId, current, previous){
-        const el = document.getElementById(elId);
-        if(!el) return;
-        if(previous === 0 && current === 0){ el.style.display='none'; return; }
-        if(previous === 0){ el.className='stat-trend trend-up'; el.innerHTML='<i class="ti ti-arrow-up"></i>جدید'; el.style.display='flex'; return; }
-        const pct = Math.round((current-previous)/previous*100);
-        if(pct === 0){ el.style.display='none'; return; }
-        el.className = 'stat-trend ' + (pct>0?'trend-up':'trend-down');
-        el.innerHTML = `<i class="ti ti-arrow-${pct>0?'up':'down'}"></i>${fa(Math.abs(pct))}٪`;
-        el.style.display='flex';
-      }
-      setTrend('trend_orders', ordersThisMonth, ordersLastMonth);
-      setTrend('trend_sales', salesThisMonth, salesLastMonth);
-
-      if(orders.length){
-        // Table
-        document.getElementById('recentOrdersTable').innerHTML = orders.slice(0,5).map(o=>`
-          <tr><td>#${fa(o.id)}</td><td>${o.user_name||'—'}</td><td>${fmt(o.total||0)}</td>
-          <td><span class="badge ${statusBadge[o.status]||'b-amber'}">${statusLabel[o.status]||o.status}</span></td></tr>`).join('');
-
-        // Activity
-        document.getElementById('recentOrders').innerHTML = orders.slice(0,4).map(o=>`
-          <div class="act-item">
-            <div class="act-dot" style="background:#1d4ed8"></div>
-            <div class="act-text">سفارش #${fa(o.id)} — ${o.user_name||'—'} — ${fmt(o.total||0)} ت</div>
-            <div class="act-time">${toJalali(o.created_at)||''}</div>
-          </div>`).join('');
-
-        // Chart
-        const today = new Date();
-        const days = ['شن','یک','دو','سه','چه','پن','جم'];
-        const chartData = Array(7).fill(0);
-        orders.forEach(o=>{
-          if(!o.created_at) return;
-          const diff = Math.floor((today - new Date(o.created_at))/(1000*60*60*24));
-          if(diff>=0&&diff<7) chartData[6-diff] += Number(o.total||0)/1000000;
-        });
-        const maxVal = Math.max(...chartData, 1);
-        document.getElementById('chart').innerHTML = chartData.map((v,i)=>`
-          <div class="bar-col">
-            <div style="font-size:9.5px;color:#aaa">${v>0?fa(Math.round(v))+'M':''}</div>
-            <div class="bar" style="height:${Math.max(Math.round(v/maxVal*100),4)}%;background:${i===6?'#1d4ed8':'#bfdbfe'};min-height:4px"></div>
-            <div class="bar-lbl">${days[i]}</div>
-          </div>`).join('');
-
-        // Today/Yesterday
-        const todayStr = today.toDateString();
-        const yest = new Date(today); yest.setDate(yest.getDate()-1);
-        const todayTotal = orders.filter(o=>o.created_at&&new Date(o.created_at).toDateString()===todayStr).reduce((s,o)=>s+Number(o.total||0),0);
-        const yesterdayTotal = orders.filter(o=>o.created_at&&new Date(o.created_at).toDateString()===yest.toDateString()).reduce((s,o)=>s+Number(o.total||0),0);
-        document.getElementById('stat_today').textContent = todayTotal>0?fa(Math.round(todayTotal/1000000))+'M':'۰';
-        document.getElementById('stat_yesterday').textContent = yesterdayTotal>0?fa(Math.round(yesterdayTotal/1000000))+'M':'۰';
-        const growth = yesterdayTotal>0?Math.round((todayTotal-yesterdayTotal)/yesterdayTotal*100):0;
-        document.getElementById('stat_growth').textContent = growth>0?'+'+fa(growth)+'٪':growth<0?fa(growth)+'٪':'—';
-
-        // Orders badge
-        const pendingOrders = orders.filter(o=>o.status==='pending_expert'||o.status==='pending_customer').length;
-        const b_orders = document.getElementById('sb_badge_orders');
-        if(b_orders){ if(pendingOrders>0){b_orders.textContent=fa(pendingOrders);b_orders.style.display='block';}else b_orders.style.display='none'; }
-        const optPending = document.getElementById('opt_pending_orders');
-        if(optPending) optPending.textContent = `سفارش در انتظار (${fa(pendingOrders)})`;
-      }
-    } catch(e){}
-
-    // Users
-    try {
-      const res = await fetch(API.BASE_URL+'/api/users?limit=500', {headers});
-      const users = res.ok ? await res.json() : [];
-      const userList = users.users || users;
-      document.getElementById('stat_users').textContent = fa(userList.length);
-      const partners = userList.filter(u=>u.role==='partner');
-      document.getElementById('stat_partners').textContent = fa(partners.length);
-
-      const now2 = new Date();
-      const thisMonthStart2 = new Date(now2.getFullYear(), now2.getMonth(), 1);
-      const lastMonthStart2 = new Date(now2.getFullYear(), now2.getMonth()-1, 1);
-      const usersThisMonth = userList.filter(u=>u.created_at && new Date(u.created_at) >= thisMonthStart2).length;
-      const usersLastMonth = userList.filter(u=>u.created_at && new Date(u.created_at) >= lastMonthStart2 && new Date(u.created_at) < thisMonthStart2).length;
-      const partnersThisMonth = partners.filter(u=>u.created_at && new Date(u.created_at) >= thisMonthStart2).length;
-      const partnersLastMonth = partners.filter(u=>u.created_at && new Date(u.created_at) >= lastMonthStart2 && new Date(u.created_at) < thisMonthStart2).length;
-
-      function setTrend2(elId, current, previous){
-        const el = document.getElementById(elId);
-        if(!el) return;
-        if(previous === 0 && current === 0){ el.style.display='none'; return; }
-        if(previous === 0){ el.className='stat-trend trend-up'; el.innerHTML='<i class="ti ti-arrow-up"></i>جدید'; el.style.display='flex'; return; }
-        const pct = Math.round((current-previous)/previous*100);
-        if(pct === 0){ el.style.display='none'; return; }
-        el.className = 'stat-trend ' + (pct>0?'trend-up':'trend-down');
-        el.innerHTML = `<i class="ti ti-arrow-${pct>0?'up':'down'}"></i>${fa(Math.abs(pct))}٪`;
-        el.style.display='flex';
-      }
-      setTrend2('trend_users', usersThisMonth, usersLastMonth);
-      setTrend2('trend_partners', partnersThisMonth, partnersLastMonth);
-
-      // Populate quick SMS recipient counts with real numbers
-      const activeUsers = userList.filter(u=>u.status==='active' && u.role==='user').length;
-      const activePartners = userList.filter(u=>u.status==='active' && u.role==='partner').length;
-      const debtorsCount = userList.filter(u=>Number(u.debt||0) > 0).length;
-      document.getElementById('opt_all_users').textContent = `همه کاربران (${fa(activeUsers)})`;
-      document.getElementById('opt_all_partners').textContent = `همه همکاران (${fa(activePartners)})`;
-      document.getElementById('opt_debtors').textContent = `کاربران بدهکار (${fa(debtorsCount)})`;
-    } catch(e){}
-
-    // Payments
-    try {
-      const res = await fetch(API.BASE_URL+'/api/payments', {headers});
-      const payments = res.ok ? await res.json() : [];
-      const pending = payments.filter(p=>p.status==='pending');
-      document.getElementById('pendingPayBadge').textContent = fa(pending.length);
-      const b_pay = document.getElementById('sb_badge_payments');
-      if(b_pay){ if(pending.length>0){b_pay.textContent=fa(pending.length);b_pay.style.display='block';}else b_pay.style.display='none'; }
-      if(pending.length){
-        document.getElementById('pendingPayTable').innerHTML = pending.slice(0,5).map(p=>`
-          <tr><td>${p.user_name||'—'}</td><td>${fmt(p.amount||0)}ت</td><td><span class="badge b-amber">بررسی</span></td></tr>`).join('');
-      }
-    } catch(e){}
+    const loading='<tr><td colspan="5" style="padding:24px;color:#94a3b8">در حال دریافت اطلاعات...</td></tr>';
+    document.getElementById('recentOrdersTable').innerHTML=loading;
+    document.getElementById('pendingPayTable').innerHTML=loading;
+    try{
+      const data=await API.request('/api/dashboard');
+      const m=data.metrics||{};
+      document.getElementById('stat_orders').textContent=fa(m.total_orders||0);
+      document.getElementById('stat_users').textContent=fa(m.active_users||0);
+      document.getElementById('stat_sales').textContent=fmt(m.month_sales||0);
+      document.getElementById('stat_partners').textContent=fa(m.active_partners||0);
+      const orderLabels={pending_expert:'در انتظار بررسی',pending_customer:'در انتظار مشتری',pending_payment:'در انتظار پرداخت',preparing:'در حال تأمین',shipping:'در حال ارسال',delivered:'تحویل‌شده',cancelled:'لغوشده'};
+      const orders=data.latest_orders||[];
+      document.getElementById('recentOrdersTable').innerHTML=orders.length?orders.map(o=>'<tr><td><a href="orders.html?order='+o.id+'">#'+fa(o.id)+'</a></td><td>'+Admin.escape(o.user_name||'—')+'</td><td>'+fmt(o.total||0)+'</td><td><span class="badge">'+Admin.escape(orderLabels[o.status]||o.status)+'</span></td><td>'+toJalali(o.created_at)+'</td></tr>').join(''):'<tr><td colspan="5" class="empty">سفارشی ثبت نشده است.</td></tr>';
+      const payments=data.pending_payments||[];
+      document.getElementById('pendingPayBadge').textContent=fa(payments.length);
+      document.getElementById('pendingPayTable').innerHTML=payments.length?payments.map(p=>'<tr><td>'+Admin.escape(p.user_name||'—')+'</td><td>'+fmt(p.amount||0)+'</td><td><a class="badge b-amber" href="payments.html?payment='+p.id+'">رسیدگی</a></td></tr>').join(''):'<tr><td colspan="3" class="empty">پرداختی در انتظار نیست.</td></tr>';
+      const sales=data.sales_7d||[],max=Math.max(1,...sales.map(x=>Number(x.sales)||0));
+      document.getElementById('chart').innerHTML=sales.length?sales.map(x=>'<div class="bar-wrap" title="'+fmt(x.sales)+'"><div class="bar" style="height:'+Math.max(4,Math.round(Number(x.sales)*100/max))+'%"></div><span>'+new Date(x.day).toLocaleDateString('fa-IR',{weekday:'short'})+'</span></div>').join(''):'<div class="empty">داده‌ای برای هفت روز اخیر نیست.</div>';
+      const today=sales.length?Number(sales[sales.length-1].sales)||0:0,yesterday=sales.length>1?Number(sales[sales.length-2].sales)||0:0;
+      document.getElementById('stat_today').textContent=fmt(today);document.getElementById('stat_yesterday').textContent=fmt(yesterday);document.getElementById('stat_growth').textContent=yesterday?fa(Math.round((today-yesterday)*100/yesterday))+'٪':'—';
+      const profit=data.profit_7d||{};document.getElementById('recentOrders').innerHTML='<div style="padding:12px;background:#f0fdf4;border-radius:10px;margin-bottom:10px"><b>سود هفت روز:</b> '+fmt(profit.profit||0)+' تومان · '+fa(profit.percent||0)+'٪</div>'+(data.activities||[]).map(a=>'<a href="'+Admin.escape(a.link||'#')+'" style="display:block;padding:9px;border-bottom:1px solid #eee;text-decoration:none;color:#334155">'+Admin.escape(a.title)+'<small style="float:left">'+toJalali(a.created_at)+'</small></a>').join('');
+    }catch(e){
+      document.getElementById('recentOrdersTable').innerHTML='<tr><td colspan="5" class="empty">خطا در دریافت اطلاعات؛ دوباره تلاش کنید.</td></tr>';
+      document.getElementById('pendingPayTable').innerHTML='<tr><td colspan="3" class="empty">خطا در دریافت اطلاعات</td></tr>';
+      Admin.toast(e.message,'error');
+    }
   }
-
   loadDashboard();
   window.addEventListener('onpart:admin-notification', loadDashboard);
   setInterval(loadDashboard, 30000);

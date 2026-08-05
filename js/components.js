@@ -257,6 +257,8 @@ const OnPart = {
       pending_payment: '/audio/order-status/pending-payment.mp3',
       preparing: '/audio/order-status/preparing.mp3',
       payment_approved: '/audio/order-status/payment-approved.mp3',
+      payment_submitted: '/audio/order-status/payment-submitted.mp3',
+      payment_rejected: '/audio/order-status/payment-rejected.mp3',
       shipping: '/audio/order-status/shipping.mp3'
     };
     this._notificationAudio = new Audio(this._notificationSoundFiles.default);

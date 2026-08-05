@@ -183,7 +183,7 @@ const Admin = {
             <span style="font-size:13px;font-weight:700;color:#111">اعلان‌ها</span>
             <div style="display:flex;gap:8px">
               <button onclick="Admin.readAllNotifs()" style="font-size:11px;color:#1d4ed8;background:none;border:none;cursor:pointer;font-family:Vazirmatn,sans-serif">همه خوانده</button>
-              <button onclick="Admin.clearNotifs()" style="font-size:11px;color:#dc2626;background:none;border:none;cursor:pointer;font-family:Vazirmatn,sans-serif">پاک کردن</button>
+              <button onclick="Admin.clearNotifs()" style="font-size:11px;color:#dc2626;background:none;border:none;cursor:pointer;font-family:Vazirmatn,sans-serif">پاک‌کردن خوانده‌شده‌ها</button>
             </div>
           </div>
           <div id="notifList" style="max-height:360px;overflow-y:auto"></div>

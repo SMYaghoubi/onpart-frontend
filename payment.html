@@ -183,7 +183,7 @@
           </div>
         </div>
         <div class="fg"><label class="flabel">شماره پیگیری</label><input class="finput" id="trackNum" placeholder="شماره پیگیری تراکنش" style="direction:ltr"/></div>
-        <div class="fg"><label class="flabel">شماره کارت مبدأ (کارت شما)</label><input class="finput" id="srcCard" placeholder="xxxx-xxxx-xxxx-xxxx" maxlength="19" oninput="formatCard(this)" style="direction:ltr;letter-spacing:1px"/></div>
+        <div class="fg" style="grid-column:1/-1"><label class="flabel">کارت مبدأ ذخیره‌شده</label><div style="display:flex;gap:8px;flex-wrap:wrap"><select class="finput" id="savedCard" style="flex:1;min-width:220px"><option value="">انتخاب کارت...</option></select><button class="copy-mini" type="button" onclick="toggleCardForm()" style="width:auto;padding:0 12px"><i class="ti ti-plus"></i> افزودن کارت</button></div><div id="cardForm" style="display:none;margin-top:10px;padding:12px;border:1px solid #dbeafe;border-radius:12px;background:#eff6ff"><input class="finput" id="newCardNumber" maxlength="19" inputmode="numeric" placeholder="شماره ۱۶ رقمی کارت" oninput="formatCard(this)"><input class="finput" id="newCardTitle" maxlength="80" placeholder="عنوان کارت (اختیاری)" style="margin-top:8px"><button class="btn-submit" type="button" onclick="addSavedCard()" style="margin-top:8px">ذخیره امن کارت</button><div style="font-size:11px;color:#64748b;margin-top:8px">CVV2، رمز و تاریخ انقضا هرگز دریافت یا ذخیره نمی‌شود.</div></div><div id="savedCardsList" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div></div>
         <div class="fg" style="grid-column:1/-1">
           <label class="flabel">واریز به <span style="color:#ef4444">*</span></label>
           <div style="display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start">
@@ -242,8 +242,12 @@
     OnPart.renderNavbar('payment');
  
     let currentUserDebt = 0;
+    let savedCards = [];
  
-    function fillDebtAmount(){
+    function toggleCardForm(){const form=document.getElementById('cardForm');form.style.display=form.style.display==='none'?'block':'none'}
+    async function loadSavedCards(){try{const data=await API.request('/api/bank-cards');savedCards=data.cards||[];const select=document.getElementById('savedCard');select.innerHTML='<option value="">انتخاب کارت...</option>'+savedCards.map(card=>'<option value="'+card.id+'">'+API.escapeHtml(card.title||'کارت')+' — '+API.escapeHtml(card.masked_number)+'</option>').join('');document.getElementById('savedCardsList').innerHTML=savedCards.map(card=>'<span style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:5px 8px;font-size:11px">'+API.escapeHtml(card.masked_number)+' <button type="button" onclick="deleteSavedCard('+card.id+')" style="border:0;background:none;color:#dc2626;cursor:pointer">حذف</button></span>').join('')}catch(e){OnPart.toast(e.message,'error')}}
+    async function addSavedCard(){const number=document.getElementById('newCardNumber').value,title=document.getElementById('newCardTitle').value;try{await API.request('/api/bank-cards',{method:'POST',body:JSON.stringify({card_number:number,title})});document.getElementById('newCardNumber').value='';document.getElementById('newCardTitle').value='';toggleCardForm();await loadSavedCards();OnPart.toast('کارت ذخیره شد')}catch(e){OnPart.toast(e.message,'error')}}
+    async function deleteSavedCard(id){if(!confirm('این کارت حذف شود؟'))return;try{await API.request('/api/bank-cards/'+id,{method:'DELETE'});await loadSavedCards()}catch(e){OnPart.toast(e.message,'error')}}    function fillDebtAmount(){
       const inp = document.getElementById('amount');
       inp.value = String(currentUserDebt);
       formatAmount(inp);
@@ -301,9 +305,9 @@
         fd.append('track_number', track);
         const paymentDateIso = typeof pdpSelectedGregorianIso === 'function' ? pdpSelectedGregorianIso() : null;
         fd.append('pay_date', paymentDateIso || toEnglishDigits(date).replace(/\//g,'-'));
-        const srcCard = document.getElementById('srcCard').value;
+        const savedCardId = document.getElementById('savedCard').value;
         const destAccount = document.getElementById('destAccount').value;
-        if(srcCard) fd.append('src_card', srcCard);
+        if(savedCardId) fd.append('saved_card_id', savedCardId);
         if(destAccount) fd.append('dest_account', destAccount);
         const orderId = new URLSearchParams(window.location.search).get('order');
         if(orderId) fd.append('order_id', orderId);
@@ -317,7 +321,8 @@
         const data = await res.json();
         if(!res.ok) throw new Error(data.message||'خطا');
         document.getElementById('successOverlay').classList.add('show');
-        loadPaymentHistory(); // Auto-refresh history
+        loadSavedCards();
+    loadPaymentHistory(); // Auto-refresh history
       } catch(e){
         OnPart.toast(e.message||'خطا در ارسال','error');
       }
@@ -349,7 +354,7 @@
     }
  
     // Load all data in parallel
-    Promise.all([loadUserDebt(), loadBankAccounts(), loadPaymentHistory()])
+    Promise.all([loadUserDebt(), loadBankAccounts(), loadSavedCards(), loadPaymentHistory()])
       .catch(()=>{});
     function refreshPaymentData(){
       return Promise.all([loadUserDebt(), loadPaymentHistory()]).catch(()=>{});
