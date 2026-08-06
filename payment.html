@@ -473,11 +473,25 @@
       }
     }
 
+    const receiptUrls=new Set();
+    async function loadHistoryReceipt(target){
+      if(!target||target.dataset.loaded==='1')return;target.dataset.loaded='1';
+      try{
+        const response=await fetch(`${API_BASE}/api/payments/${Number(target.dataset.receiptPayment)}/receipt`,{headers:{'Authorization':'Bearer '+sessionStorage.getItem('op_token')}});
+        if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.message||'فایل فیش دریافت نشد')}
+        const blob=await response.blob(),url=URL.createObjectURL(blob);receiptUrls.add(url);
+        const pdf=blob.type==='application/pdf'||target.dataset.receiptType==='pdf';
+        target.innerHTML=pdf?`<a href="${url}" target="_blank" rel="noopener" style="color:#1d4ed8;font-weight:700"><i class="ti ti-file-type-pdf"></i> مشاهده فیش PDF</a>`:`<a href="${url}" target="_blank" rel="noopener"><img src="${url}" alt="تصویر فیش پرداخت" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:contain;border:1px solid #e5e7eb"/></a>`;
+      }catch(error){target.dataset.loaded='0';target.innerHTML=`<span style="color:#dc2626">${safeText(error.message)}</span> <button type="button" onclick="loadHistoryReceipt(this.parentElement)">تلاش دوباره</button>`}
+    }
+    window.addEventListener('beforeunload',()=>receiptUrls.forEach(url=>URL.revokeObjectURL(url)));
+
     function toggleHistDetail(i){
       const det = document.getElementById(`histDetail_${i}`);
       const chev = document.getElementById(`histChev_${i}`);
       const open = det.style.display === 'none';
       det.style.display = open ? 'block' : 'none';
+      if(open)loadHistoryReceipt(det.querySelector('[data-receipt-payment]'));
       if(chev) chev.style.transform = open ? 'rotate(180deg)' : '';
     }
 
@@ -518,13 +532,7 @@
                 <div><span style="color:#aaa">حساب مقصد:</span><div style="font-weight:600;direction:ltr">${safeText(p.dest_account||'—')}</div></div>
                 <div><span style="color:#aaa">بانک:</span><div style="font-weight:600">${safeText(p.bank||'—')}</div></div>
               </div>
-              ${p.receipt_file ? `
-                <div style="margin-top:8px">
-                  <div style="color:#aaa;margin-bottom:6px">تصویر فیش:</div>
-                  <a href="${API_BASE}/uploads/${encodeURIComponent(p.receipt_file)}" target="_blank" rel="noopener noreferrer">
-                    <img src="${API_BASE}/uploads/${encodeURIComponent(p.receipt_file)}" alt="تصویر فیش پرداخت" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:contain;border:1px solid #e5e7eb"/>
-                  </a>
-                </div>` : '<div style="color:#bbb;font-size:12px">فیشی آپلود نشده</div>'}
+              ${p.has_receipt ? `<div data-receipt-payment="${Number(p.id)}" data-receipt-type="${safeText(p.receipt_type||'')}" style="margin-top:8px;color:#64748b"><i class="ti ti-loader-2"></i> در حال دریافت امن فیش...</div>` : '<div style="color:#bbb;font-size:12px">فیشی آپلود نشده</div>'}
             </div>
           </div>
         `).join('');
@@ -542,8 +550,8 @@
       fetch('https://onpartpadmin.liara.run/api/orders/'+orderId, {headers:{'Authorization':'Bearer '+token}})
         .then(r=>r.json())
         .then(o=>{
-          if(o.total){
-            const v = String(o.total);
+          if(Number(o.debt_remaining)>0){
+            const v = String(o.debt_remaining);
             const formatted = v.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
             document.getElementById('amount').value = formatted.replace(/\d/g, d=>'۰۱۲۳۴۵۶۷۸۹'[d]).replace(/,/g,'،');
           }

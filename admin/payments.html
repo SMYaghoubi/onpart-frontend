@@ -179,7 +179,14 @@ Admin.renderTopbar('مدیریت پرداخت‌ها','ti-credit-card');
 const fa=n=>n.toString().replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 const fmt=n=>fa(Number(n).toLocaleString());
 const colors=['#1d4ed8','#16a34a','#d97706','#7c3aed','#0f766e','#dc2626'];
-let payments=[],filtered=[],currentId=null,curTab='pending',page=1;const PER=15;
+let payments=[],filtered=[],currentId=null,curTab='pending',page=1,receiptObjectUrl=null;const PER=15;
+
+function allocationLinks(payment){
+  const rows=Array.isArray(payment.allocations)?[...payment.allocations]:[];
+  if(!rows.length&&payment.order_id)rows.push({order_id:Number(payment.order_id),amount:Number(payment.allocated_amount||payment.amount||0)});
+  if(!rows.length)return '<span style="color:#94a3b8">تخصیص‌نیافته</span>';
+  return rows.map(row=>`<a class="order-link" href="/admin/orders?order=${Number(row.order_id)}"><i class="ti ti-shopping-bag"></i>#${fa(row.order_id)} <small>${fmt(row.amount)} ت</small></a>`).join(' ');
+}
 
 async function deletePayment(id, btn){
   if(!confirm('آیا مطمئن هستید می‌خواهید این پرداخت را حذف کنید؟')) return;
@@ -238,7 +245,7 @@ function renderTable(){
         <div class="u-av" style="background:${colors[Number(p.id)%colors.length]}">${Admin.escape((p.user_name||'؟')[0])}</div>
         <div><div style="font-weight:600">${Admin.escape(p.user_name||'—')}</div><div style="font-size:11px;color:#aaa">${Admin.escape(p.user_phone||'')}</div></div>
       </div></td>
-      <td>${p.order_id?`<a class="order-link" href="/admin/orders?order=${Number(p.order_id)}"><i class="ti ti-shopping-bag"></i>#${fa(p.order_id)}</a>`:'—'}</td>
+      <td><div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:center">${allocationLinks(p)}</div>${p.status==='approved'&&Number(p.unallocated_amount)>0?`<div class="payment-status-note">${fmt(p.unallocated_amount)} ت تخصیص‌نیافته</div>`:''}</td>
       <td>${toJalali(p.pay_date||p.created_at)||'—'}</td>
       <td style="font-weight:700">${fmt(p.amount)}</td>
       <td><span class="badge b-blue">${Admin.escape(p.bank||'—')}</span></td>
@@ -291,17 +298,15 @@ function openModal(id){
       <div class="info-box"><div class="info-lbl">حساب مقصد</div><div class="info-val" style="direction:ltr;font-family:monospace">${Admin.escape(p.dest_account||'—')}</div></div>
       <div class="info-box"><div class="info-lbl">شماره پیگیری</div><div class="info-val" style="direction:ltr;font-family:monospace">${Admin.escape(p.track_number||'—')}</div></div>
       <div class="info-box"><div class="info-lbl">مبلغ</div><div class="info-val">${fmt(p.amount)} تومان</div></div>
-      <div class="info-box"><div class="info-lbl">سفارش مرتبط</div><div class="info-val">${p.order_id?`<a href="/admin/orders?order=${Number(p.order_id)}">#${fa(p.order_id)}</a>`:'بدون سفارش'}</div></div>
+      <div class="info-box"><div class="info-lbl">تخصیص به سفارش‌ها</div><div class="info-val" style="display:flex;gap:5px;flex-wrap:wrap">${allocationLinks(p)}</div></div>
       <div class="info-box"><div class="info-lbl">بدهی باقی‌مانده سفارش</div><div class="info-val">${p.debt_remaining==null?'—':fmt(p.debt_remaining)+' تومان'}</div></div>
     </div>
     ${isPending?'<div class="payment-status-note"><i class="ti ti-clock"></i>پرداخت ثبت شده و منتظر تأیید واحد مالی است.</div>':''}
-    ${p.receipt_file ? `
-    <a class="receipt-zone" href="https://onpartpadmin.liara.run/uploads/${encodeURIComponent(p.receipt_file)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;cursor:pointer">
-      ${/\.(jpg|jpeg|png)$/i.test(p.receipt_file)
-        ? `<img src="https://onpartpadmin.liara.run/uploads/${encodeURIComponent(p.receipt_file)}" alt="تصویر فیش پرداخت" style="max-width:100%;max-height:220px;border-radius:8px;display:block;margin:0 auto 8px"/>`
-        : `<i class="ti ti-file-type-pdf" style="font-size:32px;color:#dc2626"></i>`}
-      <span style="font-size:13px;color:#1d4ed8;font-weight:600">مشاهده فیش در اندازه کامل</span>
-    </a>` : `
+    ${p.has_receipt ? `
+    <div class="receipt-zone" id="receiptPreview" style="cursor:default">
+      <i class="ti ti-loader-2"></i>
+      <span style="font-size:13px;color:#64748b">در حال دریافت امن فیش...</span>
+    </div>` : `
     <div class="receipt-zone" style="opacity:.6">
       <i class="ti ti-file-off"></i>
       <span style="font-size:13px;color:#999">فیشی آپلود نشده است</span>
@@ -315,9 +320,26 @@ function openModal(id){
     <button class="btn-sec" onclick="closeModal()">بستن</button>`:`
     <button class="btn-sec" onclick="closeModal()">بستن</button>`;
   document.getElementById('modal').classList.add('show');
+  if(p.has_receipt) loadReceipt(p.id,p.receipt_type);
 }
 
-function closeModal(){document.getElementById('modal').classList.remove('show');}
+async function loadReceipt(id,type){
+  const zone=document.getElementById('receiptPreview');if(!zone)return;
+  try{
+    const response=await fetch(`${API.BASE_URL}/api/payments/${Number(id)}/receipt`,{headers:{'Authorization':'Bearer '+sessionStorage.getItem('op_token')}});
+    if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.message||'فایل فیش دریافت نشد')}
+    const blob=await response.blob();
+    if(receiptObjectUrl)URL.revokeObjectURL(receiptObjectUrl);
+    receiptObjectUrl=URL.createObjectURL(blob);
+    const isPdf=(type==='pdf'||blob.type==='application/pdf');
+    zone.innerHTML=`${isPdf?`<iframe src="${receiptObjectUrl}" title="پیش‌نمایش فیش PDF" style="width:100%;height:330px;border:0;border-radius:10px"></iframe>`:`<img src="${receiptObjectUrl}" alt="تصویر فیش پرداخت" style="max-width:100%;max-height:360px;border-radius:10px;display:block;margin:0 auto 10px"/>`}<div style="display:flex;gap:8px;justify-content:center;margin-top:10px"><a class="order-link" href="${receiptObjectUrl}" target="_blank" rel="noopener"><i class="ti ti-maximize"></i>نمایش کامل</a><a class="order-link" href="${receiptObjectUrl}" download="receipt-${Number(id)}.${Admin.escape(type||'bin')}"><i class="ti ti-download"></i>دانلود</a></div>`;
+  }catch(error){zone.innerHTML=`<i class="ti ti-file-alert" style="color:#dc2626"></i><span style="color:#dc2626">${Admin.escape(error.message)}</span><button class="btn-sec" type="button" onclick="loadReceipt(${Number(id)},'${Admin.escape(type||'')}')">تلاش دوباره</button>`}
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('show');
+  if(receiptObjectUrl){URL.revokeObjectURL(receiptObjectUrl);receiptObjectUrl=null}
+}
 
 function toast(msg,ok=true){
   Admin.toast(msg,ok?'success':'error');
@@ -368,6 +390,8 @@ function exportExcel(){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='payments.csv';a.click();
 }
 
+let realtimePaymentTimer=null;
+window.addEventListener('onpart:user-data-changed',()=>{clearTimeout(realtimePaymentTimer);realtimePaymentTimer=setTimeout(loadPayments,250)});
 loadPayments();
 </script>
 </body>
