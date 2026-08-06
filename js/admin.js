@@ -8,21 +8,21 @@ const Admin = {
 
   // All pages with permission keys
   pages: [
-    { id:'dashboard', label:'داشبورد',       icon:'ti-layout-dashboard', href:'index.html',    perm:null },
-    { id:'orders',    label:'سفارشات',        icon:'ti-shopping-bag',     href:'orders.html',   perm:'orders',   badge:'orders' },
-    { id:'products',  label:'محصولات',        icon:'ti-packages',         href:'products.html', perm:'products' },
-    { id:'invoices',  label:'فاکتورها',        icon:'ti-receipt',          href:'invoices.html', perm:'invoices' },
-    { id:'payments',  label:'پرداخت‌ها',       icon:'ti-credit-card',      href:'payments.html', perm:'payments', badge:'payments' },
-    { id:'users',     label:'کاربران',         icon:'ti-users',            href:'users.html',    perm:'users' },
-    { id:'partners',  label:'تامین‌کنندگان',   icon:'ti-building-store',   href:'partners.html', perm:'partners' },
-    { id:'supplier_updates', label:'تغییرات تأمین‌کنندگان', icon:'ti-file-check', href:'supplier-updates.html', perm:'partners', badge:'supplier_updates' },
-    { id:'admins',    label:'مدیران',          icon:'ti-shield-lock',      href:'admins.html',   perm:'admins' },
-    { id:'credit',    label:'اعتبارات',        icon:'ti-id-badge',         href:'credit.html',   perm:'credit' },
-    { id:'shipping',  label:'حمل و نقل',        icon:'ti-truck',            href:'shipping.html', perm:'orders' },
-    { id:'sms',       label:'پیامک',           icon:'ti-message-2',        href:'sms.html',      perm:'sms' },
-    { id:'announcements', label:'اعلان‌ها',    icon:'ti-speakerphone',     href:'announcements.html', perm:null },
-    { id:'reports',   label:'گزارشات',         icon:'ti-chart-bar',        href:'reports.html',  perm:'reports' },
-    { id:'settings',  label:'تنظیمات',         icon:'ti-settings',         href:'settings.html', perm:'settings' },
+    { id:'dashboard', label:'داشبورد',       icon:'ti-layout-dashboard', href:'/admin/',    perm:null },
+    { id:'orders',    label:'سفارشات',        icon:'ti-shopping-bag',     href:'/admin/orders',   perm:'orders',   badge:'orders' },
+    { id:'products',  label:'محصولات',        icon:'ti-packages',         href:'/admin/products', perm:'products' },
+    { id:'invoices',  label:'فاکتورها',        icon:'ti-receipt',          href:'/admin/invoices', perm:'invoices' },
+    { id:'payments',  label:'پرداخت‌ها',       icon:'ti-credit-card',      href:'/admin/payments', perm:'payments', badge:'payments' },
+    { id:'users',     label:'کاربران',         icon:'ti-users',            href:'/admin/users',    perm:'users' },
+    { id:'partners',  label:'تامین‌کنندگان',   icon:'ti-building-store',   href:'/admin/partners', perm:'partners' },
+    { id:'supplier_updates', label:'تغییرات تأمین‌کنندگان', icon:'ti-file-check', href:'/admin/supplier-updates', perm:'partners', badge:'supplier_updates' },
+    { id:'admins',    label:'مدیران',          icon:'ti-shield-lock',      href:'/admin/admins',   perm:'admins' },
+    { id:'credit',    label:'اعتبارات',        icon:'ti-id-badge',         href:'/admin/credit',   perm:'credit' },
+    { id:'shipping',  label:'حمل و نقل',        icon:'ti-truck',            href:'/admin/shipping', perm:'orders' },
+    { id:'sms',       label:'پیامک',           icon:'ti-message-2',        href:'/admin/sms',      perm:'sms' },
+    { id:'announcements', label:'اعلان‌ها',    icon:'ti-speakerphone',     href:'/admin/announcements', perm:null },
+    { id:'reports',   label:'گزارشات',         icon:'ti-chart-bar',        href:'/admin/reports',  perm:'reports' },
+    { id:'settings',  label:'تنظیمات',         icon:'ti-settings',         href:'/admin/settings', perm:'settings' },
   ],
 
   sections: [
@@ -167,7 +167,7 @@ const Admin = {
     <div class="topbar">
       <div class="topbar-title"><i class="ti ${this.escape(icon)}"></i>${this.escape(title)}</div>
       <div class="topbar-right">
-        <a href="/shop.html" onclick="sessionStorage.setItem('allow_shop','1')" style="display:flex;align-items:center;gap:5px;background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0;border-radius:8px;padding:6px 12px;text-decoration:none;font-size:12px;font-weight:600;font-family:Vazirmatn,sans-serif" title="مشاهده فروشگاه"><i class="ti ti-external-link" style="font-size:14px"></i>فروشگاه</a>
+        <a href="/shop" onclick="sessionStorage.setItem('allow_shop','1')" style="display:flex;align-items:center;gap:5px;background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0;border-radius:8px;padding:6px 12px;text-decoration:none;font-size:12px;font-weight:600;font-family:Vazirmatn,sans-serif" title="مشاهده فروشگاه"><i class="ti ti-external-link" style="font-size:14px"></i>فروشگاه</a>
         <div class="sb-burger" onclick="Admin.toggleSidebar()" title="منو"><i class="ti ti-menu-2"></i></div>
         <div class="search-box">
           <i class="ti ti-search" style="color:#aaa;font-size:16px"></i>
@@ -225,23 +225,23 @@ const Admin = {
     if (confirm('آیا می‌خواهید از سیستم خارج شوید؟')) {
       sessionStorage.removeItem('op_token');
       sessionStorage.removeItem('op_user');
-      window.location.href = 'login.html';
+      window.location.href = '/admin/login';
     }
   },
 
   protect(requiredPerm = null) {
     const token = sessionStorage.getItem('op_token');
     const user = this.getUser();
-    if (!token) { window.location.replace('login.html'); return false; }
+    if (!token) { window.location.replace('/admin/login'); return false; }
 
     // Block regular shop users (role 'user') from accessing admin panel entirely
     if (user.role !== 'admin' && user.role !== 'partner') {
-      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Vazirmatn,sans-serif;direction:rtl"><div style="text-align:center"><div style="font-size:48px;color:#dc2626">⛔</div><div style="font-size:20px;font-weight:700;margin-top:16px">دسترسی غیرمجاز</div><div style="color:#aaa;margin-top:8px">شما اجازه ورود به پنل مدیریت را ندارید</div><a href="/shop.html" style="margin-top:20px;display:inline-block;background:#1d4ed8;color:#fff;border-radius:9px;padding:10px 24px;text-decoration:none;font-weight:700">بازگشت به فروشگاه</a></div></div>';
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Vazirmatn,sans-serif;direction:rtl"><div style="text-align:center"><div style="font-size:48px;color:#dc2626">⛔</div><div style="font-size:20px;font-weight:700;margin-top:16px">دسترسی غیرمجاز</div><div style="color:#aaa;margin-top:8px">شما اجازه ورود به پنل مدیریت را ندارید</div><a href="/shop" style="margin-top:20px;display:inline-block;background:#1d4ed8;color:#fff;border-radius:9px;padding:10px 24px;text-decoration:none;font-weight:700">بازگشت به فروشگاه</a></div></div>';
       return false;
     }
 
     if (requiredPerm && !this.hasPerm(requiredPerm)) {
-      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Vazirmatn,sans-serif;direction:rtl"><div style="text-align:center"><div style="font-size:48px;color:#dc2626">⛔</div><div style="font-size:20px;font-weight:700;margin-top:16px">دسترسی غیرمجاز</div><div style="color:#aaa;margin-top:8px">شما به این بخش دسترسی ندارید</div><a href="index.html" style="margin-top:20px;display:inline-block;background:#1d4ed8;color:#fff;border-radius:9px;padding:10px 24px;text-decoration:none;font-weight:700">بازگشت</a></div></div>';
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Vazirmatn,sans-serif;direction:rtl"><div style="text-align:center"><div style="font-size:48px;color:#dc2626">⛔</div><div style="font-size:20px;font-weight:700;margin-top:16px">دسترسی غیرمجاز</div><div style="color:#aaa;margin-top:8px">شما به این بخش دسترسی ندارید</div><a href="/admin/" style="margin-top:20px;display:inline-block;background:#1d4ed8;color:#fff;border-radius:9px;padding:10px 24px;text-decoration:none;font-weight:700">بازگشت</a></div></div>';
       return false;
     }
     return true;

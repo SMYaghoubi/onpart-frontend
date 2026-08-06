@@ -1,3 +1,22 @@
+(function initCleanUrls(){
+  function cleanInternalUrl(value){
+    if(typeof value!=='string'||!value||/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(value)) return value;
+    const match=value.match(/^([^?#]*)([?#].*)?$/);if(!match)return value;
+    let pathname=match[1],suffix=match[2]||'';
+    if(/\/index\.html$/i.test(pathname)) pathname=pathname.replace(/index\.html$/i,'');
+    else if(/\.html$/i.test(pathname)) pathname=pathname.slice(0,-5);
+    return pathname+suffix;
+  }
+  window.OnPartCleanUrl=cleanInternalUrl;
+  const cleanPath=cleanInternalUrl(window.location.pathname);
+  if(cleanPath!==window.location.pathname&&window.history&&history.replaceState){history.replaceState(history.state,'',cleanPath+window.location.search+window.location.hash)}
+  const robots=document.querySelector('meta[name="robots"]');
+  if(!robots||!/noindex/i.test(robots.content||'')){
+    let canonical=document.querySelector('link[rel="canonical"]');
+    if(!canonical){canonical=document.createElement('link');canonical.rel='canonical';document.head.appendChild(canonical)}
+    canonical.href=window.location.origin+cleanPath;
+  }
+})();
 // OnPart API Helper
 // All backend API calls centralized here
 // Change BASE_URL to your domain

@@ -196,10 +196,10 @@ let myOrders=[];
 
 async function loadMyOrders(){
   const token=sessionStorage.getItem('op_token');
-  if(!token){window.location.href='login.html';return;}
+  if(!token){window.location.href='/login';return;}
   try{
     const res=await fetch('https://onpartpadmin.liara.run/api/orders/my',{headers:{'Authorization':'Bearer '+token}});
-    if(!res.ok){window.location.href='login.html';return;}
+    if(!res.ok){window.location.href='/login';return;}
     myOrders=await res.json();
     renderOrders();
     renderConfirms();

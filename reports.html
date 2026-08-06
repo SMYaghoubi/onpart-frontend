@@ -78,7 +78,7 @@
 
     async function loadReports(){
       const token = sessionStorage.getItem('op_token');
-      if(!token){ window.location.href='/login.html'; return; }
+      if(!token){ window.location.href='/login'; return; }
       try{
         const res = await fetch('https://onpartpadmin.liara.run/api/orders', {
           headers:{'Authorization':'Bearer '+token}

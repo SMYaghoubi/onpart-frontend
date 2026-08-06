@@ -150,7 +150,7 @@
         }
         sessionStorage.setItem('op_token', data.token);
         sessionStorage.setItem('op_user', JSON.stringify(data.user));
-        window.location.href = '/admin';
+        window.location.href = '/admin/';
         
       } catch(err){
         showError(err.message || 'خطا در ورود');
@@ -164,7 +164,7 @@
       try {
         const u = JSON.parse(sessionStorage.getItem('op_user')||'{}');
         if(u.role === 'admin' || u.role === 'partner'){
-          window.location.replace('/admin');
+          window.location.replace('/admin/');
         } else {
           // Regular user - clear token, stay on login
           sessionStorage.removeItem('op_token');

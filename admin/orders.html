@@ -364,7 +364,7 @@ function renderTable(){
       <td><span class="badge ${statusBadge[o.status]||'b-amber'}">${statusLabels[o.status]||'نامشخص'}</span> ${o.payment_status?`<span class="badge ${o.payment_status==='approved'?'b-green':o.payment_status==='rejected'?'b-red':'b-amber'}">${paymentLabels[o.payment_status]||o.payment_status}</span>`:``}</td>
       <td><div class="action-btns">
         <button class="ab ab-view" onclick="openDetail(${i})" title="مشاهده"><i class="ti ti-eye"></i></button>
-        <button class="ab ab-edit" onclick="openInvoiceEdit(${i})" title="ویرایش فاکتور"><i class="ti ti-file-invoice"></i></button><a class="ab" href="invoice.html?id=${o.id}" target="_blank" title="چاپ فاکتور" style="background:#ecfdf5;color:#047857;text-decoration:none"><i class="ti ti-printer"></i></a>
+        <button class="ab ab-edit" onclick="openInvoiceEdit(${i})" title="ویرایش فاکتور"><i class="ti ti-file-invoice"></i></button><a class="ab" href="/admin/invoice?id=${o.id}" target="_blank" title="چاپ فاکتور" style="background:#ecfdf5;color:#047857;text-decoration:none"><i class="ti ti-printer"></i></a>
         <button class="ab ab-sms" onclick="openSms(decodeURIComponent('${encodeURIComponent(o.user_phone||'')}'),decodeURIComponent('${encodeURIComponent(o.user_name||'')}'))" title="پیامک"><i class="ti ti-message-2"></i></button>
         <button class="ab ab-del" onclick="deleteOrder(${o.id},this)" title="حذف"><i class="ti ti-trash"></i></button>
       </div></td>
