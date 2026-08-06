@@ -275,6 +275,7 @@ function updateTimerDisplay(){
 }
  
 async function sendOtp(){
+  if(window.OnPartAudio) OnPartAudio.primeFromGesture();
   const phone = document.getElementById('phoneInput').value.trim();
   hideErr('phoneErr');
   if(!/^09\d{9}$/.test(phone)){ showErr('phoneErr','شماره موبایل معتبر نیست'); return; }
@@ -332,6 +333,7 @@ function handleOtpInput(el){
 }
  
 async function verifyOtp(){
+  if(window.OnPartAudio) OnPartAudio.primeFromGesture();
   const code = ['o1','o2','o3','o4','o5'].map(id=>document.getElementById(id).value).join('');
   hideErr('otpErr');
   if(code.length < 5){ showErr('otpErr','کد ۵ رقمی را کامل وارد کنید'); return; }
@@ -369,6 +371,7 @@ function previewImg(input, previewId){
 }
  
 async function completeProfile(){
+  if(window.OnPartAudio) OnPartAudio.primeFromGesture();
   const name = document.getElementById('f_name').value.trim();
   const shop = document.getElementById('f_shop').value.trim();
   const province = document.getElementById('f_province').value.trim();
@@ -429,6 +432,9 @@ async function completeProfile(){
       }).catch(()=>{});
     }
  
+    // Play only after the profile was actually accepted; never on validation/server failure.
+    if(window.OnPartAudio) await OnPartAudio.play('/audio/order-status/registration-submitted.mp3',{onceKey:'registration-submitted-'+String((data.user&&data.user.id)||currentPhone)});
+
     // Always show success page
     sessionStorage.removeItem('op_token');
     sessionStorage.removeItem('op_user');

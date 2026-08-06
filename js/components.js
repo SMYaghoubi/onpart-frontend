@@ -261,29 +261,13 @@ const OnPart = {
       payment_rejected: '/audio/order-status/payment-rejected.mp3',
       shipping: '/audio/order-status/shipping.mp3'
     };
-    this._notificationAudio = new Audio(this._notificationSoundFiles.default);
+    this._notificationAudio = window.OnPartAudio ? window.OnPartAudio.element : new Audio(this._notificationSoundFiles.default);
     this._notificationAudio.preload = 'auto';
 
     function unlockSounds(){
-      if(self._notificationSoundReady || self._notificationSoundUnlocking) return;
-      self._notificationSoundUnlocking = true;
-      var audio = self._notificationAudio;
-      audio.muted = true;
-      audio.play().then(function(){
-        audio.pause();
-        audio.currentTime = 0;
-        audio.muted = false;
-        self._notificationSoundReady = true;
-      }).catch(function(){
-        audio.muted = false;
-      }).finally(function(){
-        self._notificationSoundUnlocking = false;
-        if(self._notificationSoundReady && self._pendingNotificationSound){
-          var pending = self._pendingNotificationSound;
-          self._pendingNotificationSound = null;
-          self.playUserNotificationSound(pending);
-        }
-      });
+      if(window.OnPartAudio) window.OnPartAudio.primeFromGesture();
+      self._notificationSoundReady = true;
+      if(self._pendingNotificationSound){var pending=self._pendingNotificationSound;self._pendingNotificationSound=null;self.playUserNotificationSound(pending)}
     }
     document.addEventListener('pointerdown', unlockSounds, { passive:true });
     document.addEventListener('touchstart', unlockSounds, { passive:true });
@@ -357,22 +341,9 @@ const OnPart = {
 
   playUserNotificationSound: function(soundKey) {
     var key = this._notificationSoundFiles && this._notificationSoundFiles[soundKey] ? soundKey : 'default';
-    if(!this._notificationSoundReady){ this._pendingNotificationSound = key; return; }
-    try {
-      var audio = this._notificationAudio;
-      var nextSrc = new URL(this._notificationSoundFiles[key], window.location.origin).href;
-      audio.pause();
-      if(audio.src !== nextSrc){
-        audio.src = this._notificationSoundFiles[key];
-        audio.load();
-      }
-      audio.currentTime = 0;
-      var self = this;
-      audio.play().catch(function(){
-        self._notificationSoundReady = false;
-        self._pendingNotificationSound = key;
-      });
-    } catch(e) {}
+    if(window.OnPartAudio){window.OnPartAudio.play(this._notificationSoundFiles[key]);return;}
+    if(!this._notificationSoundReady){this._pendingNotificationSound=key;return;}
+    try{this._notificationAudio.src=this._notificationSoundFiles[key];this._notificationAudio.currentTime=0;this._notificationAudio.play().catch(function(){});}catch(e){}
   },
  
   logout: function() {

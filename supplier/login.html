@@ -110,6 +110,7 @@
     const messageBox=document.getElementById('msg');
     const msg=text=>{messageBox.textContent=text||''};
     async function sendOtp(){
+      if(window.OnPartAudio) OnPartAudio.primeFromGesture();
       const phone=document.getElementById('phone').value.trim();
       const btn=document.getElementById('sendBtn');
       msg('');btn.disabled=true;btn.classList.add('loading');
@@ -121,6 +122,7 @@
       }catch(e){msg(e.message)}finally{btn.disabled=false;btn.classList.remove('loading')}
     }
     async function verifyOtp(){
+      if(window.OnPartAudio) OnPartAudio.primeFromGesture();
       const phone=document.getElementById('phone').value.trim();
       const code=document.getElementById('code').value.trim();
       const btn=document.getElementById('verifyBtn');

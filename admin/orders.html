@@ -72,7 +72,21 @@
     .sms-modal-inner{background:#fff;border-radius:16px;width:420px;padding:24px;}
     .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:600;display:none;align-items:center;gap:10px;z-index:9999;}
     .toast.show{display:flex;}
-  </style>
+
+/* Order detail dialog — readable, scroll-safe and mobile friendly */
+#detailModal{padding:22px;background:rgba(15,23,42,.58)}
+#detailModal .modal{width:min(920px,100%)!important;max-height:min(90vh,860px);border-radius:22px;overflow:hidden;box-shadow:0 28px 80px rgba(15,23,42,.3);border:1px solid rgba(255,255,255,.7)}
+#detailModal .modal-head{padding:18px 22px;background:linear-gradient(135deg,#172554,#1d4ed8);color:#fff;border:0;position:sticky;top:0;z-index:4}
+#detailModal .modal-head .modal-title{font-size:16px}.order-number-pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:5px 10px;margin-right:8px}
+#detailModal .modal-close{color:#fff;background:rgba(255,255,255,.12);border-radius:10px}
+#detailModal .modal-body{padding:22px;background:#f8fafc;overflow:auto;overscroll-behavior:contain}
+#detailBody>div:first-child>div{background:#fff!important;border:1px solid #e2e8f0;box-shadow:0 5px 16px rgba(15,23,42,.04);padding:14px!important}
+#detailItems{background:#fff!important;border:1px solid #e2e8f0!important;overflow:hidden}
+#detailItems>div{min-height:44px}
+#detailModal .modal-foot{padding:14px 22px;background:#fff;border-top:1px solid #e2e8f0;position:sticky;bottom:0;z-index:4;display:flex;gap:8px;flex-wrap:wrap}
+#detailModal .modal-foot .btn-sec{margin-right:auto}
+@media(max-width:680px){#detailModal{padding:0;align-items:flex-end}#detailModal .modal{width:100%!important;max-height:94vh;border-radius:22px 22px 0 0}#detailModal .modal-body{padding:14px}#detailBody>div:first-child{grid-template-columns:1fr 1fr!important}#detailModal .modal-foot>*{flex:1;justify-content:center;white-space:nowrap}}
+@media(max-width:420px){#detailBody>div:first-child{grid-template-columns:1fr!important}#detailModal .modal-foot .btn-sec{flex-basis:100%;order:3}}</style>
 </head>
 <body>
 <div class="layout">
@@ -223,7 +237,7 @@
 <div class="modal-overlay" id="detailModal">
   <div class="modal" style="width:720px">
     <div class="modal-head">
-      <div class="modal-title"><i class="ti ti-shopping-bag"></i>جزئیات سفارش <span id="detailNum"></span></div>
+      <div class="modal-title"><i class="ti ti-shopping-bag"></i>جزئیات سفارش <span class="order-number-pill" id="detailNum"></span></div>
       <button class="modal-close" onclick="closeDetail()"><i class="ti ti-x"></i></button>
     </div>
     <div class="modal-body" id="detailBody"></div>
@@ -364,7 +378,7 @@ function renderTable(){
       <td><span class="badge ${statusBadge[o.status]||'b-amber'}">${statusLabels[o.status]||'نامشخص'}</span> ${o.payment_status?`<span class="badge ${o.payment_status==='approved'?'b-green':o.payment_status==='rejected'?'b-red':'b-amber'}">${paymentLabels[o.payment_status]||o.payment_status}</span>`:``}</td>
       <td><div class="action-btns">
         <button class="ab ab-view" onclick="openDetail(${i})" title="مشاهده"><i class="ti ti-eye"></i></button>
-        <button class="ab ab-edit" onclick="openInvoiceEdit(${i})" title="ویرایش فاکتور"><i class="ti ti-file-invoice"></i></button><a class="ab" href="/admin/invoice?id=${o.id}" target="_blank" title="چاپ فاکتور" style="background:#ecfdf5;color:#047857;text-decoration:none"><i class="ti ti-printer"></i></a>
+        <button class="ab ab-edit" onclick="openInvoiceEdit(${i})" title="ویرایش فاکتور"><i class="ti ti-file-invoice"></i></button><a class="ab" href="/admin/invoice?id=${o.id}" target="_self" title="چاپ فاکتور" style="background:#ecfdf5;color:#047857;text-decoration:none"><i class="ti ti-printer"></i></a>
         <button class="ab ab-sms" onclick="openSms(decodeURIComponent('${encodeURIComponent(o.user_phone||'')}'),decodeURIComponent('${encodeURIComponent(o.user_name||'')}'))" title="پیامک"><i class="ti ti-message-2"></i></button>
         <button class="ab ab-del" onclick="deleteOrder(${o.id},this)" title="حذف"><i class="ti ti-trash"></i></button>
       </div></td>
@@ -438,7 +452,7 @@ async function openDetail(i){
     </div>`;
   document.getElementById('detailFoot').innerHTML=`
     <button class="btn-prim" onclick="openInvoiceEdit(${i});closeDetail()"><i class="ti ti-file-invoice"></i>ویرایش فاکتور</button>
-    <button class="btn-prim" style="background:#16a34a" onclick="window.print()"><i class="ti ti-printer"></i>چاپ</button>
+    <button class="btn-prim" style="background:#16a34a" onclick="location.href='/admin/invoice?id=${o.id}'"><i class="ti ti-printer"></i>چاپ فاکتور</button>
     <button class="btn-sec" onclick="closeDetail()">بستن</button>`;
   document.getElementById('detailModal').classList.add('show');
   loadDetailItems(o.id);
@@ -595,7 +609,7 @@ async function openInvoiceEdit(i){
     </div>`;
   document.getElementById('invoiceFoot').innerHTML=`
     <button class="btn-prim" onclick="saveInvoice()"><i class="ti ti-check"></i>ذخیره فاکتور</button>
-    <button class="btn-prim" style="background:#16a34a" onclick="window.print()"><i class="ti ti-printer"></i>چاپ</button>
+    <button class="btn-prim" style="background:#16a34a" onclick="location.href='/admin/invoice?id=${o.id}'"><i class="ti ti-printer"></i>چاپ فاکتور</button>
     <button class="btn-sec" onclick="closeInvoice()">بستن</button>`;
   document.getElementById('invoiceModal').classList.add('show');
   await loadProducts();

@@ -162,7 +162,17 @@
     .cart-foot { padding: 16px 24px; border-top: 1px solid #f0f0f0; }
     .cart-total { display: flex; justify-content: space-between; font-size: 15px; font-weight: 800; margin-bottom: 14px; }
     .btn-checkout { width: 100%; background: #1d4ed8; color: #fff; border: none; border-radius: 10px; padding: 13px; font-family: 'Vazirmatn', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; }
-  </style>
+
+/* Lightweight OnPart visual layer: decoration only, no per-row blur */
+body{background:linear-gradient(145deg,#f8fafc 0%,#eef4ff 45%,#f8fafc 100%);position:relative}
+body:before,body:after{content:"";position:fixed;z-index:-1;border-radius:50%;pointer-events:none;filter:blur(2px);opacity:.32;animation:shopOrb 16s ease-in-out infinite alternate}
+body:before{width:320px;height:320px;right:-120px;top:90px;background:radial-gradient(circle,#60a5fa,transparent 68%)}
+body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gradient(circle,#2dd4bf,transparent 68%);animation-delay:-7s}
+.search-block{background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(239,246,255,.94));box-shadow:0 10px 34px rgba(30,64,175,.06)}
+.search-box{border-color:#cbdaf6;box-shadow:0 8px 25px rgba(29,78,216,.07)}
+#tbody>tr{content-visibility:auto;contain-intrinsic-size:64px;contain:layout paint style}
+@keyframes shopOrb{to{transform:translate3d(18px,-22px,0) scale(1.08)}}
+@media(prefers-reduced-motion:reduce){body:before,body:after{animation:none}}</style>
 </head>
 <body>
   <div id="navbar-placeholder"></div>
@@ -294,6 +304,7 @@
 
     let products = [];
     let filtered = [];
+    const normalizeSearch = value => String(value||'').normalize('NFKC').replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/\s+/g,' ').trim().toLocaleLowerCase('fa-IR');
 
     // Load from API
     let shopSettings = {};
@@ -356,7 +367,9 @@
           stock: Number(p.stock) > 0,
           price: Number(p.price),
           stockQty: Number(p.stock),
-          note: p.note || ''
+          note: p.note || '',
+          _searchText: normalizeSearch([p.description,p.code,p.car,p.brand,p.category,p.note].join(' ')),
+          _catSearch: normalizeSearch(p.category)
         }));
       } catch(e) {
         products = [];
@@ -407,7 +420,7 @@
         document.getElementById('tbody').innerHTML = `<tr><td colspan="11" style="text-align:center;padding:40px;color:#aaa"><i class="ti ti-search" style="font-size:32px;display:block;margin-bottom:8px"></i>محصولی یافت نشد</td></tr>`;
         return;
       }
-      document.getElementById('tbody').innerHTML = filtered.map((p,i) => { var stockB=p.stock?'<span class="chip ch-green">موجود</span>':'<span class="chip ch-red">ناموجود</span>'; var flowB='<span class="chip '+(p.flow?'ch-sky':'ch-gray')+'">'+(p.flow?'دارد':'ندارد')+'</span>';
+      const rowsHtml = filtered.map((p,i) => { var stockB=p.stock?'<span class="chip ch-green">موجود</span>':'<span class="chip ch-red">ناموجود</span>'; var flowB='<span class="chip '+(p.flow?'ch-sky':'ch-gray')+'">'+(p.flow?'دارد':'ندارد')+'</span>';
         const q = qtys[p.id]||0, tot = q*p.price;
         const safeCode=esc(p.code),safeDesc=esc(p.desc),safeNote=esc(p.note||'—'),safeCar=esc(p.car),safeBrand=esc(p.brand),safeCat=esc(p.cat);
         return `<tr id="productRow_${p.id}">
@@ -446,7 +459,10 @@
           </div></td>
           <td class="td-price td-hide-mob" id="productTotal_${p.id}">${tot?fmt(tot):''}</td>
         </tr>`;
-      }).join('');
+      });
+      const body=document.getElementById('tbody'),fragment=document.createDocumentFragment();
+      for(let offset=0;offset<rowsHtml.length;offset+=80){const template=document.createElement('template');template.innerHTML=rowsHtml.slice(offset,offset+80).join('');fragment.appendChild(template.content)}
+      body.replaceChildren(fragment);
       updateCartCount();
       document.getElementById('pgInfo').textContent = `نمایش ${fa(filtered.length)} از ${fa(products.length)} محصول`;
     }
@@ -537,19 +553,13 @@
       }
     }
     let filterTimer;
-    function scheduleFilter(){
-      clearTimeout(filterTimer);
-      filterTimer = setTimeout(doFilter, 250);
-    }
+    function scheduleFilter(){clearTimeout(filterTimer);filterTimer=setTimeout(doFilter,140)}
     function doFilter(){
       clearTimeout(filterTimer);
-      const t=document.getElementById('fText').value;
-      const car=document.getElementById('fCar').value;
-      const br=document.getElementById('fBrand').value;
-      const cat=document.getElementById('fCat').value;
-      filtered=products.filter(p=>(!t||p.desc.includes(t)||p.code.includes(t))&&(!car||p.car===car)&&(!br||p.brand===br)&&(!cat||p.cat.includes(cat)));
-      render();
-      updateFilterSummary();
+      const t=normalizeSearch(document.getElementById('fText').value);
+      const car=document.getElementById('fCar').value,br=document.getElementById('fBrand').value,cat=normalizeSearch(document.getElementById('fCat').value);
+      filtered=products.filter(p=>(!t||p._searchText.includes(t))&&(!car||p.car===car)&&(!br||p.brand===br)&&(!cat||p._catSearch.includes(cat)));
+      render();updateFilterSummary();
     }
 
     function updateFilterSummary(){

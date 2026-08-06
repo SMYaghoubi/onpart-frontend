@@ -364,7 +364,7 @@ function createBankItem(b){
       </div>
       <div style="flex:1">
         <div style="font-size:12px;color:#888;margin-bottom:6px">لوگو بانک (اختیاری)</div>
-        <input type="file" accept="image/*" style="display:none" onchange="previewLogo(this)"/>
+        <input type="file" accept="image/png,image/jpeg,image/webp" data-logo="${Admin.escape(b.logo||'')}" style="display:none" onchange="previewLogo(this)"/>
         <button onclick="this.previousElementSibling.click()" style="background:#eff6ff;color:#1d4ed8;border:1.5px solid #dbeafe;border-radius:7px;padding:6px 12px;font-family:Vazirmatn,sans-serif;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px"><i class="ti ti-upload" style="font-size:13px"></i>آپلود لوگو</button>
       </div>
     </div>
@@ -385,20 +385,19 @@ function addBank(){
   document.getElementById('bankList').appendChild(createBankItem());
 }
 
-function previewLogo(input){
-  if(!input.files||!input.files[0]) return;
-  const reader = new FileReader();
-  reader.onload = function(e){
-    const preview = input.closest('.bank-item-logo').querySelector('.bank-logo-preview');
-    preview.replaceChildren();
-    const image = document.createElement('img');
-    image.src = e.target.result;
-    image.alt = 'پیش‌نمایش لوگوی بانک';
-    image.style.cssText = 'width:100%;height:100%;object-fit:contain';
-    preview.appendChild(image);
-    input.dataset.logo = e.target.result;
-  };
-  reader.readAsDataURL(input.files[0]);
+async function previewLogo(input){
+  const file=input.files&&input.files[0];if(!file)return;
+  if(file.size>2*1024*1024){toast('حجم لوگو باید کمتر از ۲ مگابایت باشد',false);input.value='';return}
+  const preview=input.closest('.bank-item-logo').querySelector('.bank-logo-preview');
+  const localUrl=URL.createObjectURL(file);preview.innerHTML='<img src="'+localUrl+'" alt="پیش‌نمایش لوگوی بانک" style="width:100%;height:100%;object-fit:contain"><span class="logo-uploading">در حال بارگذاری…</span>';
+  const form=new FormData();form.append('logo',file);
+  try{
+    const result=await API.request('/api/settings/bank-logo',{method:'POST',body:form});
+    input.dataset.logo=result.url;
+    const image=preview.querySelector('img');if(image)image.src=API.safeUrl(result.url)+'?v='+Date.now();
+    preview.querySelector('.logo-uploading')?.remove();toast('لوگو بارگذاری شد؛ تنظیمات را ذخیره کنید');
+  }catch(error){preview.innerHTML='<i class="ti ti-building-bank"></i>';input.dataset.logo='';toast(error.message||'بارگذاری لوگو انجام نشد',false)}
+  finally{URL.revokeObjectURL(localUrl);input.value=''}
 }
 
 setTimeout(function(){ loadSettings(); }, 100);
