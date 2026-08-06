@@ -63,6 +63,15 @@
     .otp-resend span{color:#1d4ed8;font-weight:600;}
     .otp-close{font-size:12px;color:#ccc;cursor:pointer;}
     @media(max-width:640px){.wrap{flex-direction:column;}.left{width:100%;padding:28px;}}
+      /* Branded sales portal */
+    body{background:radial-gradient(circle at 84% 14%,#2563eb55,transparent 30%),radial-gradient(circle at 10% 86%,#14b8a644,transparent 28%),linear-gradient(145deg,#07142f,#102a56 52%,#062c3c);position:relative;isolation:isolate;overflow-x:hidden}
+    body:before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background-image:linear-gradient(#ffffff0a 1px,transparent 1px),linear-gradient(90deg,#ffffff0a 1px,transparent 1px);background-size:46px 46px;mask-image:linear-gradient(to bottom,#0008,transparent 85%)}body:after{content:"";position:fixed;width:470px;height:470px;border-radius:50%;left:-170px;bottom:-220px;z-index:-1;background:radial-gradient(circle,#22d3ee50,transparent 68%);animation:salesOrb 10s ease-in-out infinite alternate;pointer-events:none}
+    .wrap{max-width:900px;border:1px solid #ffffff42;background:#ffffff12;box-shadow:0 30px 85px #02061780,inset 0 1px #ffffff3d;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}.left{position:relative;overflow:hidden;background:linear-gradient(155deg,#071a3d,#123775 65%,#075985)}.left:after{content:"";position:absolute;width:210px;height:210px;border-radius:50%;right:-90px;bottom:-100px;border:1px solid #ffffff24;box-shadow:0 0 0 35px #ffffff08,0 0 0 70px #ffffff05}.left>*{position:relative;z-index:1}.left-icon{background:#ffffff14;border:1px solid #ffffff24;box-shadow:0 12px 28px #02061740}.right{background:linear-gradient(145deg,#fffffffa,#f8fafcf2);backdrop-filter:blur(18px)}
+    .finput{background:#f8fafc;border-color:#dbe4f0;min-height:48px}.finput:focus{border-color:#2563eb;box-shadow:0 0 0 4px #2563eb16}.btn-login{min-height:49px;background:linear-gradient(100deg,#1d4ed8,#2563eb 55%,#0891b2);box-shadow:0 13px 26px #1d4ed832}.btn-login:hover{background:linear-gradient(100deg,#1e40af,#1d4ed8 55%,#0e7490);transform:translateY(-1px)}.btn-login:focus-visible,.btn-register:focus-visible,.eye-btn:focus-visible,.page-back:focus-visible{outline:3px solid #67e8f9;outline-offset:3px}.btn-register{background:#ffffff0c;backdrop-filter:blur(8px)}.otp-card{border:1px solid #ffffffb8;box-shadow:0 24px 70px #02061755;background:#fffffff2;backdrop-filter:blur(18px)}
+    .page-back{background:#ffffff18!important;color:#fff!important;border:1px solid #ffffff30!important;backdrop-filter:blur(10px)}
+    @keyframes salesOrb{to{transform:translate3d(70px,-45px,0) scale(1.13)}}
+    @media(max-width:640px){body{padding:12px}.wrap{border-radius:20px}.left{padding:25px 20px}.left-desc{max-width:300px}.right{padding:32px 22px}.page-back{top:14px!important;right:14px!important}}
+    @media(prefers-reduced-motion:reduce){body:after,.wrap{animation:none!important}.btn-login,.btn-register{transition:none!important}}
   </style>
   <link rel="stylesheet" href="css/responsive.css"/>
 </head>
