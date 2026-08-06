@@ -69,7 +69,12 @@
     .btn-sec{background:#f3f4f6;color:#555;border:none;border-radius:9px;padding:11px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
     .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:600;display:none;align-items:center;gap:10px;z-index:999;}
     .toast.show{display:flex;}
-  </style>
+      .payment-status-note{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:7px;padding:4px 7px;margin-top:4px}
+    .order-link{display:inline-flex;align-items:center;gap:4px;color:#1d4ed8;text-decoration:none;font-weight:700;background:#eff6ff;border-radius:7px;padding:4px 8px}
+    .modal{width:min(680px,calc(100% - 24px));overflow:hidden!important;display:flex;flex-direction:column}.modal-body{overflow-y:auto;overscroll-behavior:contain}.modal-foot{flex-wrap:wrap;background:#fff}
+    .modal-foot button:disabled,.ab:disabled{opacity:.55;cursor:wait}.receipt-zone img{box-shadow:0 10px 28px rgba(15,23,42,.12)}
+    @media(max-width:760px){.stats{grid-template-columns:1fr 1fr}.toolbar{align-items:stretch}.fi{width:100%}.tc-head{align-items:flex-start;gap:10px;flex-direction:column}.tc-head>div:last-child{width:100%;overflow:auto}.modal-overlay{align-items:flex-end}.modal{width:100%;max-height:94vh;border-radius:20px 20px 0 0}.info-grid{grid-template-columns:1fr}.modal-foot>*{flex:1;justify-content:center}.tabs{overflow-x:auto;padding-bottom:4px}.tab{flex-shrink:0}}
+    @media(max-width:430px){.stats{grid-template-columns:1fr}.modal-body{padding:15px}.m-hero{padding:16px}.modal-foot .btn-sec{flex-basis:100%}}</style>
 </head>
 <body>
 <div class="layout">
@@ -111,7 +116,7 @@
         <div style="overflow-x:auto">
           <table class="tbl">
             <thead><tr>
-              <th style="text-align:right">کاربر</th>
+              <th style="text-align:right">کاربر</th><th>سفارش</th>
               <th>تاریخ</th><th>مبلغ (ت)</th><th>بانک</th>
               <th>شماره پیگیری</th><th>فیش</th><th>وضعیت</th><th>عملیات</th>
             </tr></thead>
@@ -211,7 +216,7 @@ function updateStats(){
 }
 
 const sBadge={approved:'b-green',pending:'b-amber',rejected:'b-red'};
-const sLabel={approved:'تأیید شده',pending:'در انتظار',rejected:'رد شده'};
+const sLabel={approved:'پرداخت تأیید شده',pending:'پرداخت ثبت شده – منتظر تأیید',rejected:'پرداخت رد شده'};
 
 function renderTable(){
   const s=document.getElementById('searchInp').value;
@@ -222,28 +227,29 @@ function renderTable(){
     (!s||(p.user_name?.includes(s)||p.track_number?.includes(s)))&&
     (!bf||p.bank===bf)&&(!st||p.status===st)
   );
-  const total=filtered.length,pages=Math.ceil(total/PER);
+  const total=filtered.length,pages=Math.max(1,Math.ceil(total/PER));
   if(page>pages)page=1;
   const start=(page-1)*PER,end=Math.min(start+PER,total);
-  document.getElementById('pagerInfo').textContent=`نمایش ${fa(start+1)}–${fa(end)} از ${fa(total)}`;
+  document.getElementById('pagerInfo').textContent=total?`نمایش ${fa(start+1)}–${fa(end)} از ${fa(total)}`:'پرداختی یافت نشد';
 
   document.getElementById('payTbody').innerHTML=filtered.slice(start,end).map((p,i)=>`
     <tr>
       <td style="text-align:right"><div class="user-cell">
-        <div class="u-av" style="background:${colors[i%colors.length]}">${Admin.escape((p.user_name||'؟')[0])}</div>
+        <div class="u-av" style="background:${colors[Number(p.id)%colors.length]}">${Admin.escape((p.user_name||'؟')[0])}</div>
         <div><div style="font-weight:600">${Admin.escape(p.user_name||'—')}</div><div style="font-size:11px;color:#aaa">${Admin.escape(p.user_phone||'')}</div></div>
       </div></td>
-      <td>${p.pay_date?.slice(0,10)||'—'}</td>
+      <td>${p.order_id?`<a class="order-link" href="/admin/orders?order=${Number(p.order_id)}"><i class="ti ti-shopping-bag"></i>#${fa(p.order_id)}</a>`:'—'}</td>
+      <td>${toJalali(p.pay_date||p.created_at)||'—'}</td>
       <td style="font-weight:700">${fmt(p.amount)}</td>
       <td><span class="badge b-blue">${Admin.escape(p.bank||'—')}</span></td>
       <td style="font-family:monospace;font-size:12px;color:#666">${Admin.escape(p.track_number||'—')}</td>
       <td><div style="display:flex;gap:6px">
-        <button style="background:#eff6ff;color:#1d4ed8;border:none;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:600;cursor:pointer" onclick="openModal(${i})"><i class="ti ti-file-text"></i> مشاهده</button>
+        <button style="background:#eff6ff;color:#1d4ed8;border:none;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:600;cursor:pointer" onclick="openModal(${Number(p.id)})"><i class="ti ti-file-text"></i> مشاهده</button>
         <button style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:600;cursor:pointer" onclick="deletePayment(${p.id},this)"><i class="ti ti-trash"></i></button>
       </div></td>
       <td><span class="badge ${sBadge[p.status]||'b-gray'}">${sLabel[p.status]||'نامشخص'}</span></td>
       <td><div class="action-btns">
-        <button class="ab ab-view" onclick="openModal(${i})"><i class="ti ti-eye"></i></button>
+        <button class="ab ab-view" onclick="openModal(${Number(p.id)})"><i class="ti ti-eye"></i></button>
         ${p.status==='pending'?`
         <button class="ab ab-ok" onclick="quickApprove(${p.id})"><i class="ti ti-check"></i></button>
         <button class="ab ab-reject" onclick="quickReject(${p.id})"><i class="ti ti-x"></i></button>`:''}
@@ -265,12 +271,13 @@ function setTab(el,tab){
 
 function gotoPage(p){page=p;renderTable();}
 
-function openModal(i){
-  const p=filtered[i]; currentId=p.id;
+function openModal(id){
+  const p=payments.find(item=>Number(item.id)===Number(id));if(!p){toast('پرداخت یافت نشد',false);return}
+  currentId=p.id;
   const isPending=p.status==='pending';
   document.getElementById('modalBody').innerHTML=`
     <div class="m-hero">
-      <div class="m-av" style="background:${colors[i%colors.length]}">${(p.user_name||'؟')[0]}</div>
+      <div class="m-av" style="background:${colors[Number(p.id)%colors.length]}">${(p.user_name||'؟')[0]}</div>
       <div style="flex:1">
         <div style="font-size:20px;font-weight:900">${fmt(p.amount)} تومان</div>
         <div style="font-size:12px;color:rgba(255,255,255,.7)">${Admin.escape(p.user_name||'—')} — ${Admin.escape(p.bank||'—')}</div>
@@ -284,7 +291,10 @@ function openModal(i){
       <div class="info-box"><div class="info-lbl">حساب مقصد</div><div class="info-val" style="direction:ltr;font-family:monospace">${Admin.escape(p.dest_account||'—')}</div></div>
       <div class="info-box"><div class="info-lbl">شماره پیگیری</div><div class="info-val" style="direction:ltr;font-family:monospace">${Admin.escape(p.track_number||'—')}</div></div>
       <div class="info-box"><div class="info-lbl">مبلغ</div><div class="info-val">${fmt(p.amount)} تومان</div></div>
+      <div class="info-box"><div class="info-lbl">سفارش مرتبط</div><div class="info-val">${p.order_id?`<a href="/admin/orders?order=${Number(p.order_id)}">#${fa(p.order_id)}</a>`:'بدون سفارش'}</div></div>
+      <div class="info-box"><div class="info-lbl">بدهی باقی‌مانده سفارش</div><div class="info-val">${p.debt_remaining==null?'—':fmt(p.debt_remaining)+' تومان'}</div></div>
     </div>
+    ${isPending?'<div class="payment-status-note"><i class="ti ti-clock"></i>پرداخت ثبت شده و منتظر تأیید واحد مالی است.</div>':''}
     ${p.receipt_file ? `
     <a class="receipt-zone" href="https://onpartpadmin.liara.run/uploads/${encodeURIComponent(p.receipt_file)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;cursor:pointer">
       ${/\.(jpg|jpeg|png)$/i.test(p.receipt_file)
@@ -314,25 +324,21 @@ function toast(msg,ok=true){
 }
 
 async function approvePayment(){
+  const buttons=[...document.querySelectorAll('#modalFoot button')];buttons.forEach(button=>button.disabled=true);
   try {
-    const token=sessionStorage.getItem('op_token');
-    const res=await fetch(`${API.BASE_URL}/api/payments/${currentId}/approve`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
-    if(!res.ok) throw new Error();
-    toast('پرداخت تأیید شد');closeModal();loadPayments();
-  } catch(e){toast('خطا',false);}
+    const res=await fetch(`${API.BASE_URL}/api/payments/${currentId}/approve`,{method:'PATCH',headers:{'Authorization':'Bearer '+sessionStorage.getItem('op_token')}});
+    const result=await res.json().catch(()=>({}));if(!res.ok)throw new Error(result.message||'تأیید پرداخت انجام نشد');
+    toast(result.already_approved?'این پرداخت قبلاً تأیید شده است':'پرداخت تأیید شد و بدهی به‌روزرسانی شد');closeModal();await loadPayments();
+  } catch(error){toast(error.message,false)}finally{buttons.forEach(button=>button.disabled=false)}
 }
 
 async function rejectPayment(){
-  const note=document.getElementById('rejectNote')?.value||'';
+  const note=document.getElementById('rejectNote')?.value||'',buttons=[...document.querySelectorAll('#modalFoot button')];buttons.forEach(button=>button.disabled=true);
   try {
-    const token=sessionStorage.getItem('op_token');
-    const res=await fetch(`${API.BASE_URL}/api/payments/${currentId}/reject`,{
-      method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({reason:note})
-    });
-    if(!res.ok) throw new Error();
-    toast('پرداخت رد شد');closeModal();loadPayments();
-  } catch(e){toast('خطا',false);}
+    const res=await fetch(`${API.BASE_URL}/api/payments/${currentId}/reject`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionStorage.getItem('op_token')},body:JSON.stringify({reason:note})});
+    const result=await res.json().catch(()=>({}));if(!res.ok)throw new Error(result.message||'رد پرداخت انجام نشد');
+    toast(result.already_rejected?'این پرداخت قبلاً رد شده است':'پرداخت رد شد و بدهی سفارش باقی ماند');closeModal();await loadPayments();
+  } catch(error){toast(error.message,false)}finally{buttons.forEach(button=>button.disabled=false)}
 }
 
 async function quickApprove(id){

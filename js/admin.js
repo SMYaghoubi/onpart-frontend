@@ -268,6 +268,10 @@ const Admin = {
     if (window.EventSource) {
       this._adminNotificationStream = new EventSource(API_BASE + '/api/announcements/stream');
       this._adminNotificationStream.addEventListener('admin-notification', () => this.loadNotifs(true));
+      this._adminNotificationStream.addEventListener('user-data-changed', event => {
+        let detail={};try{detail=JSON.parse(event.data||'{}')}catch(_){}
+        window.dispatchEvent(new CustomEvent('onpart:user-data-changed',{detail}));
+      });
     }
   },
 

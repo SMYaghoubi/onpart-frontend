@@ -474,6 +474,7 @@ function exportUsers(){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='users.csv';a.click();
 }
 
+let userDebtRefreshTimer;window.addEventListener('onpart:user-data-changed',()=>{clearTimeout(userDebtRefreshTimer);userDebtRefreshTimer=setTimeout(loadUsers,250)});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadUsers()});
 loadUsers();
 setInterval(loadUsers,30000);

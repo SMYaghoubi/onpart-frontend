@@ -62,7 +62,13 @@
       .save-bar button{width:100%;}
       .toggle-row{flex-wrap:wrap;gap:8px;}
     }
-  </style>
+      .bank-item{background:linear-gradient(145deg,#fff,#f8fbff);border:1px solid #dbe5f2;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 8px 24px rgba(15,23,42,.05);}
+    .bank-item-logo{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:10px!important;border-bottom:1px solid #e2e8f0!important;}
+    .bank-logo-preview{width:58px!important;height:58px!important;background:#fff!important;border:1px solid #dbe5f2;box-shadow:0 4px 12px rgba(15,23,42,.06)}
+    .bank-upload-btn{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:8px;padding:7px 12px;font:600 12px Vazirmatn;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+    .bank-upload-status{font-size:11px;color:#64748b;margin-top:5px}.bank-upload-status.error{color:#dc2626}.bank-upload-status.ok{color:#15803d}
+    .legacy-logo-warning{display:inline-flex;align-items:center;gap:4px;margin-top:5px;padding:4px 7px;background:#fff7ed;color:#c2410c;border-radius:6px;font-size:10.5px}
+    .bank-item-grid input[dir=ltr]{text-align:left;unicode-bidi:plaintext;letter-spacing:.4px}</style>
 </head>
 <body>
 <div class="layout">
@@ -295,7 +301,7 @@ async function saveSettings(section){
         card: gridInputs[2]?.value||'',
         account: gridInputs[3]?.value||'',
         sheba: gridInputs[4]?.value||'',
-        logo: logoInput?.dataset?.logo || (logoImg?.src||'')
+        logo: logoInput?.dataset?.logo || ''
       });
     });
     data={bank_accounts:JSON.stringify(banks)};
@@ -326,12 +332,14 @@ async function saveSettings(section){
     };
   }
   try {
-    await fetch(`${API.BASE_URL}/api/settings`,{
+    const response=await fetch(`${API.BASE_URL}/api/settings`,{
       method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify(data)
     });
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok) throw new Error(result.message||'ذخیره تنظیمات انجام نشد');
     toast('تنظیمات ذخیره شد');
-  } catch(e){ toast('تنظیمات ذخیره شد (حالت آفلاین)'); }
+  } catch(e){ toast(e.message||'ذخیره تنظیمات انجام نشد',false); }
 }
 
 async function changeAdminPw(){
@@ -354,26 +362,31 @@ async function changeAdminPw(){
 
 function createBankItem(b){
   b = b || {};
-  const logoUrl = API.safeUrl(b.logo);
+  const rawLogo=String(b.logo||'');
+  const legacyLogo=/^data:image\/(?:png|jpeg|webp);base64,/i.test(rawLogo);
+  const storedLogo=/^\/uploads\/bank-logo-[A-Za-z0-9._%-]+$/.test(rawLogo)?rawLogo:'';
+  const logoUrl=legacyLogo?rawLogo:API.safeUrl(storedLogo);
   const div = document.createElement('div');
   div.className = 'bank-item';
   div.innerHTML = `
     <div class="bank-item-logo">
-      <div class="bank-logo-preview" id="logoPreview_${Date.now()}">
+      <div class="bank-logo-preview">
         ${logoUrl ? `<img src="${Admin.escape(logoUrl)}" alt="لوگوی ${Admin.escape(b.name||'بانک')}"/>` : '<i class="ti ti-building-bank"></i>'}
       </div>
       <div style="flex:1">
         <div style="font-size:12px;color:#888;margin-bottom:6px">لوگو بانک (اختیاری)</div>
-        <input type="file" accept="image/png,image/jpeg,image/webp" data-logo="${Admin.escape(b.logo||'')}" style="display:none" onchange="previewLogo(this)"/>
-        <button onclick="this.previousElementSibling.click()" style="background:#eff6ff;color:#1d4ed8;border:1.5px solid #dbeafe;border-radius:7px;padding:6px 12px;font-family:Vazirmatn,sans-serif;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px"><i class="ti ti-upload" style="font-size:13px"></i>آپلود لوگو</button>
+        <input type="file" accept="image/png,image/jpeg,image/webp" data-logo="${Admin.escape(storedLogo)}" style="display:none" onchange="previewLogo(this)"/>
+        <button class="bank-upload-btn" type="button" onclick="this.previousElementSibling.click()"><i class="ti ti-upload"></i>انتخاب و آپلود لوگو</button>
+        <div class="bank-upload-status" aria-live="polite"></div>
+        ${legacyLogo?'<div class="legacy-logo-warning"><i class="ti ti-alert-triangle"></i>لوگوی قدیمی است؛ برای نمایش در صفحه پرداخت دوباره بارگذاری کنید.</div>':''}
       </div>
     </div>
     <div class="bank-item-grid">
       <div class="fg" style="margin:0"><label>نام بانک</label><input class="finput" placeholder="مثلاً بانک ملت" value="${Admin.escape(b.name||'')}" style="padding:8px 10px"/></div>
       <div class="fg" style="margin:0"><label>نام صاحب حساب</label><input class="finput" placeholder="نام و نام خانوادگی" value="${Admin.escape(b.owner||'')}" style="padding:8px 10px"/></div>
-      <div class="fg" style="margin:0"><label>شماره کارت</label><input class="finput" placeholder="XXXX-XXXX-XXXX-XXXX" value="${Admin.escape(b.card||'')}" style="direction:ltr;padding:8px 10px"/></div>
-      <div class="fg" style="margin:0"><label>شماره حساب</label><input class="finput" placeholder="شماره حساب" value="${Admin.escape(b.account||'')}" style="direction:ltr;padding:8px 10px"/></div>
-      <div class="fg" style="margin:0;grid-column:1/-1"><label>شماره شبا</label><input class="finput" placeholder="IR..." value="${Admin.escape(b.sheba||'')}" style="direction:ltr;padding:8px 10px"/></div>
+      <div class="fg" style="margin:0"><label>شماره کارت</label><input class="finput" placeholder="XXXX-XXXX-XXXX-XXXX" value="${Admin.escape(b.card||'')}" dir="ltr" style="padding:8px 10px"/></div>
+      <div class="fg" style="margin:0"><label>شماره حساب</label><input class="finput" placeholder="شماره حساب" value="${Admin.escape(b.account||'')}" dir="ltr" style="padding:8px 10px"/></div>
+      <div class="fg" style="margin:0;grid-column:1/-1"><label>شماره شبا</label><input class="finput" placeholder="IR..." value="${Admin.escape(b.sheba||'')}" dir="ltr" style="padding:8px 10px"/></div>
     </div>
     <div class="bank-item-del">
       <button onclick="this.closest('.bank-item').remove()" style="background:#fee2e2;color:#dc2626;border:none;border-radius:7px;padding:7px 14px;font-family:Vazirmatn,sans-serif;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px"><i class="ti ti-trash"></i>حذف حساب</button>
@@ -387,17 +400,20 @@ function addBank(){
 
 async function previewLogo(input){
   const file=input.files&&input.files[0];if(!file)return;
-  if(file.size>2*1024*1024){toast('حجم لوگو باید کمتر از ۲ مگابایت باشد',false);input.value='';return}
-  const preview=input.closest('.bank-item-logo').querySelector('.bank-logo-preview');
-  const localUrl=URL.createObjectURL(file);preview.innerHTML='<img src="'+localUrl+'" alt="پیش‌نمایش لوگوی بانک" style="width:100%;height:100%;object-fit:contain"><span class="logo-uploading">در حال بارگذاری…</span>';
+  const wrap=input.closest('.bank-item-logo'),preview=wrap.querySelector('.bank-logo-preview');
+  const status=wrap.querySelector('.bank-upload-status'),button=wrap.querySelector('.bank-upload-btn');
+  if(file.size>2*1024*1024){status.textContent='حجم لوگو باید کمتر از ۲ مگابایت باشد';status.className='bank-upload-status error';input.value='';return}
+  const localUrl=URL.createObjectURL(file);preview.innerHTML='<img src="'+localUrl+'" alt="پیش‌نمایش لوگوی بانک">';
+  status.textContent='در حال بارگذاری امن لوگو…';status.className='bank-upload-status';button.disabled=true;
   const form=new FormData();form.append('logo',file);
   try{
     const result=await API.request('/api/settings/bank-logo',{method:'POST',body:form});
     input.dataset.logo=result.url;
     const image=preview.querySelector('img');if(image)image.src=API.safeUrl(result.url)+'?v='+Date.now();
-    preview.querySelector('.logo-uploading')?.remove();toast('لوگو بارگذاری شد؛ تنظیمات را ذخیره کنید');
-  }catch(error){preview.innerHTML='<i class="ti ti-building-bank"></i>';input.dataset.logo='';toast(error.message||'بارگذاری لوگو انجام نشد',false)}
-  finally{URL.revokeObjectURL(localUrl);input.value=''}
+    wrap.querySelector('.legacy-logo-warning')?.remove();
+    status.textContent='بارگذاری شد؛ برای ثبت نهایی دکمه ذخیره را بزنید.';status.className='bank-upload-status ok';
+  }catch(error){preview.innerHTML='<i class="ti ti-building-bank"></i>';input.dataset.logo='';status.textContent=error.message||'بارگذاری لوگو انجام نشد';status.className='bank-upload-status error'}
+  finally{button.disabled=false;URL.revokeObjectURL(localUrl);input.value=''}
 }
 
 setTimeout(function(){ loadSettings(); }, 100);
