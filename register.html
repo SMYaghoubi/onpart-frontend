@@ -275,7 +275,6 @@ function updateTimerDisplay(){
 }
  
 async function sendOtp(){
-  if(window.OnPartAudio) OnPartAudio.primeFromGesture();
   const phone = document.getElementById('phoneInput').value.trim();
   hideErr('phoneErr');
   if(!/^09\d{9}$/.test(phone)){ showErr('phoneErr','شماره موبایل معتبر نیست'); return; }
@@ -333,7 +332,6 @@ function handleOtpInput(el){
 }
  
 async function verifyOtp(){
-  if(window.OnPartAudio) OnPartAudio.primeFromGesture();
   const code = ['o1','o2','o3','o4','o5'].map(id=>document.getElementById(id).value).join('');
   hideErr('otpErr');
   if(code.length < 5){ showErr('otpErr','کد ۵ رقمی را کامل وارد کنید'); return; }

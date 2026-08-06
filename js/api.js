@@ -22,27 +22,20 @@
   const DEFAULT_SOUND='/audio/onpart-notification.mp3';
   let audio=null, context=null, priming=false;
   const getAudio=()=>{if(!audio){audio=new Audio(DEFAULT_SOUND);audio.preload='auto'}return audio};
-  function blockedHint(){
-    if(document.getElementById('onpartAudioHint')) return;
-    const hint=document.createElement('button');hint.id='onpartAudioHint';hint.type='button';
-    hint.textContent='صدا آماده نیست — برای فعال‌سازی لمس کنید';
-    hint.style.cssText='position:fixed;left:16px;bottom:16px;z-index:100000;border:0;border-radius:12px;padding:10px 14px;background:#172554;color:#fff;font:600 12px Vazirmatn,sans-serif;box-shadow:0 10px 30px #0f172a38;cursor:pointer';
-    hint.onclick=()=>{window.OnPartAudio.primeFromGesture();hint.remove()};document.body.appendChild(hint);
-  }
   function primeFromGesture(){
     if(priming) return;priming=true;
     try{const AC=window.AudioContext||window.webkitAudioContext;if(AC){context=context||new AC();context.resume().catch(()=>{})}}catch(_){}
     const el=getAudio();el.muted=true;
     const attempt=el.play();
-    if(attempt&&attempt.then)attempt.then(()=>{el.pause();el.currentTime=0;sessionStorage.setItem('op_audio_primed','1')}).catch(()=>{}).finally(()=>{el.muted=false;priming=false});
+    if(attempt&&attempt.then)attempt.then(()=>{el.pause();el.currentTime=0}).catch(()=>{}).finally(()=>{el.muted=false;priming=false});
     else{el.muted=false;priming=false}
   }
   async function play(src,options={}){
     const onceKey=options.onceKey?'op_audio_once_'+options.onceKey:'';if(onceKey&&sessionStorage.getItem(onceKey))return false;
     const el=getAudio();el.pause();el.src=src||DEFAULT_SOUND;el.muted=false;el.currentTime=0;
-    try{await el.play();if(onceKey)sessionStorage.setItem(onceKey,'1');return true}catch(error){if(error&&error.name==='NotAllowedError')blockedHint();return false}
+    try{await el.play();if(onceKey)sessionStorage.setItem(onceKey,'1');return true}catch(error){return false}
   }
-  window.OnPartAudio={primeFromGesture,play,showBlockedHint:blockedHint,get element(){return getAudio()}};
+  window.OnPartAudio={primeFromGesture,play,get element(){return getAudio()}};
 })();
 // OnPart API Helper
 // All backend API calls centralized here

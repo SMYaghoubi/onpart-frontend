@@ -249,11 +249,10 @@ const Admin = {
 
   initAdminNotifications() {
     if (this._adminNotificationAudio) return;
-    const audio = window.OnPartAudio ? window.OnPartAudio.element : new Audio('/audio/onpart-notification.mp3');
+    const audio = new Audio('/audio/onpart-notification.mp3');
     audio.preload = 'auto';
     this._adminNotificationAudio = audio;
     const unlock = () => {
-      if (window.OnPartAudio) window.OnPartAudio.primeFromGesture();
       if (this._adminNotificationSoundReady) return;
       audio.muted = true;
       audio.play().then(() => {
@@ -273,7 +272,6 @@ const Admin = {
   },
 
   playAdminNotificationSound() {
-    if (window.OnPartAudio) { window.OnPartAudio.play('/audio/onpart-notification.mp3'); return; }
     if (!this._adminNotificationSoundReady || !this._adminNotificationAudio) return;
     this._adminNotificationAudio.currentTime = 0;
     this._adminNotificationAudio.play().catch(() => { this._adminNotificationSoundReady = false; });

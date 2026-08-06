@@ -148,7 +148,6 @@ function togglePw(){
   else{p.type='password';ic.className='ti ti-eye';}
 }
 async function doLogin(){
-  if(window.OnPartAudio) OnPartAudio.primeFromGesture();
   const u=document.getElementById('username').value.trim();
   const p=document.getElementById('password').value.trim();
   if(!u||!p){alert('لطفاً شماره موبایل و رمز عبور را وارد کنید');return;}
@@ -179,7 +178,6 @@ function handleOtpAutofill(val){
   if(val.length===5) verifyOTP();
 }
 async function verifyOTP(){
-  if(window.OnPartAudio) OnPartAudio.primeFromGesture();
   const phone=document.getElementById('phoneInput2')?.value||document.getElementById('username').value;
   const otp=[...document.querySelectorAll('.otp-input')].map(i=>i.value).join('');
   if(otp.length<4){alert('کد را کامل وارد کنید');return;}
