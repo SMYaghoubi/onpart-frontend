@@ -93,7 +93,27 @@
       .debt-hint{flex-direction:column;align-items:flex-start;}
       .btn-fill-debt{width:100%;text-align:center;}
     }
-  </style>
+      /* Professional receipt workspace */
+    body{background:radial-gradient(circle at 88% 12%,#2563eb24,transparent 28%),radial-gradient(circle at 8% 82%,#0d948822,transparent 27%),linear-gradient(145deg,#eef4ff,#f8fafc 48%,#ecfeff);position:relative;isolation:isolate;}
+    body:before{content:"";position:fixed;inset:56px 0 0;z-index:-2;pointer-events:none;opacity:.32;background-image:linear-gradient(#1d4ed80b 1px,transparent 1px),linear-gradient(90deg,#1d4ed80b 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(to bottom,transparent,#000 18%,#000 80%,transparent)}
+    body:after{content:"";position:fixed;width:520px;height:520px;border-radius:50%;left:-180px;bottom:-240px;z-index:-1;pointer-events:none;background:radial-gradient(circle,#2dd4bf33,transparent 68%);animation:paymentGlow 10s ease-in-out infinite alternate}
+    .page{width:min(1320px,100%);margin:0 auto;padding:32px;gap:22px;}
+    .left-col{gap:20px}.balance-card{position:relative;overflow:hidden;border:1px solid #ffffff42;border-radius:21px;background:linear-gradient(125deg,#0f2d68,#1d4ed8 55%,#0891b2);box-shadow:0 20px 48px #1d4ed82e;}
+    .balance-card:after{content:"";position:absolute;width:240px;height:240px;border-radius:50%;left:-70px;top:-110px;border:1px solid #ffffff24;box-shadow:0 0 0 38px #ffffff09,0 0 0 76px #ffffff06;}
+    .upload-card,.history-card,.bank-card{background:#ffffffd9;border:1px solid #ffffffc7;box-shadow:0 16px 42px #0f172a12;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+    .upload-card{border-radius:21px;padding:28px}.history-card{border-radius:18px}.section-title{font-size:17px}.section-sub{color:#64748b;line-height:1.8}
+    .finput,.fselect,#bsDisplay{border-radius:12px!important;border-color:#dbe4f0!important;min-height:46px;transition:border-color .2s,box-shadow .2s,background .2s!important}.finput:focus,.fselect:focus,#bsDisplay:focus-within{border-color:#2563eb!important;box-shadow:0 0 0 4px #2563eb14;background:#fff!important}
+    .payment-card-source{padding:16px;border:1px solid #dbeafe;border-radius:16px;background:linear-gradient(135deg,#eff6ffb8,#ffffffcc)}
+    .source-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}.source-card-title{font-size:13px;font-weight:800;color:#1e293b;display:flex;align-items:center;gap:7px}.source-card-title i{color:#2563eb;font-size:19px}.source-card-note{font-size:10.5px;color:#64748b;margin-top:3px}
+    .source-card-row{display:flex;gap:8px;align-items:stretch}.source-card-row select{flex:1}.source-card-add{border:1px solid #bfdbfe;border-radius:11px;background:#fff;color:#1d4ed8;padding:0 13px;font:700 12px Vazirmatn;cursor:pointer;white-space:nowrap}.source-card-add:hover{background:#1d4ed8;color:#fff}
+    .payment-card-form{display:none;margin-top:12px;padding:14px;border:1px solid #bfdbfe;border-radius:14px;background:#fff}.payment-card-form.show{display:block;animation:paymentStep .25s ease}.payment-card-fields{display:grid;grid-template-columns:1.2fr 1fr;gap:9px}.payment-card-save{margin-top:9px!important;background:linear-gradient(100deg,#047857,#059669)!important}.payment-card-security{display:flex;gap:6px;align-items:flex-start;font-size:10.5px;color:#64748b;margin-top:9px;line-height:1.7}.payment-card-security i{color:#059669;font-size:16px}
+    .payment-saved-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.payment-saved-card{display:flex;align-items:center;gap:8px;min-width:0;padding:10px;border:1px solid #dbe4f0;border-radius:12px;background:#fff}.payment-saved-card.selected{border-color:#2563eb;background:#eff6ff;box-shadow:0 0 0 3px #2563eb10}.payment-card-select{min-width:0;flex:1;border:0;background:none;text-align:right;cursor:pointer;font-family:Vazirmatn}.payment-card-select b{display:block;font-size:11.5px;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.payment-card-select span{display:block;direction:ltr;text-align:right;color:#64748b;font:11px monospace;margin-top:3px}.payment-card-delete{width:29px;height:29px;border:0;border-radius:8px;background:#fef2f2;color:#dc2626;cursor:pointer}.payment-card-state{grid-column:1/-1;padding:13px;border:1px dashed #bfdbfe;border-radius:11px;text-align:center;color:#64748b;font-size:11px;background:#ffffffa6}.payment-card-state button{border:0;background:none;color:#1d4ed8;font:700 11px Vazirmatn;cursor:pointer}
+    .drop-zone{position:relative;border-radius:16px;padding:35px 20px;background:linear-gradient(145deg,#f8fafc,#eff6ff80);border-color:#bfdbfe}.drop-zone:hover,.drop-zone.dragover{transform:translateY(-2px);box-shadow:0 12px 28px #1d4ed816}.drop-zone.has-file{background:linear-gradient(145deg,#f0fdf4,#ecfdf5);box-shadow:0 10px 25px #16a34a12}.file-preview{border:1px solid #bbf7d0;border-radius:13px;padding:11px;background:#f0fdf4}.file-thumb{width:46px;height:46px;border-radius:9px;background:#fff;border:1px solid #d1fae5;display:grid;place-items:center;overflow:hidden;flex:none}.file-thumb img{width:100%;height:100%;object-fit:cover}.file-meta{min-width:0;flex:1}.file-meta #fileName{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.file-size{font-size:10.5px;color:#64748b;margin-top:3px;direction:ltr;text-align:right}
+    .btn-submit{border-radius:13px;min-height:50px;background:linear-gradient(100deg,#047857,#16a34a 55%,#0d9488);box-shadow:0 12px 26px #16a34a2d}.btn-submit:hover{background:linear-gradient(100deg,#065f46,#15803d 55%,#0f766e);transform:translateY(-1px)}.btn-submit:disabled{opacity:.65;cursor:wait;transform:none}.btn-submit.loading:after{content:"";width:16px;height:16px;border:2px solid #ffffff70;border-top-color:#fff;border-radius:50%;animation:paymentSpin .7s linear infinite}
+    @keyframes paymentGlow{to{transform:translate3d(65px,-40px,0) scale(1.12)}}@keyframes paymentStep{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}@keyframes paymentSpin{to{transform:rotate(360deg)}}
+    @media(max-width:900px){.page{grid-template-columns:1fr;padding:20px}.payment-saved-list{grid-template-columns:1fr 1fr}}
+    @media(max-width:600px){.page{padding:14px 10px 30px}.upload-card{padding:18px 14px;border-radius:17px}.balance-card{padding:21px 17px}.source-card-row{flex-direction:column}.source-card-add{height:42px}.payment-card-fields,.payment-saved-list{grid-template-columns:1fr}.drop-zone{padding:27px 12px}.form-grid2{grid-template-columns:1fr}.fg[style*="grid-column"]{grid-column:auto!important}}
+    @media(prefers-reduced-motion:reduce){body:after,.payment-card-form.show{animation:none!important}.drop-zone,.btn-submit{transition:none!important}}</style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/iranianbanklogos@3.1.2/dist/ibl.min.css"/>
   <link rel="stylesheet" href="css/responsive.css"/>
 </head>
@@ -105,7 +125,7 @@
         <div><div class="balance-label">مانده بدهی شما</div><div class="balance-val" id="debtAmount">در حال بارگذاری...</div><div class="balance-sub">لطفاً از حساب‌های زیر واریز کنید</div></div>
         <div class="balance-icon"><i class="ti ti-wallet"></i></div>
       </div>
- 
+
       <div>
         <div class="section-title"><i class="ti ti-building-bank"></i>حساب‌های بانکی آن‌پارت</div>
         <div class="section-sub">واریز فقط به حساب‌های زیر امکان‌پذیر است</div>
@@ -113,7 +133,7 @@
           <div style="text-align:center;padding:20px;color:#aaa;font-size:13px;grid-column:1/-1">در حال بارگذاری...</div>
         </div>
       </div>
- 
+
       <div class="upload-card">
         <div class="section-title" style="margin-bottom:4px"><i class="ti ti-upload"></i>بارگذاری فیش واریز</div>
         <div class="section-sub">پس از واریز، فیش را آپلود کنید تا بدهی شما تأیید شود</div>
@@ -163,7 +183,7 @@
             </div>
           </div>
         </div>
- 
+
         <div class="fg" style="position:relative">
           <label class="flabel">بانک مبدأ</label>
           <div id="bsDisplay" onclick="bsToggle()" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;background:#fff;cursor:pointer;min-height:48px;transition:border .2s">
@@ -183,7 +203,16 @@
           </div>
         </div>
         <div class="fg"><label class="flabel">شماره پیگیری</label><input class="finput" id="trackNum" placeholder="شماره پیگیری تراکنش" style="direction:ltr"/></div>
-        <div class="fg" style="grid-column:1/-1"><label class="flabel">کارت مبدأ ذخیره‌شده</label><div style="display:flex;gap:8px;flex-wrap:wrap"><select class="finput" id="savedCard" style="flex:1;min-width:220px"><option value="">انتخاب کارت...</option></select><button class="copy-mini" type="button" onclick="toggleCardForm()" style="width:auto;padding:0 12px"><i class="ti ti-plus"></i> افزودن کارت</button></div><div id="cardForm" style="display:none;margin-top:10px;padding:12px;border:1px solid #dbeafe;border-radius:12px;background:#eff6ff"><input class="finput" id="newCardNumber" maxlength="19" inputmode="numeric" placeholder="شماره ۱۶ رقمی کارت" oninput="formatCard(this)"><input class="finput" id="newCardTitle" maxlength="80" placeholder="عنوان کارت (اختیاری)" style="margin-top:8px"><button class="btn-submit" type="button" onclick="addSavedCard()" style="margin-top:8px">ذخیره امن کارت</button><div style="font-size:11px;color:#64748b;margin-top:8px">CVV2، رمز و تاریخ انقضا هرگز دریافت یا ذخیره نمی‌شود.</div></div><div id="savedCardsList" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div></div>
+                <div class="fg payment-card-source" style="grid-column:1/-1">
+          <div class="source-card-head"><div><div class="source-card-title"><i class="ti ti-credit-card"></i> کارت مبدأ ذخیره‌شده</div><div class="source-card-note">شماره کامل کارت پس از ذخیره نمایش داده نمی‌شود.</div></div></div>
+          <div class="source-card-row"><select class="finput" id="savedCard" aria-label="انتخاب کارت مبدأ" onchange="renderSavedCards()"><option value="">انتخاب کارت...</option></select><button class="source-card-add" type="button" onclick="toggleCardForm()"><i class="ti ti-plus"></i> افزودن کارت</button></div>
+          <div class="payment-saved-list" id="savedCardsList"><div class="payment-card-state">در حال دریافت کارت‌ها...</div></div>
+          <div class="payment-card-form" id="cardForm">
+            <div class="payment-card-fields"><input class="finput" id="newCardNumber" maxlength="19" inputmode="numeric" autocomplete="off" placeholder="شماره ۱۶ رقمی کارت" oninput="formatCard(this)"><input class="finput" id="newCardTitle" maxlength="80" placeholder="عنوان کارت (اختیاری)"></div>
+            <button class="btn-submit payment-card-save" id="savePaymentCardBtn" type="button" onclick="addSavedCard()">ذخیره امن کارت</button>
+            <div class="payment-card-security"><i class="ti ti-lock"></i><span>CVV2، رمز و تاریخ انقضا هرگز دریافت یا ذخیره نمی‌شوند.</span></div>
+          </div>
+        </div>
         <div class="fg" style="grid-column:1/-1">
           <label class="flabel">واریز به <span style="color:#ef4444">*</span></label>
           <div style="display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start">
@@ -199,7 +228,7 @@
         </div>
         <div class="fg">
           <label class="flabel">فیش / تصویر واریز</label>
-          <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()"
+          <div class="drop-zone" id="dropZone" role="button" tabindex="0" aria-label="انتخاب تصویر یا PDF رسید" onclick="document.getElementById('fileInput').click()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('fileInput').click()}"
             ondragover="event.preventDefault();this.classList.add('dragover')"
             ondragleave="this.classList.remove('dragover')"
             ondrop="handleDrop(event)">
@@ -207,18 +236,17 @@
             <div style="font-size:14px;font-weight:600;color:#444">فایل را اینجا بکشید یا کلیک کنید</div>
             <div style="font-size:12px;color:#aaa;margin-top:4px">JPG، PNG، PDF — حداکثر ۵ مگابایت</div>
           </div>
-          <div class="file-preview" id="filePreview">
-            <i class="ti ti-file-check"></i>
-            <span id="fileName" style="font-size:13px;font-weight:600;color:#333;flex:1">—</span>
-            <button class="file-remove" onclick="removeFile()"><i class="ti ti-x"></i></button>
-          </div>
-          <input type="file" id="fileInput" accept="image/*,.pdf" style="display:none" onchange="handleFile(this.files[0])"/>
+                    <div class="file-preview" id="filePreview">
+            <div class="file-thumb" id="fileThumb"><i class="ti ti-file-check"></i></div>
+            <div class="file-meta"><span id="fileName" style="font-size:13px;font-weight:700;color:#1e293b">—</span><div class="file-size" id="fileSize"></div></div>
+            <button class="file-remove" type="button" aria-label="حذف فایل انتخاب‌شده" onclick="removeFile()"><i class="ti ti-x"></i></button>
+          </div>          <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.pdf" style="display:none" onchange="handleFile(this.files[0])"/>
         </div>
         <div class="fg" style="margin-bottom:0"><label class="flabel">توضیحات (اختیاری)</label><textarea class="finput" rows="2" style="resize:none" placeholder="توضیحات تکمیلی..."></textarea></div>
-        <button class="btn-submit" onclick="handleSubmit()"><i class="ti ti-send"></i>ثبت و ارسال فیش واریز</button>
+        <button class="btn-submit" id="submitPaymentBtn" type="button" onclick="handleSubmit()"><i class="ti ti-send"></i>ثبت و ارسال فیش واریز</button>
       </div>
     </div>
- 
+
     <div class="history-card">
       <div class="section-title" style="margin-bottom:16px"><i class="ti ti-history"></i>تاریخچه پرداخت‌ها</div>
       <div id="historyList">
@@ -226,7 +254,7 @@
       </div>
     </div>
   </div>
- 
+
   <div class="overlay" id="successOverlay">
     <div class="suc-box">
       <div class="suc-icon"><i class="ti ti-check"></i></div>
@@ -235,24 +263,31 @@
       <button class="btn-close" onclick="document.getElementById('successOverlay').classList.remove('show')">متوجه شدم</button>
     </div>
   </div>
- 
+
   <script src="js/components.js"></script>
   <script src="js/api.js"></script>
   <script>
     OnPart.renderNavbar('payment');
- 
+
     let currentUserDebt = 0;
     let savedCards = [];
- 
-    function toggleCardForm(){const form=document.getElementById('cardForm');form.style.display=form.style.display==='none'?'block':'none'}
-    async function loadSavedCards(){try{const data=await API.request('/api/bank-cards');savedCards=data.cards||[];const select=document.getElementById('savedCard');select.innerHTML='<option value="">انتخاب کارت...</option>'+savedCards.map(card=>'<option value="'+card.id+'">'+API.escapeHtml(card.title||'کارت')+' — '+API.escapeHtml(card.masked_number)+'</option>').join('');document.getElementById('savedCardsList').innerHTML=savedCards.map(card=>'<span style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:5px 8px;font-size:11px">'+API.escapeHtml(card.masked_number)+' <button type="button" onclick="deleteSavedCard('+card.id+')" style="border:0;background:none;color:#dc2626;cursor:pointer">حذف</button></span>').join('')}catch(e){OnPart.toast(e.message,'error')}}
-    async function addSavedCard(){const number=document.getElementById('newCardNumber').value,title=document.getElementById('newCardTitle').value;try{await API.request('/api/bank-cards',{method:'POST',body:JSON.stringify({card_number:number,title})});document.getElementById('newCardNumber').value='';document.getElementById('newCardTitle').value='';toggleCardForm();await loadSavedCards();OnPart.toast('کارت ذخیره شد')}catch(e){OnPart.toast(e.message,'error')}}
-    async function deleteSavedCard(id){if(!confirm('این کارت حذف شود؟'))return;try{await API.request('/api/bank-cards/'+id,{method:'DELETE'});await loadSavedCards()}catch(e){OnPart.toast(e.message,'error')}}    function fillDebtAmount(){
+    let selectedReceiptFile = null;
+    let receiptPreviewUrl = null;
+
+    function paymentCardDigits(value){return String(value||'').replace(/[۰-۹]/g,d=>String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/\D/g,'')}
+    function validPaymentCard(value){const number=paymentCardDigits(value);if(!/^\d{16}$/.test(number)||/^(\d)\1{15}$/.test(number))return false;let sum=0;for(let i=0;i<16;i++){let digit=Number(number[i]);if(i%2===0){digit*=2;if(digit>9)digit-=9}sum+=digit}return sum%10===0}
+    function toggleCardForm(force){const form=document.getElementById('cardForm');const show=typeof force==='boolean'?force:!form.classList.contains('show');form.classList.toggle('show',show);if(show)setTimeout(()=>document.getElementById('newCardNumber').focus(),0)}
+    function renderSavedCards(){const list=document.getElementById('savedCardsList'),selected=String(document.getElementById('savedCard').value||'');if(!savedCards.length){list.innerHTML='<div class="payment-card-state">کارتی ذخیره نشده است. <button type="button" onclick="toggleCardForm(true)">افزودن کارت</button></div>';return}list.innerHTML=savedCards.map(card=>'<div class="payment-saved-card '+(selected===String(card.id)?'selected':'')+'"><button class="payment-card-select" type="button" onclick="selectSavedCard('+Number(card.id)+')"><b>'+API.escapeHtml(card.title||'کارت بانکی')+'</b><span>'+API.escapeHtml(card.masked_number)+'</span></button><button class="payment-card-delete" type="button" aria-label="حذف کارت" onclick="deleteSavedCard('+Number(card.id)+')"><i class="ti ti-trash"></i></button></div>').join('')}
+    function selectSavedCard(id){document.getElementById('savedCard').value=String(id);renderSavedCards()}
+    async function loadSavedCards(){const select=document.getElementById('savedCard'),previous=select.value;document.getElementById('savedCardsList').innerHTML='<div class="payment-card-state">در حال دریافت کارت‌ها...</div>';try{const data=await API.request('/api/bank-cards');savedCards=data.cards||[];select.innerHTML='<option value="">انتخاب کارت...</option>'+savedCards.map(card=>'<option value="'+Number(card.id)+'">'+API.escapeHtml(card.title||'کارت')+' — '+API.escapeHtml(card.masked_number)+'</option>').join('');if(savedCards.some(card=>String(card.id)===String(previous)))select.value=previous;renderSavedCards()}catch(error){document.getElementById('savedCardsList').innerHTML='<div class="payment-card-state">'+API.escapeHtml(error.message||'خطا در دریافت کارت‌ها')+' <button type="button" onclick="loadSavedCards()">تلاش دوباره</button></div>'}}
+    async function addSavedCard(){const number=document.getElementById('newCardNumber').value,title=document.getElementById('newCardTitle').value.trim(),button=document.getElementById('savePaymentCardBtn');if(!validPaymentCard(number)){OnPart.toast('شماره کارت معتبر نیست','error');return}button.disabled=true;button.classList.add('loading');try{const data=await API.request('/api/bank-cards',{method:'POST',body:JSON.stringify({card_number:number,title})});document.getElementById('newCardNumber').value='';document.getElementById('newCardTitle').value='';toggleCardForm(false);await loadSavedCards();if(data.card)selectSavedCard(data.card.id);OnPart.toast('کارت ذخیره شد')}catch(error){OnPart.toast(error.message,'error')}finally{button.disabled=false;button.classList.remove('loading')}}
+    async function deleteSavedCard(id){if(!confirm('این کارت حذف شود؟'))return;try{await API.request('/api/bank-cards/'+id,{method:'DELETE'});await loadSavedCards();OnPart.toast('کارت حذف شد')}catch(error){OnPart.toast(error.message,'error')}}
+    function fillDebtAmount(){
       const inp = document.getElementById('amount');
       inp.value = String(currentUserDebt);
       formatAmount(inp);
     }
- 
+
     function copyText(text, btn){
       navigator.clipboard.writeText(text).then(function(){
         const orig = btn.innerHTML;
@@ -263,13 +298,13 @@
     }
     function copyCard(id,btn){ copyText(document.getElementById(id).textContent, btn); }
     function handleFile(file){
-      if(!file)return;
-      document.getElementById('dropZone').classList.add('has-file');
-      document.getElementById('filePreview').classList.add('show');
-      document.getElementById('fileName').textContent=file.name;
+      if(!file)return;const allowed=/^(image\/(jpeg|png)|application\/pdf)$/i.test(file.type)||/\.(jpe?g|png|pdf)$/i.test(file.name);
+      if(!allowed){OnPart.toast('فرمت فایل باید JPG، PNG یا PDF باشد','error');return}if(file.size>5*1024*1024){OnPart.toast('حجم فایل بیشتر از ۵ مگابایت است','error');return}
+      selectedReceiptFile=file;const drop=document.getElementById('dropZone'),preview=document.getElementById('filePreview'),thumb=document.getElementById('fileThumb');drop.classList.remove('dragover');drop.classList.add('has-file');preview.classList.add('show');document.getElementById('fileName').textContent=file.name;document.getElementById('fileSize').textContent=(file.size/1024/1024).toLocaleString('fa-IR',{maximumFractionDigits:2})+' مگابایت';
+      if(receiptPreviewUrl){URL.revokeObjectURL(receiptPreviewUrl);receiptPreviewUrl=null}if(file.type.startsWith('image/')){receiptPreviewUrl=URL.createObjectURL(file);thumb.innerHTML='<img src="'+receiptPreviewUrl+'" alt="پیش‌نمایش رسید">'}else{thumb.innerHTML='<i class="ti ti-file-type-pdf"></i>'}
     }
-    function handleDrop(e){e.preventDefault();document.getElementById('dropZone').classList.remove('dragover');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);}
-    function removeFile(){document.getElementById('dropZone').classList.remove('has-file');document.getElementById('filePreview').classList.remove('show');document.getElementById('fileInput').value='';}
+    function handleDrop(event){event.preventDefault();if(event.dataTransfer.files[0])handleFile(event.dataTransfer.files[0])}
+    function removeFile(){selectedReceiptFile=null;if(receiptPreviewUrl){URL.revokeObjectURL(receiptPreviewUrl);receiptPreviewUrl=null}document.getElementById('dropZone').classList.remove('has-file','dragover');document.getElementById('filePreview').classList.remove('show');document.getElementById('fileInput').value='';document.getElementById('fileThumb').innerHTML='<i class="ti ti-file-check"></i>';document.getElementById('fileSize').textContent=''}
     function formatAmount(inp){
       let v = toEnglishDigits(inp.value).replace(/[^0-9]/g,'');
       if(!v){ inp.value=''; return; }
@@ -278,7 +313,7 @@
       // Convert to Persian digits
       inp.value = formatted.replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]).replace(/,/g, '،');
     }
- 
+
     function toEnglishDigits(str){
       return String(str).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
                          .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
@@ -289,15 +324,17 @@
       const track = document.getElementById('trackNum').value;
       const date = document.getElementById('payDate').value;
       const fileInput = document.getElementById('fileInput');
- 
+
       if(!amount){OnPart.toast('مبلغ واریزی را وارد کنید','error');return;}
       if(!bank){OnPart.toast('بانک مبدأ را انتخاب کنید','error');return;}
       if(!track){OnPart.toast('شماره پیگیری را وارد کنید','error');return;}
       if(!date){OnPart.toast('تاریخ واریز را وارد کنید','error');return;}
- 
+
       const token = sessionStorage.getItem('op_token');
       if(!token){OnPart.toast('ابتدا وارد حساب شوید','error');return;}
  
+      const submitButton=document.getElementById('submitPaymentBtn');
+      submitButton.disabled=true;submitButton.classList.add('loading');
       try{
         const fd = new FormData();
         fd.append('amount', toEnglishDigits(amount).replace(/[^0-9]/g,''));
@@ -311,8 +348,8 @@
         if(destAccount) fd.append('dest_account', destAccount);
         const orderId = new URLSearchParams(window.location.search).get('order');
         if(orderId) fd.append('order_id', orderId);
-        if(fileInput.files[0]) fd.append('file', fileInput.files[0]);
- 
+        if(selectedReceiptFile) fd.append('file', selectedReceiptFile);
+
         const res = await fetch('https://onpartpadmin.liara.run/api/payments/receipt',{
           method:'POST',
           headers:{'Authorization':'Bearer '+token},
@@ -325,9 +362,11 @@
     loadPaymentHistory(); // Auto-refresh history
       } catch(e){
         OnPart.toast(e.message||'خطا در ارسال','error');
+      } finally {
+        submitButton.disabled=false;submitButton.classList.remove('loading');
       }
     }
- 
+
     // Load user debt
     async function loadUserDebt(){
       const token = sessionStorage.getItem('op_token');
@@ -352,7 +391,7 @@
         }
       }catch(e){}
     }
- 
+
     // Load all data in parallel
     Promise.all([loadUserDebt(), loadBankAccounts(), loadSavedCards(), loadPaymentHistory()])
       .catch(()=>{});
@@ -362,7 +401,7 @@
     window.addEventListener('onpart:user-notification', refreshPaymentData);
     window.addEventListener('onpart:user-data-changed', refreshPaymentData);
 
- 
+
     function formatPayDate(dateStr){
       if(!dateStr) return '—';
       try {
@@ -371,16 +410,16 @@
         return `${toFa(j.y)}/${toFa(String(j.m).padStart(2,'0'))}/${toFa(String(j.d).padStart(2,'0'))}`;
       } catch(e){ return dateStr?.slice(0,10)||'—'; }
     }
- 
+
     function formatCard(inp){
       let v = toEnglishDigits(inp.value).replace(/\D/g,'').slice(0,16);
       inp.value = v.replace(/(.{4})/g,'$1-').replace(/-$/,'');
     }
- 
+
     let allBanks = [];
     const safeText = value => API.escapeHtml(value == null ? '' : value);
     const safeCopyValue = value => encodeURIComponent(String(value == null ? '' : value));
- 
+
     function updateDestOptions(){
       const type = document.getElementById('destType').value;
       const sel = document.getElementById('destAccount');
@@ -393,7 +432,7 @@
           return val ? `<option value="${safeText(val)}">${safeText(lbl)}</option>` : '';
         }).filter(Boolean).join('');
     }
- 
+
     async function loadBankAccounts(){
       try{
         const res = await fetch('https://onpartpadmin.liara.run/api/settings');
@@ -402,7 +441,7 @@
         const banks = JSON.parse(s.bank_accounts||'[]');
         allBanks = banks;
         updateDestOptions();
- 
+
         // Fill bank cards display
         if(banks.length && document.getElementById('bankCards')){
           const colors=['#1d4ed8','#16a34a','#d97706','#7c3aed','#dc2626'];
@@ -446,7 +485,7 @@
         if(sel) sel.innerHTML = '<option value="">خطا در بارگذاری حساب‌ها</option>';
       }
     }
- 
+
     function toggleHistDetail(i){
       const det = document.getElementById(`histDetail_${i}`);
       const chev = document.getElementById(`histChev_${i}`);
@@ -454,7 +493,7 @@
       det.style.display = open ? 'block' : 'none';
       if(chev) chev.style.transform = open ? 'rotate(180deg)' : '';
     }
- 
+
     async function loadPaymentHistory(){
       const token = sessionStorage.getItem('op_token');
       if(!token) return;
@@ -506,7 +545,7 @@
         list.innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;font-size:13px">خطا در بارگذاری تاریخچه</div>';
       }
     }
- 
+
     // Pre-fill amount if coming from a specific order
     (function prefillFromOrder(){
       const orderId = new URLSearchParams(window.location.search).get('order');
@@ -579,9 +618,9 @@ function pdpSelectedGregorianIso(){
   const date=pdpJtoG(pdpSY,pdpSM,pdpSD);
   return `${date.getFullYear()}-${pad2(date.getMonth()+1)}-${pad2(date.getDate())}`;
 }
- 
+
 function pdpDow(jy,jm,jd){return(pdpJtoG(jy,jm,jd).getDay()+1)%7;}
- 
+
 function pdpRender(){
   document.getElementById('pdpHeader').textContent=pdpMonths[pdpM-1]+' '+toFa(pdpY);
   const first=pdpDow(pdpY,pdpM,1),days=pdpDaysInMonth(pdpY,pdpM);
@@ -604,7 +643,7 @@ function pdpRender(){
   }
   document.getElementById('pdpDays').innerHTML=html;
 }
- 
+
 function pdpSel(d){
   pdpSD=d;pdpSM=pdpM;pdpSY=pdpY;
   const dow=pdpDow(pdpY,pdpM,d);
@@ -613,10 +652,10 @@ function pdpSel(d){
   document.getElementById('payDate').value=`${toFa(pdpY)}/${toFa(pad2(pdpM))}/${toFa(pad2(d))}`;
   pdpRender();
 }
- 
+
 function pdpPrev(){pdpM--;if(pdpM<1){pdpM=12;pdpY--;}pdpRender();}
 function pdpNext(){pdpM++;if(pdpM>12){pdpM=1;pdpY++;}pdpRender();}
- 
+
 function pdpToggleYear(){
   pdpShowY=!pdpShowY;
   document.getElementById('pdpYearGrid').style.display=pdpShowY?'block':'none';
@@ -632,7 +671,7 @@ function pdpToggleYear(){
 }
 function pdpSelY(y){pdpY=y;pdpShowY=false;document.getElementById('pdpYearGrid').style.display='none';document.getElementById('pdpDayView').style.display='block';pdpRender();}
 function pdpClear(){pdpSD=pdpSM=pdpSY=null;document.getElementById('payDate').value='';document.getElementById('pdpSelDate').textContent='تاریخ واریز را انتخاب کنید';document.getElementById('pdpSelDate').style.color='rgba(255,255,255,.7)';pdpRender();}
- 
+
 document.getElementById('payDate').addEventListener('click',function(){
   const p=document.getElementById('pdpPopup');
   p.style.display=p.style.display==='none'?'block':'none';
@@ -641,7 +680,7 @@ document.getElementById('payDate').addEventListener('click',function(){
     pdpRender();
   }
 });
- 
+
 // ── Bank Selector ──
 const banks=[
   {n:'بانک ملت',cls:'ibl-mellat',cat:'دولتی'},
@@ -672,15 +711,15 @@ const banks=[
   {n:'بانک رسالت',cls:'ibl-resalat',cat:'قرض‌الحسنه'},
   {n:'سایر',cls:null,color:'#78909C',abbr:'سایر',cat:'سایر'},
 ];
- 
+
 let bsSelIdx=null;
- 
+
 function bsLogoHTML(b){
   if(b.cls) return `<i class="ibl32 ${b.cls}"></i>`;
   if(b.color) return `<div style="width:34px;height:34px;border-radius:7px;background:${b.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;font-family:Vazirmatn,sans-serif">${(b.abbr||'').slice(0,4)}</div>`;
   return `<i class="ti ti-building-bank" style="font-size:18px;color:#bbb"></i>`;
 }
- 
+
 function bsRender(list,q=''){
   const el=document.getElementById('bsList');
   if(!list.length){el.innerHTML=`<div style="text-align:center;padding:24px;color:#bbb;font-size:13px;font-family:Vazirmatn,sans-serif">بانکی یافت نشد</div>`;return;}
@@ -698,7 +737,7 @@ function bsRender(list,q=''){
   });
   el.innerHTML=html;
 }
- 
+
 function bsSelect(i){
   bsSelIdx=i;
   const b=banks[i];
@@ -710,7 +749,7 @@ function bsSelect(i){
   document.getElementById('bsChevron').style.transform='rotate(0deg)';
   bsRender(banks);
 }
- 
+
 function bsToggle(){
   const p=document.getElementById('bsPopup');
   const open=p.style.display==='none';
@@ -719,11 +758,11 @@ function bsToggle(){
   document.getElementById('bsDisplay').style.borderColor=open?'#1d4ed8':'#e5e7eb';
   if(open){document.getElementById('bsSearch').value='';bsRender(banks);setTimeout(()=>document.getElementById('bsSearch').focus(),80);}
 }
- 
+
 function bsFilter(q){
   bsRender(q?banks.filter(b=>b.n.includes(q)):banks,q);
 }
- 
+
 document.addEventListener('click',function(e){
   if(!e.target.closest('#bsDisplay')&&!e.target.closest('#bsPopup')){
     document.getElementById('bsPopup').style.display='none';

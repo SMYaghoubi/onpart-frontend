@@ -32,7 +32,8 @@
   </main>
   <script src="../js/api.js"></script>
   <script>
-    const token=sessionStorage.getItem('op_supplier_token');if(!token)location.replace('login.html');
+    if(location.pathname.endsWith('/supplier/index.html')) history.replaceState(null,'','/supplier/'+location.search+location.hash);
+    const token=sessionStorage.getItem('op_supplier_token');if(!token)location.replace('/supplier/login.html');
     const supplier=JSON.parse(sessionStorage.getItem('op_supplier')||'{}');document.getElementById('company').textContent=supplier.company||'پنل تأمین‌کننده';
     let products=[],changes=new Map(),batches=[],selected=new Set();
     const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
@@ -55,7 +56,7 @@ function renderPreview(){const items=collect(),box=document.getElementById('prev
     function downloadTemplate(){const rows=products.map(p=>({'کد':p.code,'شرح':p.description,'خودرو':p.car||'','برند':p.brand||'','گروه':p.category||'','قیمت':Number(p.price||0),'موجودی':Number(p.stock||0),'گردش':p.has_flow?'بله':'خیر','تامین‌کننده':supplier.company||''}));const ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();ws['!cols']=[{wch:18},{wch:48},{wch:18},{wch:18},{wch:20},{wch:16},{wch:12},{wch:10},{wch:24}];XLSX.utils.book_append_sheet(wb,ws,'محصولات');XLSX.writeFile(wb,'onpart-products-for-supplier.xlsx')}
     function readExcel(input){const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'array'}),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});changes.clear();const errors=[];rows.forEach((r,i)=>{const code=String(r['کد']??r['کد محصول']??r.code??'').trim(),price=numberValue(r['قیمت']??r['قیمت تامین کننده']??r['قیمت تأمین‌کننده']??r.supplier_price??''),stockRaw=r['موجودی']??r['موجودی پیشنهادی']??r.stock??'';const p=products.find(x=>String(x.code).trim()===code);if(!p||!Number.isInteger(price)||price<0){errors.push(`ردیف ${i+2}: کد یا قیمت به تومان نامعتبر است`);return}const c={};if(price!==Number(p.price))c.supplier_price=price;if(stockRaw!==''){const st=numberValue(stockRaw);if(!Number.isInteger(st)||st<0){errors.push(`ردیف ${i+2}: موجودی نامعتبر`);return}if(st!==Number(p.stock))c.stock=st}if(Object.keys(c).length)changes.set(p.id,c)});document.getElementById('changedCount').textContent=fa(changes.size);render();renderPreview();if(errors.length)showErrors(errors);else if(confirm(`${changes.size} ردیف دارای تغییر واقعی آماده است. اکنون ارسال شود؟`))submitChanges('excel',file.name)}catch(err){showErrors(['فایل اکسل قابل خواندن نیست'])}};reader.readAsArrayBuffer(file);input.value=''}
     function renderHistory(){const labels={pending:'در انتظار بررسی',approved:'تأیید شده',rejected:'رد شده'};document.getElementById('history').innerHTML=batches.length?batches.map(b=>`<div style="display:flex;gap:10px;align-items:center;padding:10px;border-bottom:1px solid #eee;font-size:12px"><b>#${fa(b.id)}</b><span>${b.source==='excel'?'اکسل':'دستی'} · ${fa(b.item_count)} محصول</span><span class="status ${b.status}" style="margin-right:auto">${labels[b.status]}</span>${b.markup_percent!=null?`<span>افزایش ${fa(b.markup_percent)}٪</span>`:''}</div>`).join(''):'<div class="empty">هنوز تغییری ارسال نشده است.</div>'}
-    function logout(){sessionStorage.removeItem('op_supplier_token');sessionStorage.removeItem('op_supplier');location.replace('login.html')}
+    function logout(){sessionStorage.removeItem('op_supplier_token');sessionStorage.removeItem('op_supplier');location.replace('/supplier/login.html')}
     load();
   </script>
 </body>

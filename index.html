@@ -204,7 +204,26 @@
       .contact-item i{font-size:16px;}
       img[style*="height:72px"]{height:50px!important;margin-bottom:0!important;}
     }
-  </style>
+
+    /* Visual refresh: preserve the existing entry structure and behavior */
+    body{background:radial-gradient(circle at 82% 12%,#2563eb66,transparent 31%),radial-gradient(circle at 10% 88%,#0f766e66,transparent 30%),linear-gradient(145deg,#050d20,#0b1e43 54%,#07162c);isolation:isolate;}
+    body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.16;background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:48px 48px;mask-image:linear-gradient(to bottom,transparent,#000 22%,#000 78%,transparent);}
+    body::after{content:"";position:fixed;width:720px;height:130px;left:50%;top:47%;z-index:-1;pointer-events:none;background:linear-gradient(90deg,transparent,#38bdf82c,transparent);filter:blur(15px);animation:homeBeam 6s ease-in-out infinite;}
+    .blob{filter:blur(8px);opacity:.62;mix-blend-mode:screen;animation:homeOrb 12s ease-in-out infinite alternate;}
+    .blob-1{width:480px;height:480px;background:radial-gradient(circle at 35% 35%,#67e8f9,#2563eb88 43%,transparent 70%);}
+    .blob-2{width:520px;height:520px;background:radial-gradient(circle at 55% 38%,#6ee7b7,#0f766e88 45%,transparent 72%);animation-duration:15s;animation-delay:-5s;}
+    .blob-3{background:radial-gradient(circle,#818cf899,transparent 68%);animation-duration:9s;animation-delay:-3s;}
+    .wrap{padding:12px;border:1px solid #ffffff2e;border-radius:30px;background:#ffffff12;box-shadow:0 34px 90px #020617a6,0 0 0 1px #38bdf80b inset;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);}
+    .contact-card{background:linear-gradient(155deg,#07152fe8,#0f274de8);border:1px solid #ffffff24;box-shadow:inset 0 1px #ffffff14;}
+    .contact-item{border:1px solid #ffffff12;backdrop-filter:blur(8px);}
+    .main-card{background:linear-gradient(155deg,#fffffffa,#f8fafcf1);border:1px solid #ffffffc9;box-shadow:0 16px 45px #02061730;}
+    .btn-entry{box-shadow:0 12px 28px #0f172a20;border:1px solid #ffffff24;}
+    .c-shop{background:linear-gradient(135deg,#1d4ed8,#2563eb)}.c-panel{background:linear-gradient(135deg,#0f172a,#1e293b)}.c-hamk{background:linear-gradient(135deg,#047857,#0f766e)}.c-etebar{background:linear-gradient(135deg,#6d28d9,#7c3aed)}
+    .supplier-entry:focus-visible,.btn-entry:focus-visible,.contact-item:focus-visible{outline:3px solid #67e8f9;outline-offset:3px;}
+    @keyframes homeOrb{to{transform:translate3d(58px,42px,0) scale(1.12) rotate(10deg)}}
+    @keyframes homeBeam{0%,100%{transform:translate(-50%,-50%) rotate(-24deg);opacity:.55}50%{transform:translate(-50%,-50%) rotate(-18deg) scaleX(1.16);opacity:1}}
+    @media(max-width:640px){.wrap{padding:8px;border-radius:22px;background:#ffffff0d}.main-card{border-radius:17px}.contact-card{border-radius:17px!important}}
+    @media(prefers-reduced-motion:reduce){.blob,body::after,.wrap{animation:none!important}.btn-entry,.contact-item{transition:none!important}}</style>
 </head>
 <body>
 
