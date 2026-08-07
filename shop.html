@@ -291,6 +291,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
   </div>
 
   <script src="js/components.js"></script>
+  <script src="js/checkout-success.js"></script>
   <script src="js/api.js"></script>
   <script>
     OnPart.renderNavbar('shop');
@@ -659,7 +660,9 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       if(e.key==='Escape'&&document.getElementById('cartPanel').classList.contains('show')) closeCart();
     });
 
+    let checkoutInFlight = false;
     async function checkout(){
+      if(checkoutInFlight) return;
       const items = products.map(p=>({product_id:p.id,qty:qtys[p.id]||0})).filter(p=>p.qty>0);
       if(!items.length){OnPart.toast('سبد خرید خالی است','error');return;}
 
@@ -672,6 +675,8 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       }));
 
       const btn = document.querySelector('.btn-checkout');
+      checkoutInFlight = true;
+      OnPartCheckoutSuccess.begin(OnPart);
       if(btn){ btn.disabled = true; btn.textContent = 'در حال ثبت...'; }
 
       try {
@@ -680,20 +685,23 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
           body: JSON.stringify({items: orderItems})
         });
 
-        // Clear cart on success
-        await OnPart.clearCart();
-        Object.keys(qtys).forEach(k => delete qtys[k]);
-        updateCartCount();
+        if(!data || !data.id) throw new Error('پاسخ ثبت سفارش معتبر نیست');
+        try {
+          await OnPart.clearCart();
+          Object.keys(qtys).forEach(k => delete qtys[k]);
+          updateCartCount();
+          closeCart();
+          loadProducts();
+        } catch(cleanupError) { console.warn('Order registered; cart refresh failed', cleanupError); }
 
         OnPart.toast('سفارش با موفقیت ثبت شد!');
-        closeCart();
-        loadProducts();
-
-        setTimeout(()=>{ window.location.href = '/orders'; }, 1200);
+        await OnPartCheckoutSuccess.complete(OnPart, data.id, path => { window.location.href = path; });
       } catch(e){
+        checkoutInFlight = false;
+        OnPartCheckoutSuccess.cancel(OnPart);
         OnPart.toast(e.message || 'خطا در ارتباط با سرور', 'error');
       } finally {
-        if(btn){ btn.disabled = false; btn.textContent = 'ثبت سفارش'; }
+        if(!checkoutInFlight && btn){ btn.disabled = false; btn.textContent = 'ثبت سفارش'; }
       }
     }
 

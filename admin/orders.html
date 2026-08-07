@@ -311,6 +311,14 @@ const colors=['#1d4ed8','#16a34a','#d97706','#7c3aed','#0f766e','#dc2626'];
 const paymentLabels={pending:'در انتظار بررسی',approved:'پرداخت تأیید شد',rejected:'پرداخت رد شد'};
 const statusLabels={pending_expert:'منتظر تایید کارشناس',pending_customer:'منتظر تایید مشتری',pending_payment:'منتظر پرداخت',preparing:'آماده‌سازی',shipping:'در ارسال',delivered:'تحویل شده',cancelled:'ابطال شده'};
 const statusBadge={pending_expert:'b-amber',pending_customer:'b-purple',pending_payment:'b-purple',preparing:'b-blue',shipping:'b-teal',delivered:'b-green',cancelled:'b-red'};
+const orderTransitionTargets={pending_expert:['pending_customer','cancelled'],pending_customer:['pending_payment','cancelled'],pending_payment:['preparing','cancelled'],preparing:['shipping','cancelled'],shipping:['delivered'],delivered:[],cancelled:[]};
+function allowedOrderStatuses(order){
+  const next=(orderTransitionTargets[order.status]||[]).filter(status=>{
+    if(status!=='preparing') return true;
+    return order.payment_status==='approved' && Number(order.debt_remaining||0)===0;
+  });
+  return [order.status,...next.filter(status=>status!==order.status)];
+}
 
 let orders=[],filtered=[],allProducts=[],curOrderId=null,curSmsPhone='',noItemCount=0;
 const PER=15;let page=1;
@@ -446,7 +454,7 @@ async function openDetail(i){
     <div style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
       <span style="font-size:13px;font-weight:600;color:#444">تغییر وضعیت:</span>
       <select class="fselect" id="detailStatus" style="width:auto;flex:1">
-        ${[...statusList,'cancelled'].map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${statusLabels[s]}</option>`).join('')}
+        ${allowedOrderStatuses(o).map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${statusLabels[s]}</option>`).join('')}
       </select>
       <button class="btn-prim" style="padding:8px 16px;font-size:12.5px" onclick="updateOrderStatus(${o.id})"><i class="ti ti-check"></i>ثبت</button>
     </div>`;
@@ -471,7 +479,7 @@ async function loadDetailItems(orderId){
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eef0f3;font-size:12.5px">
         <div style="flex:1">
           <div style="font-weight:600;color:#222">${Admin.escape(it.description||'محصول حذف‌شده')}</div>
-          <div style="font-size:10.5px;color:#aaa;font-family:monospace;margin-top:2px">کد: ${Admin.escape(it.code||'—')}${it.brand?' · '+Admin.escape(it.brand):''}</div>
+          <div style="font-size:10.5px;color:#aaa;font-family:monospace;margin-top:2px">کد: ${Admin.escape(it.code||'—')}${it.brand?' · '+Admin.escape(it.brand):''}${it.car?' · خودرو: '+Admin.escape(it.car):''}</div>
         </div>
         <div style="color:#888;white-space:nowrap;margin:0 10px">${fa(it.quantity)} × ${fmt(it.price)}${it.discount?` (${fa(it.discount)}٪-)`:''}</div>
         <div style="font-weight:700;color:#1d4ed8;white-space:nowrap">${fmt(it.total)} ت</div>
@@ -512,9 +520,10 @@ async function updateOrderStatus(id){
   }
   try{
     const token=OnPartSession.getToken('admin');
-    await fetch(`${API.BASE_URL}/api/orders/${id}/status`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({status})});
-  }catch(e){}
-  const o=orders.find(x=>x.id===id);if(o)o.status=status;
+    const res=await fetch(`${API.BASE_URL}/api/orders/${id}/status`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({status})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.message||'تغییر وضعیت انجام نشد');
+  }catch(e){ toast(e.message||'خطا در تغییر وضعیت',false); return; }  const o=orders.find(x=>x.id===id);if(o)o.status=status;
   toast(`وضعیت به "${statusLabels[status]}" تغییر کرد`);
   closeDetail();renderTable();updateStats();
 }

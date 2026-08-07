@@ -313,7 +313,7 @@ const OnPart = {
         if(newestId > previousId) sessionStorage.setItem('op_last_user_notification_id', String(newestId));
         if(notify && newRows.length){
           newRows.forEach(function(row){
-            self.playUserNotificationSound(row.sound_key || 'default');
+            if(!self.consumeSuppressedUserNotificationSound(row)) self.playUserNotificationSound(row.sound_key || 'default');
             self.toast(row.title || 'وضعیت سفارش به‌روزرسانی شد', row.type === 'warning' ? 'error' : 'info');
             window.dispatchEvent(new CustomEvent('onpart:user-notification', { detail: row }));
           });
@@ -355,6 +355,80 @@ const OnPart = {
     });
   },
 
+  suppressNextUserNotificationSound: function(soundKey, entityId) {
+    try {
+      sessionStorage.setItem('op_suppressed_user_notification_sound', JSON.stringify({
+        key: soundKey || 'default',
+        entityId: entityId == null ? null : Number(entityId),
+        expiresAt: Date.now() + 60000
+      }));
+    } catch(e) {}
+  },
+
+  clearSuppressedUserNotificationSound: function(soundKey) {
+    try {
+      var raw=sessionStorage.getItem('op_suppressed_user_notification_sound');
+      var item=raw?JSON.parse(raw):null;
+      if(!item || !soundKey || item.key===soundKey) sessionStorage.removeItem('op_suppressed_user_notification_sound');
+    } catch(e) { try{sessionStorage.removeItem('op_suppressed_user_notification_sound')}catch(_){} }
+  },
+
+  consumeSuppressedUserNotificationSound: function(row) {
+    try {
+      var raw=sessionStorage.getItem('op_suppressed_user_notification_sound');
+      if(!raw) return false;
+      var item=JSON.parse(raw);
+      if(!item || Number(item.expiresAt)<Date.now()){
+        sessionStorage.removeItem('op_suppressed_user_notification_sound');
+        return false;
+      }
+      var rowKey=(row&&row.sound_key)||'default';
+      if(item.key!==rowKey) return false;
+      if(item.entityId!=null && Number(item.entityId)!==Number(row&&row.entity_id)) return false;
+      sessionStorage.removeItem('op_suppressed_user_notification_sound');
+      return true;
+    } catch(e) { return false; }
+  },
+
+  playUserNotificationSoundAndWait: function(soundKey, options) {
+    var self=this;
+    options=options||{};
+    if(!this._notificationSoundFiles || !this._notificationAudio) this.initUserNotifications();
+    var key=this._notificationSoundFiles&&this._notificationSoundFiles[soundKey]?soundKey:'default';
+    var audio=this._notificationAudio;
+    if(!audio || !this._notificationSoundFiles) return Promise.resolve('unavailable');
+    this._pendingNotificationSound=null;
+    return new Promise(function(resolve){
+      var settled=false;
+      var maxWait=Math.max(3000,Math.min(Number(options.maxWaitMs)||45000,45000));
+      var timer;
+      function finish(reason){
+        if(settled)return;
+        settled=true;
+        clearTimeout(timer);
+        audio.removeEventListener('ended',onEnded);
+        audio.removeEventListener('error',onError);
+        resolve(reason);
+      }
+      function onEnded(){finish('ended')}
+      function onError(){finish('error')}
+      try{
+        var nextSrc=new URL(self._notificationSoundFiles[key],window.location.origin).href;
+        audio.pause();
+        if(audio.src!==nextSrc){audio.src=self._notificationSoundFiles[key];audio.load()}
+        audio.currentTime=0;
+        audio.muted=false;
+        audio.addEventListener('ended',onEnded,{once:true});
+        audio.addEventListener('error',onError,{once:true});
+        var durationWait=Number.isFinite(audio.duration)&&audio.duration>0?audio.duration*1000+1500:maxWait;
+        timer=setTimeout(function(){finish('timeout')},Math.min(maxWait,Math.max(3000,durationWait)));
+        var playResult=audio.play();
+        if(playResult&&playResult.then){
+          playResult.then(function(){self._notificationSoundReady=true}).catch(function(){self._notificationSoundReady=false;finish('blocked')});
+        }
+      }catch(e){finish('error')}
+    });
+  },
   playUserNotificationSound: function(soundKey) {
     var key = this._notificationSoundFiles && this._notificationSoundFiles[soundKey] ? soundKey : 'default';
     if(!this._notificationSoundReady){ this._pendingNotificationSound = key; return; }
