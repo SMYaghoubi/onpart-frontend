@@ -492,20 +492,25 @@ adminStyle.textContent = `
   .layout,.main,.content,.card,.table-card,.table-wrap{min-width:0;max-width:100%}
   .admin-menu-open{overflow:hidden!important}
   @media(max-width:768px){
-    .sidebar{right:0!important;left:auto!important;width:min(86vw,300px)!important;transform:translateX(105%)!important;visibility:hidden;transition:transform .22s ease,visibility .22s!important;padding-bottom:env(safe-area-inset-bottom)}
-    .sidebar.open{transform:translateX(0)!important;visibility:visible}.sidebar.open .sb-mobile-close{display:flex}
-    .sidebar-overlay{z-index:999!important}.sidebar{z-index:1000!important}
-    .main{width:100%!important;max-width:100vw!important;min-width:0!important;margin:0!important}
-    .topbar{width:100%;gap:8px;padding:0 10px!important}
-    .topbar-title{font-size:13px!important;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .topbar-right{gap:6px!important;min-width:0}.topbar-right>a{padding:6px 8px!important;font-size:0!important}.topbar-right>a i{font-size:16px!important}
+    .layout{display:block!important;width:100%!important;max-width:100vw!important;overflow-x:clip!important}
+    #sidebar-placeholder{width:0!important;min-width:0!important}
+    html body .layout .sidebar{position:fixed!important;inset-block:0!important;right:0!important;left:auto!important;width:min(86vw,300px)!important;margin:0!important;transform:translate3d(calc(100% + 32px),0,0)!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;transition:transform .22s ease,opacity .18s ease,visibility .22s!important;padding-bottom:env(safe-area-inset-bottom)}
+    html body .layout .sidebar.open{transform:translate3d(0,0,0)!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+    .sidebar.open .sb-mobile-close{display:flex}
+    .sidebar-overlay{display:block!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;z-index:999!important;transition:opacity .18s ease,visibility .18s!important}
+    .sidebar-overlay.show{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+    .sidebar{z-index:1000!important}
+    .main{display:block!important;flex:none!important;width:100%!important;max-width:100vw!important;min-width:0!important;margin:0!important;overflow-x:clip!important}
+    .topbar{box-sizing:border-box;width:100%;min-height:54px;height:auto;gap:8px;padding:5px 10px!important;overflow:visible}
+    .topbar-title{flex:1 1 auto;font-size:13px!important;min-width:0;white-space:normal;line-height:1.5;overflow-wrap:anywhere}
+    .topbar-right{flex:0 0 auto;gap:6px!important;min-width:0;flex-wrap:nowrap}.topbar-right>a{padding:6px 8px!important;font-size:0!important}.topbar-right>a i{font-size:16px!important}
     .sb-burger,.notif-btn{min-width:44px!important;width:44px!important;height:44px!important}
     #notifPanel{position:fixed!important;top:58px!important;left:8px!important;right:8px!important;width:auto!important;max-height:calc(100vh - 70px)}
-    .content{width:100%!important;padding:10px 8px!important;overflow:hidden}
+    .content{box-sizing:border-box;width:100%!important;max-width:100vw!important;padding:10px 8px!important;overflow-x:clip!important}
     .stats{grid-template-columns:1fr!important}.grid2,.grid3,.qa-grid{grid-template-columns:1fr!important}
     .stat,.card{min-width:0!important}.card-body{padding:12px!important;overflow-x:auto}
-    .chart{width:100%!important;min-width:0!important;overflow:hidden}.bar-wrap{min-width:0!important}
-    .table-wrap,.table-card{overflow-x:auto!important;-webkit-overflow-scrolling:touch}.mtbl{min-width:620px}
+    .chart{box-sizing:border-box;width:100%!important;max-width:100%!important;min-width:0!important;overflow:hidden}.bar-wrap{min-width:0!important}
+    .table-wrap,.table-card{width:100%!important;max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch}.mtbl{min-width:620px}
     .modal{width:100%!important;max-height:92dvh!important;overflow:auto}
   }
   @media(prefers-reduced-motion:reduce){.sidebar{transition:none!important}}

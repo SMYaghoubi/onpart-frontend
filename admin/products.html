@@ -267,29 +267,25 @@ function toast(msg, ok=true){
   Admin.toast(msg,ok?'success':'error');
 }
 
-async function loadProducts(){
+let productRequestSequence = 0;
+async function loadProducts({silent=false} = {}){
+  const sequence=++productRequestSequence;
   try {
-    const token = OnPartSession.getToken('admin');
-    const res = await fetch(API.BASE_URL + '/api/products?limit=99999&admin=1', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
-    const data = await res.json();
-    products = data.products || data || [];
-    updateStats();
-    renderTable();
-  } catch(e) {
-    // Use sample data if API fails
-    products = [
-      {id:1,code:'10403004435',description:'شمع موتور ۴۰۵-سمند-پارس TU3 - ISACO',car:'پژو ۴۰۵',brand:'ایساکو',category:'شمع و وایرشمع',price:203300,stock:142,min_stock:10,has_flow:1,status:'active'},
-      {id:2,code:'04000500399',description:'پیچ ستاره‌ای مشترک - ISACO واشردار',car:'مشترک',brand:'ایساکو',category:'پیچ و مهره',price:5500,stock:850,min_stock:50,has_flow:0,status:'active'},
-      {id:3,code:'16200100754',description:'لنت ترمزدیسکی چرخ جلو ۴۰۵ - TEXTAR',car:'پژو ۴۰۵',brand:'ایساکو',category:'لنت ترمز',price:3231400,stock:8,min_stock:10,has_flow:0,status:'active'},
-      {id:4,code:'18610503799',description:'واشر بندی پیچ کانال روغن - ISACO',car:'پژو ۴۰۵',brand:'ایساکو',category:'واشر و اورینگ',price:25900,stock:0,min_stock:15,has_flow:0,status:'active'},
-    ];
-    updateStats();
-    renderTable();
+    const data=await API.request('/api/products?limit=99999&admin=1',{authContext:'admin',cache:'no-store'});
+    if(sequence!==productRequestSequence)return;
+    if(!data||!Array.isArray(data.products))throw new Error('پاسخ محصولات معتبر نیست');
+    products=data.products;updateStats();renderTable();
+  } catch(error) {
+    if(sequence!==productRequestSequence)return;
+    products=[];filtered=[];updateStats();
+    const tbody=document.getElementById('prodTbody');
+    if(tbody)tbody.innerHTML='<tr><td colspan="12" style="padding:30px;text-align:center;color:#b91c1c"><i class="ti ti-wifi-off" style="font-size:24px;display:block;margin-bottom:8px"></i>دریافت محصولات انجام نشد.<br><button class="btn-sec" style="margin-top:12px" onclick="loadProducts()">تلاش دوباره</button></td></tr>';
+    const count=document.getElementById('prodCount');if(count)count.textContent='۰';
+    const info=document.getElementById('pagerInfo');if(info)info.textContent='اطلاعات دریافت نشد';
+    const pager=document.getElementById('pagerBtns');if(pager)pager.innerHTML='';
+    if(!silent)toast(error.message||'خطا در دریافت محصولات',false);
   }
 }
-
 function updateStats(){
   document.getElementById('totalCount').textContent = fa(products.length);
   document.getElementById('activeCount').textContent = fa(products.filter(p=>p.stock>p.min_stock).length);
@@ -756,6 +752,17 @@ document.addEventListener('click', function(e){
 
 loadProducts();
 loadApprovedSuppliers();
+let lastProductsRefresh=Date.now();
+function refreshProductsWhenVisible(){
+  if(document.hidden||Date.now()-lastProductsRefresh<3000)return;
+  lastProductsRefresh=Date.now();loadProducts({silent:true});
+}
+window.addEventListener('onpart:user-data-changed',event=>{
+  const entity=String(event.detail?.entity||'');
+  if(!entity||entity==='product'||entity==='products'){lastProductsRefresh=0;refreshProductsWhenVisible()}
+});
+window.addEventListener('pageshow',refreshProductsWhenVisible);
+document.addEventListener('visibilitychange',refreshProductsWhenVisible);
 </script>
 </body>
 </html>

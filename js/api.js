@@ -110,6 +110,7 @@ const API = {
     const authContext = options.authContext || OnPartSession.contextFor(path);
     const requestOptions = { ...options };
     delete requestOptions.authContext;
+    if(String(requestOptions.method || 'GET').toUpperCase() === 'GET' && requestOptions.cache == null) requestOptions.cache = 'no-store';
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), options.timeout || this.TIMEOUT_MS);
     const isForm = options.body instanceof FormData;
