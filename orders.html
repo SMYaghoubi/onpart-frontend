@@ -195,7 +195,7 @@ const safeStatus=value=>Object.prototype.hasOwnProperty.call(statusLabels,value)
 let myOrders=[];
 
 async function loadMyOrders(){
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('user');
   if(!token){window.location.href='/login';return;}
   try{
     const res=await fetch('https://onpartpadmin.liara.run/api/orders/my',{headers:{'Authorization':'Bearer '+token}});
@@ -459,13 +459,13 @@ function openShip(i){
 }
 
 async function confirmInvoice(id){
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('user');
   const res=await fetch(`https://onpartpadmin.liara.run/api/orders/${id}/customer-approve`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
   if(res.ok)loadMyOrders(); else alert('خطا در تایید');
 }
 
 async function rejectInvoice(id){
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('user');
   const res=await fetch(`https://onpartpadmin.liara.run/api/orders/${id}/customer-reject`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
   if(res.ok)loadMyOrders(); else alert('خطا در رد');
 }

@@ -195,7 +195,7 @@ function scoreColor(s){return s>=80?'#16a34a':s>=60?'#d97706':'#dc2626';}
 
 async function loadRequests(){
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/credit`,{headers:{'Authorization':'Bearer '+token}});
     if(res.ok) requests=await res.json();
     else requests=[];
@@ -324,7 +324,7 @@ function closeModal(){document.getElementById('modal').classList.remove('show');
 
 async function approveCredit(){
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     await fetch(`${API.BASE_URL}/api/credit/${curId}/approve`,{
       method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({approved_amount:Number(document.getElementById('approveAmount').value.replace(/,/g,''))})
@@ -335,19 +335,19 @@ async function approveCredit(){
 
 async function rejectCredit(){
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     await fetch(`${API.BASE_URL}/api/credit/${curId}/reject`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
     toast('درخواست رد شد');closeModal();loadRequests();
   } catch(e){ toast('رد شد');closeModal();loadRequests(); }
 }
 
 async function quickApprove(id){
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('admin');
   await fetch(`${API.BASE_URL}/api/credit/${id}/approve`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
   toast('اعتبار تأیید شد');loadRequests();
 }
 async function quickReject(id){
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('admin');
   await fetch(`${API.BASE_URL}/api/credit/${id}/reject`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
   toast('رد شد');loadRequests();
 }
@@ -355,7 +355,7 @@ async function quickReject(id){
 async function deleteCreditRequest(id,name){
   if(!confirm(`آیا مطمئن هستید می‌خواهید درخواست اعتبار "${name}" را حذف کنید؟`)) return;
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/credit/${id}`,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
     if(!res.ok) throw new Error();
     toast('درخواست حذف شد');loadRequests();

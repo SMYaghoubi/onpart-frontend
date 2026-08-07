@@ -163,7 +163,7 @@ const typeCls = { info:'b-blue', success:'b-green', warning:'b-amber', promo:'b-
 let announcements = [], filtered = [];
 
 async function loadAnnouncements() {
-  const token = sessionStorage.getItem('op_token');
+  const token = OnPartSession.getToken('admin');
   try {
     announcements = await API.request('/api/announcements/admin');
     updateStats();
@@ -303,7 +303,7 @@ async function saveAnnouncement() {
     return;
   }
 
-  const token = sessionStorage.getItem('op_token');
+  const token = OnPartSession.getToken('admin');
   const payload = { title, body, type, expires_at };
   const url = id
     ? `${API.BASE_URL}/api/announcements/${id}`

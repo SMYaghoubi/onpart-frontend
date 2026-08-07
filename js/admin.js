@@ -34,7 +34,7 @@ const Admin = {
   ],
 
   getUser() {
-    try { return JSON.parse(sessionStorage.getItem('op_user') || '{}'); }
+    try { return JSON.parse(OnPartSession.getUserRaw('admin') || '{}'); }
     catch (_) { return {}; }
   },
 
@@ -75,7 +75,8 @@ const Admin = {
 
     const user = this.getUser();
     let html = `
-    <div class="sidebar">
+    <div class="sidebar" role="navigation" aria-label="منوی مدیریت">
+      <button type="button" class="sb-mobile-close" onclick="Admin.closeSidebar()" aria-label="بستن منو"><i class="ti ti-x"></i></button>
       <div class="sb-logo" style="justify-content:center;padding:22px 16px">
         <img src="../images/logo.png" alt="لوگوی آن‌پارت" style="height:54px;object-fit:contain"/>
       </div>`;
@@ -136,17 +137,13 @@ const Admin = {
       overlay.className = 'sidebar-overlay';
       overlay.id = 'sidebarOverlay';
       document.body.appendChild(overlay);
-      overlay.onclick = () => {
-        document.querySelector('.sidebar').classList.remove('open');
-        overlay.classList.remove('show');
-        document.body.style.overflow = '';
-      };
+      overlay.onclick = () => this.closeSidebar();
     }
   },
 
   async loadBadges() {
     try {
-      const token = sessionStorage.getItem('op_token');
+      const token = OnPartSession.getToken('admin');
       const h = {'Authorization':'Bearer '+token};
       const BASE = 'https://onpartpadmin.liara.run';
       const setBadge = (id, n) => {
@@ -168,7 +165,7 @@ const Admin = {
       <div class="topbar-title"><i class="ti ${this.escape(icon)}"></i>${this.escape(title)}</div>
       <div class="topbar-right">
         <a href="/shop" onclick="sessionStorage.setItem('allow_shop','1')" style="display:flex;align-items:center;gap:5px;background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0;border-radius:8px;padding:6px 12px;text-decoration:none;font-size:12px;font-weight:600;font-family:Vazirmatn,sans-serif" title="مشاهده فروشگاه"><i class="ti ti-external-link" style="font-size:14px"></i>فروشگاه</a>
-        <div class="sb-burger" onclick="Admin.toggleSidebar()" title="منو"><i class="ti ti-menu-2"></i></div>
+        <button type="button" class="sb-burger" id="adminMenuButton" onclick="Admin.toggleSidebar()" aria-label="باز کردن منو" aria-controls="sidebar-placeholder" aria-expanded="false"><i class="ti ti-menu-2"></i></button>
         <div class="search-box">
           <i class="ti ti-search" style="color:#aaa;font-size:16px"></i>
           <input placeholder="جستجو..."/>
@@ -223,14 +220,14 @@ const Admin = {
 
   logout() {
     if (confirm('آیا می‌خواهید از سیستم خارج شوید؟')) {
-      sessionStorage.removeItem('op_token');
-      sessionStorage.removeItem('op_user');
+      OnPartSession.clear('admin');
+
       window.location.href = '/admin/login';
     }
   },
 
   protect(requiredPerm = null) {
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('admin');
     const user = this.getUser();
     if (!token) { window.location.replace('/admin/login'); return false; }
 
@@ -282,7 +279,7 @@ const Admin = {
   },
 
   async loadNotifs(notify = false) {
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('admin');
     if (!token) return;
     try {
       const API_URL = (typeof API !== 'undefined') ? API.BASE_URL : 'https://onpartpadmin.liara.run';
@@ -337,12 +334,16 @@ const Admin = {
     } catch(e) {}
   },
 
+  closeSidebar(restoreFocus = true) {
+    const sb=document.querySelector('.sidebar'),overlay=document.getElementById('sidebarOverlay'),button=document.getElementById('adminMenuButton');
+    if(sb)sb.classList.remove('open');if(overlay)overlay.classList.remove('show');
+    document.body.classList.remove('admin-menu-open');if(button){button.setAttribute('aria-expanded','false');if(restoreFocus)button.focus()}
+  },
   toggleSidebar() {
-    const sb = document.querySelector('.sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    if(sb) sb.classList.toggle('open');
-    if(overlay) overlay.classList.toggle('show');
-    document.body.style.overflow = (sb && sb.classList.contains('open')) ? 'hidden' : '';
+    const sb=document.querySelector('.sidebar'),button=document.getElementById('adminMenuButton');if(!sb)return;
+    const opening=!sb.classList.contains('open');
+    if(opening){sb.classList.add('open');document.getElementById('sidebarOverlay')?.classList.add('show');document.body.classList.add('admin-menu-open');button?.setAttribute('aria-expanded','true');sb.querySelector('a,button,[tabindex]')?.focus()}
+    else this.closeSidebar();
   },
 
   toggleNotifPanel() {
@@ -354,7 +355,7 @@ const Admin = {
   },
 
   async goNotif(id, link) {
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('admin');
     const API_URL = (typeof API !== 'undefined') ? API.BASE_URL : 'https://onpartpadmin.liara.run';
     await fetch(`${API_URL}/api/notifications/${id}/read`, {method:'PATCH', headers:{'Authorization':'Bearer '+token}});
     const safeLink = this.safeLink(link);
@@ -364,7 +365,7 @@ const Admin = {
   },
 
   async readAllNotifs() {
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('admin');
     const API_URL = (typeof API !== 'undefined') ? API.BASE_URL : 'https://onpartpadmin.liara.run';
     await fetch(`${API_URL}/api/notifications/read-all`, {method:'PATCH', headers:{'Authorization':'Bearer '+token}});
     this.loadNotifs();
@@ -372,7 +373,7 @@ const Admin = {
 
   async clearNotifs() {
     if (!confirm('همه اعلان‌ها پاک شوند؟')) return;
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('admin');
     const API_URL = (typeof API !== 'undefined') ? API.BASE_URL : 'https://onpartpadmin.liara.run';
     await fetch(`${API_URL}/api/notifications`, {method:'DELETE', headers:{'Authorization':'Bearer '+token}});
     this.loadNotifs();
@@ -485,9 +486,41 @@ adminStyle.textContent = `
     /* Settings tabs */
     .settings-tabs{flex-wrap:wrap!important;}
   }
+  .sb-mobile-close{display:none;position:absolute;top:10px;left:10px;width:44px;height:44px;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.16);border-radius:10px;background:rgba(255,255,255,.08);color:#fff;font-size:20px;cursor:pointer}
   .sb-burger{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:8px;cursor:pointer;font-size:20px;color:#333;}
+  html,body{max-width:100%;overflow-x:hidden}
+  .layout,.main,.content,.card,.table-card,.table-wrap{min-width:0;max-width:100%}
+  .admin-menu-open{overflow:hidden!important}
+  @media(max-width:768px){
+    .sidebar{right:0!important;left:auto!important;width:min(86vw,300px)!important;transform:translateX(105%)!important;visibility:hidden;transition:transform .22s ease,visibility .22s!important;padding-bottom:env(safe-area-inset-bottom)}
+    .sidebar.open{transform:translateX(0)!important;visibility:visible}.sidebar.open .sb-mobile-close{display:flex}
+    .sidebar-overlay{z-index:999!important}.sidebar{z-index:1000!important}
+    .main{width:100%!important;max-width:100vw!important;min-width:0!important;margin:0!important}
+    .topbar{width:100%;gap:8px;padding:0 10px!important}
+    .topbar-title{font-size:13px!important;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .topbar-right{gap:6px!important;min-width:0}.topbar-right>a{padding:6px 8px!important;font-size:0!important}.topbar-right>a i{font-size:16px!important}
+    .sb-burger,.notif-btn{min-width:44px!important;width:44px!important;height:44px!important}
+    #notifPanel{position:fixed!important;top:58px!important;left:8px!important;right:8px!important;width:auto!important;max-height:calc(100vh - 70px)}
+    .content{width:100%!important;padding:10px 8px!important;overflow:hidden}
+    .stats{grid-template-columns:1fr!important}.grid2,.grid3,.qa-grid{grid-template-columns:1fr!important}
+    .stat,.card{min-width:0!important}.card-body{padding:12px!important;overflow-x:auto}
+    .chart{width:100%!important;min-width:0!important;overflow:hidden}.bar-wrap{min-width:0!important}
+    .table-wrap,.table-card{overflow-x:auto!important;-webkit-overflow-scrolling:touch}.mtbl{min-width:620px}
+    .modal{width:100%!important;max-height:92dvh!important;overflow:auto}
+  }
+  @media(prefers-reduced-motion:reduce){.sidebar{transition:none!important}}
 `;
 document.head.appendChild(adminStyle);
+document.addEventListener('keydown',event=>{
+  const sidebar=document.querySelector('.sidebar.open');if(!sidebar)return;
+  if(event.key==='Escape'){Admin.closeSidebar();return}
+  if(event.key==='Tab'){
+    const items=[...sidebar.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(el=>el.offsetParent!==null);
+    if(!items.length)return;const first=items[0],last=items[items.length-1];
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+  }
+});
 
 // Auto-add data-label to table cells for mobile card view
 function addTableLabels(){

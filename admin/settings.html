@@ -229,7 +229,7 @@ function setToggle(id, isOn){
 
 async function loadSettings(){
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/settings/admin`,{headers:{'Authorization':'Bearer '+token}});
     const s=await res.json();
     if(s.site_name) document.getElementById('s_name').value=s.site_name;
@@ -274,7 +274,7 @@ async function loadSettings(){
 }
 
 async function saveSettings(section){
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('admin');
   let data={};
   if(section==='general'){
     data={site_name:document.getElementById('s_name').value,
@@ -349,7 +349,7 @@ async function changeAdminPw(){
   if(!cur||!nw||!cf){toast('همه فیلدها را پر کنید',false);return;}
   if(nw!==cf){toast('رمزها مطابقت ندارند',false);return;}
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/auth/change-password`,{
       method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({currentPassword:cur,newPassword:nw})

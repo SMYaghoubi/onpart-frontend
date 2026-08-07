@@ -311,7 +311,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
 
     function canShowPrice(){
       if(shopSettings.show_price_guest === '1') return true;
-      return !!sessionStorage.getItem('op_token');
+      return !!OnPartSession.getToken('user');
     }
 
     async function checkShopSettings(){
@@ -469,7 +469,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
 
     function toggleSel(i){sel[i]=!sel[i];render();}
     async function persistCartQuantity(productId, quantity) {
-      const token = sessionStorage.getItem('op_token');
+      const token = OnPartSession.getToken('user');
       if(!token) {
         OnPart.toast('لطفاً ابتدا وارد حساب کاربری شوید', 'error');
         window.location.href = '/login';
@@ -663,7 +663,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       const items = products.map(p=>({product_id:p.id,qty:qtys[p.id]||0})).filter(p=>p.qty>0);
       if(!items.length){OnPart.toast('سبد خرید خالی است','error');return;}
 
-      const token = sessionStorage.getItem('op_token');
+      const token = OnPartSession.getToken('user');
       if(!token){ OnPart.toast('لطفاً ابتدا وارد حساب کاربری شوید','error'); window.location.href='/login'; return; }
 
       const orderItems = items.map(it => ({
@@ -716,7 +716,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       var read = getReadAnnIds();
       ids.forEach(function(id){ if(read.indexOf(id)===-1) read.push(id); });
       localStorage.setItem('op_read_anns', JSON.stringify(read));
-      if(sessionStorage.getItem('op_token')) API.request('/api/user-notifications/read-all', {method:'PATCH'}).catch(function(){});
+      if(OnPartSession.getToken('user')) API.request('/api/user-notifications/read-all', {method:'PATCH'}).catch(function(){});
       updateNotifDot();
     }
 
@@ -734,7 +734,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       try {
         var previousIds = shopAnnouncements.map(function(a){ return a._key; });
         var requests = [API.request('/api/announcements')];
-        if(sessionStorage.getItem('op_token')) requests.push(API.request('/api/user-notifications').catch(function(){ return {notifications:[]}; }));
+        if(OnPartSession.getToken('user')) requests.push(API.request('/api/user-notifications').catch(function(){ return {notifications:[]}; }));
         var results = await Promise.all(requests);
         var publicItems = (results[0].announcements || []).map(function(a){ return Object.assign({_key:'a-'+a.id},a); });
         var userItems = results[1] ? (results[1].notifications || []).map(function(a){ return Object.assign({_key:'u-'+a.id},a); }) : [];

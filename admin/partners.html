@@ -188,7 +188,7 @@ const catLabels = {engine:'موتور',gearbox:'گیربکس',brake:'ترمز',e
 let suppliers=[], filtered=[], curId=null;
 
 async function loadSuppliers(){
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('admin');
   try{
     const res=await fetch(`${API.BASE_URL}/api/suppliers`,{headers:{'Authorization':'Bearer '+token}});
     if(res.ok){
@@ -300,7 +300,7 @@ function openEdit(i){
 }
 
 async function saveEdit(){
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('admin');
   const data={
     company: document.getElementById('ed_company').value,
     type: document.getElementById('ed_type').value,
@@ -329,7 +329,7 @@ function closeSupplierModal(){ document.getElementById('supplierModal').classLis
 function openRejectModal(id){ curId=id; document.getElementById('rejectReason').value=''; document.getElementById('rejectModal').classList.add('show'); }
 
 async function approveSupplier(id){
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('admin');
   try{
     const res=await fetch(`${API.BASE_URL}/api/suppliers/${id}/approve`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
     if(res.ok){ Admin.toast('تایید شد و پیامک ارسال شد'); loadSuppliers(); }
@@ -339,7 +339,7 @@ async function approveSupplier(id){
 async function confirmReject(){
   const reason=document.getElementById('rejectReason').value.trim();
   if(!reason){ Admin.toast('دلیل رد را وارد کنید',false); return; }
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('admin');
   try{
     const res=await fetch(`${API.BASE_URL}/api/suppliers/${curId}/reject`,{
       method:'PATCH', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
@@ -351,7 +351,7 @@ async function confirmReject(){
 
 async function deleteSupplier(id){
   if(!confirm('حذف این تامین‌کننده؟')) return;
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('admin');
   await fetch(`${API.BASE_URL}/api/suppliers/${id}`,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
   Admin.toast('حذف شد');
   loadSuppliers();
@@ -369,7 +369,7 @@ async function submitAdd(){
   const city=document.getElementById('a_city').value.trim();
   if(!company||!name||!mobile||!city){ Admin.toast('فیلدهای الزامی را پر کنید',false); return; }
 
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('admin');
   const data={
     company, name, mobile, city,
     type: document.getElementById('a_type').value,

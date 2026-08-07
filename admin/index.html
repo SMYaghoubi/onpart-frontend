@@ -294,7 +294,7 @@ function toJalali(dateStr){
     if(!t.trim()){alert('متن پیامک خالی است');return;}
     const recipients = document.getElementById('qsRecipients').value;
     try {
-      const token = sessionStorage.getItem('op_token');
+      const token = OnPartSession.getToken('admin');
       const res = await fetch(API.BASE_URL+'/api/sms/send', {
         method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
         body: JSON.stringify({message:t, recipients})

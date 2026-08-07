@@ -225,7 +225,7 @@ function setChartPeriod(el,p){
 
 async function loadReports(){
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const [salesRes,finRes,usersRes]=await Promise.all([
       fetch(`${API.BASE_URL}/api/reports/sales`,{headers:{'Authorization':'Bearer '+token}}),
       fetch(`${API.BASE_URL}/api/reports/finance`,{headers:{'Authorization':'Bearer '+token}}),

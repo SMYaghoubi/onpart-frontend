@@ -77,7 +77,7 @@
     };
 
     async function loadReports(){
-      const token = sessionStorage.getItem('op_token');
+      const token = OnPartSession.getToken('user');
       if(!token){ window.location.href='/login'; return; }
       try{
         const res = await fetch('https://onpartpadmin.liara.run/api/orders', {

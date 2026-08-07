@@ -201,7 +201,7 @@ function toast(msg, ok=true){
 
 async function loadAdmins(){
   try {
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('admin');
     const res = await fetch(`${API.BASE_URL}/api/users?role=admin&limit=100`, {headers:{'Authorization':'Bearer '+token}});
     if(res.ok) admins = await res.json();
     else admins = sampleAdmins;
@@ -338,7 +338,7 @@ async function saveAdmin(){
   if(type) data.type = type;
 
   try {
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('admin');
     const url = currentId ? `${API.BASE_URL}/api/users/${currentId}` : `${API.BASE_URL}/api/users`;
     const method = currentId ? 'PUT' : 'POST';
     const res = await fetch(url,{method,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(data)});
@@ -352,7 +352,7 @@ async function resetPw(id){
   const pw = prompt('رمز عبور جدید:');
   if(!pw) return;
   try {
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('admin');
     await fetch(`${API.BASE_URL}/api/users/${id}`,{
       method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({password:pw})
@@ -364,7 +364,7 @@ async function resetPw(id){
 async function deleteAdmin(id){
   if(!confirm('حذف این مدیر؟')) return;
   try {
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('admin');
     await fetch(`${API.BASE_URL}/api/users/${id}/block`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
     toast('مدیر غیرفعال شد');
     loadAdmins();

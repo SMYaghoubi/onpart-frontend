@@ -15,7 +15,7 @@
     .tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:13px}.btn{border:0;border-radius:9px;padding:9px 14px;font:600 12.5px Vazirmatn;cursor:pointer;display:inline-flex;align-items:center;gap:5px;text-decoration:none}.blue{background:#1d4ed8;color:#fff}.green{background:#16a34a;color:#fff}.gray{background:#e9eef5;color:#475569}.search{flex:1;min-width:200px;border:1.5px solid #ddd;border-radius:9px;padding:9px 12px;font:13px Vazirmatn}
     .table-wrap{overflow:auto}.tbl{width:100%;border-collapse:collapse;min-width:900px}.tbl th,.tbl td{padding:9px;border-bottom:1px solid #eee;font-size:12px;text-align:center}.tbl th{background:#f8fafc;color:#64748b}.price,.stock{width:125px;border:1px solid #dce2e8;border-radius:7px;padding:7px;text-align:center}.money-input{display:inline-flex;align-items:center;gap:5px}.money-unit{font-size:10px;color:#64748b}.changed{background:#fff7ed!important;border-color:#fb923c!important}
     .status{padding:3px 8px;border-radius:15px;font-size:10.5px}.pending{background:#fef3c7;color:#a16207}.approved{background:#dcfce7;color:#15803d}.rejected{background:#fee2e2;color:#b91c1c}.history{margin-top:18px}.empty{text-align:center;padding:35px;color:#999}.note{font-size:11px;color:#777;margin:7px 0}.error-list{white-space:pre-line;background:#fff1f2;color:#be123c;border-radius:8px;padding:10px;font-size:11px;display:none}
-    @media(max-width:650px){.page{padding:12px}.stats{grid-template-columns:1fr}.top{padding:0 12px}.top img{height:38px}}
+    @media(max-width:650px){html,body{max-width:100%;overflow-x:hidden}.page{padding:10px;max-width:100%}.stats{grid-template-columns:1fr}.top{padding:8px 10px;min-height:64px;height:auto;gap:8px}.top img{height:34px}.top>div{min-width:0}.company{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.logout{min-width:44px;min-height:44px;padding:8px;font-size:0}.logout i{font-size:19px}.actions{flex-wrap:wrap}.actions button,.actions label{min-height:44px}.table-wrap{max-width:100%;-webkit-overflow-scrolling:touch}.tbl{min-width:760px}}
   </style>
 </head>
 <body>
@@ -32,8 +32,8 @@
   </main>
   <script src="../js/api.js"></script>
   <script>
-    const token=sessionStorage.getItem('op_supplier_token');if(!token)location.replace('/supplier/login');
-    const supplier=JSON.parse(sessionStorage.getItem('op_supplier')||'{}');document.getElementById('company').textContent=supplier.company||'پنل تأمین‌کننده';
+    const token=OnPartSession.getToken('supplier');if(!token)location.replace('/supplier/login');
+    const supplier=JSON.parse(OnPartSession.getUserRaw('supplier')||'{}');document.getElementById('company').textContent=supplier.company||'پنل تأمین‌کننده';
     let products=[],changes=new Map(),batches=[],selected=new Set();
     const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
     const fmt=n=>fa(Number(n||0).toLocaleString());
@@ -55,7 +55,7 @@ function renderPreview(){const items=collect(),box=document.getElementById('prev
     function downloadTemplate(){const rows=products.map(p=>({'کد':p.code,'شرح':p.description,'خودرو':p.car||'','برند':p.brand||'','گروه':p.category||'','قیمت':Number(p.price||0),'موجودی':Number(p.stock||0),'گردش':p.has_flow?'بله':'خیر','تامین‌کننده':supplier.company||''}));const ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();ws['!cols']=[{wch:18},{wch:48},{wch:18},{wch:18},{wch:20},{wch:16},{wch:12},{wch:10},{wch:24}];XLSX.utils.book_append_sheet(wb,ws,'محصولات');XLSX.writeFile(wb,'onpart-products-for-supplier.xlsx')}
     function readExcel(input){const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'array'}),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});changes.clear();const errors=[];rows.forEach((r,i)=>{const code=String(r['کد']??r['کد محصول']??r.code??'').trim(),price=numberValue(r['قیمت']??r['قیمت تامین کننده']??r['قیمت تأمین‌کننده']??r.supplier_price??''),stockRaw=r['موجودی']??r['موجودی پیشنهادی']??r.stock??'';const p=products.find(x=>String(x.code).trim()===code);if(!p||!Number.isInteger(price)||price<0){errors.push(`ردیف ${i+2}: کد یا قیمت به تومان نامعتبر است`);return}const c={};if(price!==Number(p.price))c.supplier_price=price;if(stockRaw!==''){const st=numberValue(stockRaw);if(!Number.isInteger(st)||st<0){errors.push(`ردیف ${i+2}: موجودی نامعتبر`);return}if(st!==Number(p.stock))c.stock=st}if(Object.keys(c).length)changes.set(p.id,c)});document.getElementById('changedCount').textContent=fa(changes.size);render();renderPreview();if(errors.length)showErrors(errors);else if(confirm(`${changes.size} ردیف دارای تغییر واقعی آماده است. اکنون ارسال شود؟`))submitChanges('excel',file.name)}catch(err){showErrors(['فایل اکسل قابل خواندن نیست'])}};reader.readAsArrayBuffer(file);input.value=''}
     function renderHistory(){const labels={pending:'در انتظار بررسی',approved:'تأیید شده',rejected:'رد شده'};document.getElementById('history').innerHTML=batches.length?batches.map(b=>`<div style="display:flex;gap:10px;align-items:center;padding:10px;border-bottom:1px solid #eee;font-size:12px"><b>#${fa(b.id)}</b><span>${b.source==='excel'?'اکسل':'دستی'} · ${fa(b.item_count)} محصول</span><span class="status ${b.status}" style="margin-right:auto">${labels[b.status]}</span>${b.markup_percent!=null?`<span>افزایش ${fa(b.markup_percent)}٪</span>`:''}</div>`).join(''):'<div class="empty">هنوز تغییری ارسال نشده است.</div>'}
-    function logout(){sessionStorage.removeItem('op_supplier_token');sessionStorage.removeItem('op_supplier');location.replace('/supplier/login')}
+    function logout(){OnPartSession.clear('supplier');location.replace('/supplier/login')}
     load();
   </script>
 </body>

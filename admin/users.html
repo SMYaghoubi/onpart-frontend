@@ -243,7 +243,7 @@ const statusLabel = {active:'فعال',inactive:'غیرفعال',blocked:'مسد
 
 async function loadUsers(){
   try {
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('admin');
     const res = await fetch(API.BASE_URL+'/api/users?limit=500',{headers:{'Authorization':'Bearer '+token}});
     const data = await res.json();
     users = (Array.isArray(data) ? data : (data.users || [])).filter(u=>u.role!=='admin');
@@ -383,7 +383,7 @@ async function saveUser(){
     postal_code:document.getElementById('f_postal_code').value
   };
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const url=currentId?`${API.BASE_URL}/api/users/${currentId}`:`${API.BASE_URL}/api/users`;
     const method=currentId?'PUT':'POST';
     const res=await fetch(url,{method,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(data)});
@@ -401,7 +401,7 @@ async function savePassword(){
   const cp=document.getElementById('pw_confirm').value;
   if(!np||np!==cp){toast('رمز عبور مطابقت ندارد',false);return;}
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/users/${currentId}`,{
       method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({password:np})
@@ -415,7 +415,7 @@ async function savePassword(){
 async function approveUser(id){
   if(!confirm('آیا می‌خواهید این کاربر را تأیید و فعال کنید؟')) return;
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/users/${id}/status`,{
       method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({status:'active'})
@@ -430,7 +430,7 @@ async function approveUser(id){
 async function rejectUser(id){
   if(!confirm('آیا می‌خواهید این کاربر را رد و مسدود کنید؟')) return;
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/users/${id}/status`,{
       method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({status:'blocked'})
@@ -446,7 +446,7 @@ async function toggleBlock(id,status){
   const action=status==='blocked'?'رفع مسدودی':'مسدود کردن';
   if(!confirm(`آیا می‌خواهید این کاربر را ${action} کنید؟`)) return;
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/users/${id}/block`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
     if(!res.ok) throw new Error();
     toast(`${action} با موفقیت انجام شد`);
@@ -457,7 +457,7 @@ async function toggleBlock(id,status){
 async function deleteUser(id,name){
   if(!confirm(`آیا مطمئن هستید می‌خواهید "${name}" را برای همیشه حذف کنید؟\nاین عمل همه سفارشات، پرداخت‌ها و اطلاعات این کاربر را هم حذف می‌کند و قابل بازگشت نیست.`)) return;
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/users/${id}`,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
     const data=await res.json();
     if(!res.ok) throw new Error(data.message||'خطا در حذف');

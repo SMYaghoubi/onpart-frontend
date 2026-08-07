@@ -52,7 +52,7 @@
 const BASE = 'https://onpartpadmin.liara.run';
 
 async function loadUser(){
-  const token = sessionStorage.getItem('op_token');
+  const token = OnPartSession.getToken('user');
   if(!token){ window.location.href='/login'; return; }
   const res = await fetch(BASE+'/api/users/me', {headers:{'Authorization':'Bearer '+token}});
   if(!res.ok){ window.location.href='/login'; return; }
@@ -69,7 +69,7 @@ async function loadUser(){
 }
 
 async function saveProfile(){
-  const token = sessionStorage.getItem('op_token');
+  const token = OnPartSession.getToken('user');
   const btn = document.getElementById('saveBtn');
   btn.disabled = true; btn.textContent = 'در حال ذخیره...';
   try{

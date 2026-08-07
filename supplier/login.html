@@ -106,7 +106,7 @@
   </main>
   <script src="../js/api.js"></script>
   <script>
-    if(sessionStorage.getItem('op_supplier_token')) location.replace('/supplier/');
+    if(OnPartSession.getToken('supplier')) location.replace('/supplier/');
     const messageBox=document.getElementById('msg');
     const msg=text=>{messageBox.textContent=text||''};
     async function sendOtp(){
@@ -127,8 +127,7 @@
       msg('');btn.disabled=true;btn.classList.add('loading');
       try{
         const data=await API.request('/api/supplier-portal/auth/verify-otp',{method:'POST',body:JSON.stringify({phone,code})});
-        sessionStorage.setItem('op_supplier_token',data.token);
-        sessionStorage.setItem('op_supplier',JSON.stringify(data.supplier));
+        OnPartSession.setSession('supplier',data.token,data.supplier);
         location.replace('/supplier/');
       }catch(e){msg(e.message)}finally{btn.disabled=false;btn.classList.remove('loading')}
     }

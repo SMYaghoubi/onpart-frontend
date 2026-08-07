@@ -165,7 +165,7 @@ async function addProfileCard(){
 async function deleteProfileCard(id){if(!confirm('این کارت از حساب شما حذف شود؟'))return;try{await API.request('/api/bank-cards/'+id,{method:'DELETE'});await loadProfileCards();OnPart.toast('کارت حذف شد')}catch(error){OnPart.toast(error.message||'خطا در حذف کارت','error')}}
 
 async function loadProfile(){
-  const token = sessionStorage.getItem('op_token');
+  const token = OnPartSession.getToken('user');
   if(!token){ window.location.href='/login'; return; }
   try{
     const [pRes, oRes] = await Promise.all([

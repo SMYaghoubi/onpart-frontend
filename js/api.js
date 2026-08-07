@@ -37,6 +37,67 @@
   }
   window.OnPartAudio={primeFromGesture,play,get element(){return getAudio()}};
 })();
+(function initOnPartSession(){
+  if(window.OnPartSession) return;
+  const definitions={
+    user:{token:'op_user_token',data:'op_user_data',roles:['user']},
+    admin:{token:'op_admin_token',data:'op_admin_data',roles:['admin','partner']},
+    supplier:{token:'op_supplier_token',data:'op_supplier',roles:['supplier']}
+  };
+  function decodeToken(token){
+    try{
+      const part=String(token||'').split('.')[1];if(!part)return null;
+      const value=part.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(part.length/4)*4,'=');
+      return JSON.parse(decodeURIComponent(Array.from(atob(value),char=>'%'+char.charCodeAt(0).toString(16).padStart(2,'0')).join('')));
+    }catch(_){return null}
+  }
+  function contextFor(requestPath=''){
+    const path=String(requestPath||'');
+    if(path.startsWith('/api/supplier-portal')||location.pathname.startsWith('/supplier/'))return 'supplier';
+    if(location.pathname.startsWith('/admin/'))return 'admin';
+    return 'user';
+  }
+  function getUserRaw(context){return sessionStorage.getItem(definitions[context]?.data)||''}
+  function getUser(context){try{return JSON.parse(getUserRaw(context)||'{}')}catch(_){return {}}}
+  function valid(context,token,user){
+    const def=definitions[context],claims=decodeToken(token),now=Math.floor(Date.now()/1000);
+    if(!def||!claims||!claims.exp||claims.exp<=now)return false;
+    const role=claims.role||(user&&user.role);
+    return def.roles.includes(role)&&(!user||!user.role||user.role===role);
+  }
+  function notify(context,action){try{localStorage.setItem('op_session_signal',JSON.stringify({context,action,at:Date.now()}));localStorage.removeItem('op_session_signal')}catch(_){}}
+  function clear(context,{signal=true}={}){
+    const def=definitions[context];if(!def)return;
+    sessionStorage.removeItem(def.token);sessionStorage.removeItem(def.data);
+    if(signal)notify(context,'logout');
+  }
+  function getToken(context){
+    const def=definitions[context],token=def&&sessionStorage.getItem(def.token),user=getUser(context);
+    if(!token)return null;
+    if(!valid(context,token,user)){clear(context);return null}
+    return token;
+  }
+  function setSession(context,token,user){
+    const def=definitions[context];
+    if(!def||!valid(context,token,user))throw new Error('نشست با نقش انتخاب‌شده سازگار نیست');
+    sessionStorage.setItem(def.token,token);sessionStorage.setItem(def.data,JSON.stringify(user||{}));
+    notify(context,'login');return true;
+  }
+  function migrateLegacy(){
+    const token=sessionStorage.getItem('op_token');if(!token)return;
+    let user={};try{user=JSON.parse(sessionStorage.getItem('op_user')||'{}')}catch(_){}
+    const claims=decodeToken(token),role=claims&&(claims.role||user.role);
+    const context=role==='admin'||role==='partner'?'admin':role==='supplier'?'supplier':role==='user'?'user':null;
+    try{if(context&&valid(context,token,user))setSession(context,token,user)}catch(_){}
+    sessionStorage.removeItem('op_token');sessionStorage.removeItem('op_user');
+  }
+  addEventListener('storage',event=>{
+    if(event.key!=='op_session_signal'||!event.newValue)return;
+    try{const signal=JSON.parse(event.newValue);if(signal.action==='logout'&&definitions[signal.context])clear(signal.context,{signal:false})}catch(_){}
+  });
+  window.OnPartSession={definitions,decodeToken,contextFor,getToken,getUser,getUserRaw,setSession,clear,valid,migrateLegacy};
+  migrateLegacy();
+})();
 // OnPart API Helper
 // All backend API calls centralized here
 // Change BASE_URL to your domain
@@ -46,18 +107,21 @@ const API = {
   TIMEOUT_MS: 15000,
 
   async request(path, options = {}) {
+    const authContext = options.authContext || OnPartSession.contextFor(path);
+    const requestOptions = { ...options };
+    delete requestOptions.authContext;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), options.timeout || this.TIMEOUT_MS);
     const isForm = options.body instanceof FormData;
     const headers = {
-      ...this.headers(),
+      ...this.headers(authContext),
       ...(options.headers || {})
     };
     if(isForm) delete headers['Content-Type'];
 
     try {
       const res = await fetch(this.BASE_URL + path, {
-        ...options,
+        ...requestOptions,
         headers,
         signal: controller.signal
       });
@@ -113,8 +177,8 @@ const API = {
   },
 
   // ── HEADERS ──
-  headers() {
-    const token = sessionStorage.getItem('op_token');
+  headers(context) {
+    const token = OnPartSession.getToken(context||OnPartSession.contextFor());
     return {
       'Content-Type': 'application/json',
       ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -139,8 +203,7 @@ const API = {
     });
     const data = await res.json();
     if (data.token) {
-      sessionStorage.setItem('op_token', data.token);
-      sessionStorage.setItem('op_user', JSON.stringify(data.user));
+      OnPartSession.setSession('user', data.token, data.user);
     }
     return data;
   },
@@ -153,8 +216,7 @@ const API = {
     });
     const data = await res.json();
     if (data.token) {
-      sessionStorage.setItem('op_token', data.token);
-      sessionStorage.setItem('op_user', JSON.stringify(data.user));
+      OnPartSession.setSession('admin', data.token, data.user);
     }
     return data;
   },
@@ -252,7 +314,7 @@ const API = {
   },
 
   async uploadReceipt(formData) {
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('user');
     const res = await fetch(`${this.BASE_URL}/api/payments/receipt`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },

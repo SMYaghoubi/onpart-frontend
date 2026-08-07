@@ -138,8 +138,7 @@
 <script src="js/api.js"></script>
 <script>
 // Clear any existing session when login page loads
-sessionStorage.removeItem('op_token');
-sessionStorage.removeItem('op_user');
+
  
 function togglePw(){
   const p=document.getElementById('password');
@@ -159,8 +158,7 @@ async function doLogin(){
     });
     const data=await res.json();
     if(!res.ok)throw new Error(data.message||'نام کاربری یا رمز عبور اشتباه است');
-    sessionStorage.setItem('op_token',data.token);
-    sessionStorage.setItem('op_user',JSON.stringify(data.user));
+    OnPartSession.setSession('user', data.token, data.user);
     window.location.href='/shop';
   }catch(e){
     const err=document.getElementById('loginError');
@@ -189,8 +187,7 @@ async function verifyOTP(){
     });
     const data=await res.json();
     if(!res.ok)throw new Error(data.message||'کد اشتباه است');
-    sessionStorage.setItem('op_token',data.token);
-    sessionStorage.setItem('op_user',JSON.stringify(data.user));
+    OnPartSession.setSession('user', data.token, data.user);
     window.location.href='/shop';
   }catch(e){alert(e.message);}
 }

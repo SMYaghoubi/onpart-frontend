@@ -346,8 +346,7 @@ async function verifyOtp(){
     btn.disabled = false; btn.textContent = 'تایید کد';
     if(!res.ok){ showErr('otpErr', data.message||'کد نامعتبر است'); return; }
     clearInterval(timerInterval);
-    sessionStorage.setItem('op_token', data.token);
-    sessionStorage.setItem('op_user', JSON.stringify(data.user));
+    OnPartSession.setSession('user', data.token, data.user);
     // If user already has a name, they're already registered - redirect to login
     if(!data.isNewUser && data.user.name){
       alert('این شماره قبلاً ثبت‌نام کرده. به صفحه ورود هدایت می‌شوید.');
@@ -396,7 +395,7 @@ async function completeProfile(){
   btn.disabled = true; btn.textContent = 'در حال ثبت...';
  
   try{
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('user');
  
     // Step 1: Save text fields first (fast)
     const jsonData = {
@@ -434,8 +433,7 @@ async function completeProfile(){
     if(window.OnPartAudio) await OnPartAudio.play('/audio/order-status/registration-submitted.mp3',{onceKey:'registration-submitted-'+String((data.user&&data.user.id)||currentPhone)});
 
     // Always show success page
-    sessionStorage.removeItem('op_token');
-    sessionStorage.removeItem('op_user');
+    OnPartSession.clear('user');
     showStep(4);
   }catch(e){
     btn.disabled = false; btn.textContent = 'تکمیل ثبت‌نام';

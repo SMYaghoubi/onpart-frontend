@@ -219,7 +219,7 @@ async function sendSMS(){
   if(!text){toast('متن پیامک خالی است',false);return;}
 
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const phones=recipients==='custom'?document.getElementById('customPhone').value.split(',').map(p=>p.trim()):null;
     const body={message:text,recipients:phones||recipients};
     const res=await fetch(`${API.BASE_URL}/api/sms/send`,{
@@ -239,11 +239,11 @@ async function sendSMS(){
 async function sendTest(){
   const text=document.getElementById('smsText').value.trim();
   if(!text){toast('متن پیامک خالی است',false);return;}
-  const adminPhone = JSON.parse(sessionStorage.getItem('op_user')||'{}').phone || '';
+  const adminPhone = JSON.parse(OnPartSession.getUserRaw('admin')||'{}').phone || '';
   const testPhone = prompt('شماره موبایل برای ارسال تست:', adminPhone);
   if(!testPhone) return;
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/sms/send`,{
       method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({message:text,recipients:[testPhone]})
@@ -260,7 +260,7 @@ async function saveApiSettings(){
   const line=document.getElementById('smsLine').value.trim();
   if(!key){toast('API Key خالی است',false);return;}
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/settings`,{
       method:'PUT',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
@@ -275,11 +275,11 @@ async function saveApiSettings(){
 }
 
 async function testSMS(){
-  const adminPhone = JSON.parse(sessionStorage.getItem('op_user')||'{}').phone || '';
+  const adminPhone = JSON.parse(OnPartSession.getUserRaw('admin')||'{}').phone || '';
   const testPhone = prompt('شماره موبایل برای تست:', adminPhone);
   if(!testPhone) return;
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/sms/send`,{
       method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({message:'پیامک تست آن‌پارت - سیستم پیامک فعال است ✓',recipients:[testPhone]})
@@ -292,7 +292,7 @@ async function testSMS(){
 
 async function loadSettings(){
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/settings/admin`,{headers:{'Authorization':'Bearer '+token}});
     if(!res.ok) return;
     const data=await res.json();
@@ -319,7 +319,7 @@ async function loadSettings(){
 
 async function loadLogs(){
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/sms/logs`,{headers:{'Authorization':'Bearer '+token}});
     const logs=await res.json();
     document.getElementById('logList').innerHTML=logs.slice(0,20).map(l=>`

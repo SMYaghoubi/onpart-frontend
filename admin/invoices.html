@@ -203,7 +203,7 @@ const statusBadge={
 
 async function loadInvoices(){
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(API.BASE_URL+'/api/orders?admin=1&limit=500',{headers:{'Authorization':'Bearer '+token}});
     if(res.ok){
       const data = await res.json();
@@ -335,7 +335,7 @@ function gotoPage(p){page=p;renderTable();}
 async function deleteInvoice(id, btn){
   if(!confirm('آیا از حذف این فاکتور مطمئن هستید؟')) return;
   try {
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('admin');
     await fetch(`${API.BASE_URL}/api/invoices/${id}`, {
       method:'DELETE',
       headers:{'Authorization':'Bearer '+token}

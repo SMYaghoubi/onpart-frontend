@@ -191,7 +191,7 @@ function allocationLinks(payment){
 async function deletePayment(id, btn){
   if(!confirm('آیا مطمئن هستید می‌خواهید این پرداخت را حذف کنید؟')) return;
   try{
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/payments/${id}`,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
     if(!res.ok) throw new Error();
     payments=payments.filter(p=>p.id!==id);
@@ -204,7 +204,7 @@ async function deletePayment(id, btn){
 
 async function loadPayments(){
   try {
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(API.BASE_URL+'/api/payments',{headers:{'Authorization':'Bearer '+token}});
     if(res.ok) payments=await res.json();
     else payments=[];
@@ -326,7 +326,7 @@ function openModal(id){
 async function loadReceipt(id,type){
   const zone=document.getElementById('receiptPreview');if(!zone)return;
   try{
-    const response=await fetch(`${API.BASE_URL}/api/payments/${Number(id)}/receipt`,{headers:{'Authorization':'Bearer '+sessionStorage.getItem('op_token')}});
+    const response=await fetch(`${API.BASE_URL}/api/payments/${Number(id)}/receipt`,{headers:{'Authorization':'Bearer '+OnPartSession.getToken('admin')}});
     if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.message||'فایل فیش دریافت نشد')}
     const blob=await response.blob();
     if(receiptObjectUrl)URL.revokeObjectURL(receiptObjectUrl);
@@ -348,7 +348,7 @@ function toast(msg,ok=true){
 async function approvePayment(){
   const buttons=[...document.querySelectorAll('#modalFoot button')];buttons.forEach(button=>button.disabled=true);
   try {
-    const res=await fetch(`${API.BASE_URL}/api/payments/${currentId}/approve`,{method:'PATCH',headers:{'Authorization':'Bearer '+sessionStorage.getItem('op_token')}});
+    const res=await fetch(`${API.BASE_URL}/api/payments/${currentId}/approve`,{method:'PATCH',headers:{'Authorization':'Bearer '+OnPartSession.getToken('admin')}});
     const result=await res.json().catch(()=>({}));if(!res.ok)throw new Error(result.message||'تأیید پرداخت انجام نشد');
     toast(result.already_approved?'این پرداخت قبلاً تأیید شده است':'پرداخت تأیید شد و بدهی به‌روزرسانی شد');closeModal();await loadPayments();
   } catch(error){toast(error.message,false)}finally{buttons.forEach(button=>button.disabled=false)}
@@ -357,21 +357,21 @@ async function approvePayment(){
 async function rejectPayment(){
   const note=document.getElementById('rejectNote')?.value||'',buttons=[...document.querySelectorAll('#modalFoot button')];buttons.forEach(button=>button.disabled=true);
   try {
-    const res=await fetch(`${API.BASE_URL}/api/payments/${currentId}/reject`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionStorage.getItem('op_token')},body:JSON.stringify({reason:note})});
+    const res=await fetch(`${API.BASE_URL}/api/payments/${currentId}/reject`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+OnPartSession.getToken('admin')},body:JSON.stringify({reason:note})});
     const result=await res.json().catch(()=>({}));if(!res.ok)throw new Error(result.message||'رد پرداخت انجام نشد');
     toast(result.already_rejected?'این پرداخت قبلاً رد شده است':'پرداخت رد شد و بدهی سفارش باقی ماند');closeModal();await loadPayments();
   } catch(error){toast(error.message,false)}finally{buttons.forEach(button=>button.disabled=false)}
 }
 
 async function quickApprove(id){
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('admin');
   await fetch(`${API.BASE_URL}/api/payments/${id}/approve`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
   toast('پرداخت تأیید شد');loadPayments();
 }
 
 async function quickReject(id){
   if(!confirm('رد پرداخت؟')) return;
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('admin');
   await fetch(`${API.BASE_URL}/api/payments/${id}/reject`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({reason:'رد توسط ادمین'})});
   toast('پرداخت رد شد');loadPayments();
 }

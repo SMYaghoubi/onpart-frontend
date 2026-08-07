@@ -155,10 +155,10 @@
         if(data.user.role !== 'admin' && data.user.role !== 'partner') {
           throw new Error('این حساب اجازه ورود به پنل مدیریت را ندارد');
         }
-        sessionStorage.setItem('op_token', data.token);
-        sessionStorage.setItem('op_user', JSON.stringify(data.user));
+        OnPartSession.setSession('admin', data.token, data.user);
+
         window.location.href = '/admin/';
-        
+
       } catch(err){
         showError(err.message || 'خطا در ورود');
         btn.classList.remove('loading');
@@ -167,15 +167,14 @@
     }
 
     // Check if already logged in as admin/partner
-    if(sessionStorage.getItem('op_token')){
+    if(OnPartSession.getToken('admin')){
       try {
-        const u = JSON.parse(sessionStorage.getItem('op_user')||'{}');
+        const u = JSON.parse(OnPartSession.getUserRaw('admin')||'{}');
         if(u.role === 'admin' || u.role === 'partner'){
           window.location.replace('/admin/');
         } else {
           // Regular user - clear token, stay on login
-          sessionStorage.removeItem('op_token');
-          sessionStorage.removeItem('op_user');
+
         }
       } catch(e) {}
     }

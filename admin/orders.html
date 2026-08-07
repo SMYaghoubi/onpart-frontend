@@ -322,7 +322,7 @@ function toast(msg,ok=true){
 // ── LOAD ──
 async function loadOrders(){
   try{
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/orders?limit=200&admin=1`,{headers:{'Authorization':'Bearer '+token}});
     if(res.ok)orders=await res.json();
   }catch(e){}
@@ -394,7 +394,7 @@ async function deleteOrder(id,btn){
   if(!confirm('آیا مطمئن هستید می‌خواهید این سفارش را برای همیشه حذف کنید؟\nسفارش از پنل مشتری حذف و بدهی مرتبط با آن نیز تسویه می‌شود.'))return;
   let result;
   try{
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/orders/${id}`,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
     result=await res.json();
     if(!res.ok) throw new Error(result.message||'خطا در حذف');
@@ -460,7 +460,7 @@ async function openDetail(i){
 
 async function loadDetailItems(orderId){
   try{
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/orders/${orderId}`,{headers:{'Authorization':'Bearer '+token}});
     const data=await res.json();
     const items=data.items||[];
@@ -485,7 +485,7 @@ async function loadDetailItems(orderId){
 
 async function approveOrder(id){
   try{
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/orders/${id}/approve`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
     if(!res.ok) throw new Error();
     const o=orders.find(x=>x.id===id);if(o)o.status='pending_customer';
@@ -511,7 +511,7 @@ async function updateOrderStatus(id){
     return;
   }
   try{
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     await fetch(`${API.BASE_URL}/api/orders/${id}/status`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({status})});
   }catch(e){}
   const o=orders.find(x=>x.id===id);if(o)o.status=status;
@@ -536,7 +536,7 @@ async function submitShipping(){
   }
 
   try{
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res = await fetch(`${API.BASE_URL}/api/orders/${id}/ship`,{
       method:'PATCH', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify(data)
@@ -555,7 +555,7 @@ async function submitDelivery(){
   const code = document.getElementById('deliverCode').value.trim();
   if(!code){ toast('کد تحویل را وارد کنید',false); return; }
   try{
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res = await fetch(`${API.BASE_URL}/api/orders/${id}/deliver`,{
       method:'PATCH', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({delivery_code: code})
@@ -620,7 +620,7 @@ async function loadOrderItemsForEdit(orderId){
   document.getElementById('invItems').innerHTML='';
   invItemCount=0;
   try{
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/orders/${orderId}`,{headers:{'Authorization':'Bearer '+token}});
     const data=await res.json();
     const items=data.items||[];
@@ -660,7 +660,7 @@ async function saveInvoice(){
   const overallDiscount=Number(document.getElementById('invDiscount')?.value)||0;
 
   try{
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/orders/${curOrderId}/items`,{
       method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({items, overall_discount:overallDiscount})
@@ -775,7 +775,7 @@ function closeNewOrder(){document.getElementById('newOrderModal').classList.remo
 
 async function loadCustomers(){
   try{
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/users?limit=500`,{headers:{'Authorization':'Bearer '+token}});
     if(res.ok)allCustomers=await res.json();
   }catch(e){}
@@ -827,7 +827,7 @@ async function confirmAddCustomer(){
   const phone=document.getElementById('new_cust_phone').value.trim();
   if(!name||!phone){toast('نام و موبایل الزامی است',false);return;}
   try{
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/users`,{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
@@ -863,7 +863,7 @@ async function submitNewOrder(){
   if(!items.length){toast('حداقل یک قلم اضافه کنید',false);return;}
   const disc=Number(document.getElementById('no_discount').value)||0;
   const total=Math.round(items.reduce((s,it)=>s+it.total,0)*(1-disc/100));
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('admin');
   try{
     const res=await fetch(`${API.BASE_URL}/api/orders/manual`,{
       method:'POST',
@@ -896,7 +896,7 @@ async function sendSmsNow(){
   const text=document.getElementById('smsText').value.trim();
   if(!text){toast('متن پیامک خالی است',false);return;}
   try{
-    const token=sessionStorage.getItem('op_token');
+    const token=OnPartSession.getToken('admin');
     await fetch(`${API.BASE_URL}/api/sms/send`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({message:text,recipients:[curSmsPhone]})});
   }catch(e){}
   toast('پیامک ارسال شد');closeSms();

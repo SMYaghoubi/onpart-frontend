@@ -176,7 +176,7 @@ const methodCls={post:'m-post',tipax:'m-tipax',snap:'m-snap',motorbike:'m-motor'
 let orders=[],filtered=[];
 
 async function loadShipping(){
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('admin');
   try{
     const res=await fetch(`${API.BASE_URL}/api/orders?admin=1&limit=500`,{headers:{'Authorization':'Bearer '+token}});
     if(res.ok){
@@ -274,7 +274,7 @@ function editShipping(i){
 async function saveEdit(){
   const id=document.getElementById('editOrderId').value;
   const method=document.getElementById('editMethod').value;
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('admin');
   const data={
     shipping_method:method,
     shipping_packages:parseInt(document.getElementById('editPackages').value||1),
@@ -296,7 +296,7 @@ async function saveEdit(){
 
 async function deleteShipping(id){
   if(!confirm('آیا اطلاعات ارسال این سفارش حذف شود؟'))return;
-  const token=sessionStorage.getItem('op_token');
+  const token=OnPartSession.getToken('admin');
   try{
     const res=await fetch(`${API.BASE_URL}/api/orders/${id}/status`,{
       method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},

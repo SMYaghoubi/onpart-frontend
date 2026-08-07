@@ -215,7 +215,7 @@
       const name = document.getElementById('cr_name').value.trim();
       if(!name){ alert('نام و نام خانوادگی الزامی است'); return; }
 
-      const token = sessionStorage.getItem('op_token');
+      const token = OnPartSession.getToken('user');
       if(!token){ window.location.href='/login'; return; }
 
       const btn = document.getElementById('submitBtn');

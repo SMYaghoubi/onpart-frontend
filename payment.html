@@ -316,7 +316,7 @@
       if(!track){OnPart.toast('شماره پیگیری را وارد کنید','error');return;}
       if(!date){OnPart.toast('تاریخ واریز را وارد کنید','error');return;}
 
-      const token = sessionStorage.getItem('op_token');
+      const token = OnPartSession.getToken('user');
       if(!token){OnPart.toast('ابتدا وارد حساب شوید','error');return;}
  
       const submitButton=document.getElementById('submitPaymentBtn');
@@ -354,10 +354,10 @@
 
     // Load user debt
     async function loadUserDebt(){
-      const token = sessionStorage.getItem('op_token');
+      const token = OnPartSession.getToken('user');
       if(!token) return;
       try{
-        const user = JSON.parse(sessionStorage.getItem('op_user')||'{}');
+        const user = JSON.parse(OnPartSession.getUserRaw('user')||'{}');
         if(user.id){
           const res = await fetch('https://onpartpadmin.liara.run/api/users/'+user.id,{
             headers:{'Authorization':'Bearer '+token}
@@ -477,7 +477,7 @@
     async function loadHistoryReceipt(target){
       if(!target||target.dataset.loaded==='1')return;target.dataset.loaded='1';
       try{
-        const response=await fetch(`${API_BASE}/api/payments/${Number(target.dataset.receiptPayment)}/receipt`,{headers:{'Authorization':'Bearer '+sessionStorage.getItem('op_token')}});
+        const response=await fetch(`${API_BASE}/api/payments/${Number(target.dataset.receiptPayment)}/receipt`,{headers:{'Authorization':'Bearer '+OnPartSession.getToken('user')}});
         if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.message||'فایل فیش دریافت نشد')}
         const blob=await response.blob(),url=URL.createObjectURL(blob);receiptUrls.add(url);
         const pdf=blob.type==='application/pdf'||target.dataset.receiptType==='pdf';
@@ -496,7 +496,7 @@
     }
 
     async function loadPaymentHistory(){
-      const token = sessionStorage.getItem('op_token');
+      const token = OnPartSession.getToken('user');
       if(!token) return;
       const list = document.getElementById('historyList');
       try{
@@ -545,7 +545,7 @@
     (function prefillFromOrder(){
       const orderId = new URLSearchParams(window.location.search).get('order');
       if(!orderId) return;
-      const token = sessionStorage.getItem('op_token');
+      const token = OnPartSession.getToken('user');
       if(!token) return;
       fetch('https://onpartpadmin.liara.run/api/orders/'+orderId, {headers:{'Authorization':'Bearer '+token}})
         .then(r=>r.json())

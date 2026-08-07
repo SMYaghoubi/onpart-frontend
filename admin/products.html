@@ -233,6 +233,14 @@
         <label class="be-check"><input type="checkbox" class="be-enable" id="be_enable_stock"/><span>موجودی</span></label>
         <input class="finput" id="be_stock" placeholder="موجودی جدید"/>
       </div>
+      <div class="be-row">
+        <label class="be-check"><input type="checkbox" class="be-enable" id="be_enable_supplier"/><span>تأمین‌کننده</span></label>
+        <div style="position:relative;flex:1;min-width:0">
+          <input class="finput" id="be_supplier_search" list="be_supplier_options" placeholder="جستجو یا انتخاب تأمین‌کننده؛ برای حذف «بدون تأمین‌کننده»" autocomplete="off" oninput="resolveBulkSupplier()"/>
+          <input type="hidden" id="be_supplier_id"/>
+          <datalist id="be_supplier_options"></datalist>
+        </div>
+      </div>
     </div>
     <div class="modal-foot">
       <button class="btn-prim" onclick="applyBulkEdit()"><i class="ti ti-check"></i>اعمال تغییرات</button>
@@ -261,7 +269,7 @@ function toast(msg, ok=true){
 
 async function loadProducts(){
   try {
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('admin');
     const res = await fetch(API.BASE_URL + '/api/products?limit=99999&admin=1', {
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -410,7 +418,7 @@ function clearSelection(){
 async function bulkDelete(){
   if(!selectedIds.size) return;
   if(!confirm(`آیا مطمئن هستید می‌خواهید ${fa(selectedIds.size)} محصول انتخاب‌شده را حذف کنید؟\nاین عمل قابل بازگشت نیست.`)) return;
-  const token = sessionStorage.getItem('op_token');
+  const token = OnPartSession.getToken('admin');
   try{
     const res = await fetch(`${API.BASE_URL}/api/products/bulk-delete`,{
       method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
@@ -432,13 +440,23 @@ function openBulkEdit(){
 
 function closeBulkEdit(){
   document.getElementById('bulkEditModal').classList.remove('show');
-  ['be_category','be_car','be_brand','be_price','be_stock'].forEach(id=>{
+  ['be_category','be_car','be_brand','be_price','be_stock','be_supplier_search','be_supplier_id'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.value='';
   });
   document.querySelectorAll('.be-enable').forEach(cb=>cb.checked=false);
 }
 
+function resolveBulkSupplier(){
+  const input=document.getElementById('be_supplier_search'),hidden=document.getElementById('be_supplier_id'),value=input.value.trim();
+  if(value==='بدون تأمین‌کننده'){hidden.value='clear';return}
+  const match=allSuppliers.find(s=>value===String(s.id)+' — '+String(s.company||s.name||''));
+  hidden.value=match?String(match.id):'';
+}
+function refreshBulkSupplierOptions(){
+  const list=document.getElementById('be_supplier_options');if(!list)return;
+  list.innerHTML='<option value="بدون تأمین‌کننده"></option>'+allSuppliers.map(s=>'<option value="'+Admin.escape(String(s.id)+' — '+String(s.company||s.name||''))+'"></option>').join('');
+}
 async function applyBulkEdit(){
   const fields = {};
   if(document.getElementById('be_enable_category')?.checked) fields.category = document.getElementById('be_category').value;
@@ -446,33 +464,22 @@ async function applyBulkEdit(){
   if(document.getElementById('be_enable_brand')?.checked) fields.brand = document.getElementById('be_brand').value;
   if(document.getElementById('be_enable_price')?.checked) fields.price = Number(document.getElementById('be_price').value.replace(/,/g,''));
   if(document.getElementById('be_enable_stock')?.checked) fields.stock = Number(document.getElementById('be_stock').value);
-
-  if(!Object.keys(fields).length){ toast('حداقل یک فیلد را برای ویرایش انتخاب کنید',false); return; }
-
-  const token = sessionStorage.getItem('op_token');
-  let success=0, fail=0;
-  for(const id of selectedIds){
-    const p = products.find(x=>x.id===id);
-    if(!p) continue;
-    try {
-      const body = {
-        description: p.description, car: fields.car ?? p.car, brand: fields.brand ?? p.brand,
-        category: fields.category ?? p.category, price: fields.price ?? p.price,
-        stock: fields.stock ?? p.stock, min_stock: p.min_stock, has_flow: p.has_flow, status: p.status
-      };
-      const res = await fetch(`${API.BASE_URL}/api/products/${id}`,{
-        method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-        body: JSON.stringify(body)
-      });
-      if(res.ok) success++; else fail++;
-    } catch(e){ fail++; }
+  if(document.getElementById('be_enable_supplier')?.checked){
+    resolveBulkSupplier();
+    const supplierValue=document.getElementById('be_supplier_id').value;
+    if(!supplierValue){toast('یک تأمین‌کننده معتبر یا گزینه بدون تأمین‌کننده را انتخاب کنید',false);return}
+    fields.supplier_id=supplierValue==='clear'?null:Number(supplierValue);
   }
-  toast(`${fa(success)} محصول ویرایش شد${fail?` — ${fa(fail)} ناموفق`:''}`);
-  closeBulkEdit();
-  selectedIds.clear();
-  loadProducts();
+  if(!Object.keys(fields).length){toast('حداقل یک فیلد را برای ویرایش انتخاب کنید',false);return}
+  if(('price' in fields&&!Number.isSafeInteger(fields.price))||('stock' in fields&&!Number.isSafeInteger(fields.stock))||fields.price<0||fields.stock<0){toast('قیمت و موجودی باید عدد صحیح نامنفی باشند',false);return}
+  const button=document.querySelector('#bulkEditModal .btn-prim');button.disabled=true;
+  try{
+    const result=await API.request('/api/products/bulk',{method:'PATCH',authContext:'admin',body:JSON.stringify({ids:Array.from(selectedIds),fields})});
+    toast((result.updated||0).toLocaleString('fa-IR')+' محصول ویرایش شد'+(result.missing?.length?'؛ '+result.missing.length+' شناسه پیدا نشد':''));
+    closeBulkEdit();selectedIds.clear();await loadProducts();
+  }catch(error){toast(error.message||'خطا در ویرایش گروهی محصولات',false)}
+  finally{button.disabled=false}
 }
-
 // ── Description popup ──
 function toggleDescPopup(e, id){
   e.stopPropagation();
@@ -538,7 +545,7 @@ async function saveProduct(){
   };
 
   try {
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('admin');
     const url = currentId ? `${API.BASE_URL}/api/products/${currentId}` : `${API.BASE_URL}/api/products`;
     const method = currentId ? 'PUT' : 'POST';
     const res = await fetch(url, { method, headers: {'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify(data) });
@@ -560,7 +567,7 @@ async function confirmDelete(id){
 
 async function deleteProduct(){
   try {
-    const token = sessionStorage.getItem('op_token');
+    const token = OnPartSession.getToken('admin');
     const res = await fetch(`${API.BASE_URL}/api/products/${currentId}`, {
       method:'DELETE', headers:{'Authorization':'Bearer '+token}
     });
@@ -630,7 +637,7 @@ function importExcel(input){
 
       toast(`در حال وارد کردن ${fa(products.length)} محصول...`);
 
-      const token = sessionStorage.getItem('op_token');
+      const token = OnPartSession.getToken('admin');
       const res = await fetch(`${API.BASE_URL}/api/products/bulk-import`, {
         method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
         body: JSON.stringify({products})
@@ -703,14 +710,14 @@ function addAndSelectCat(c){ addAndSelectItem('cat', c); }
 let allSuppliers = [];
 
 async function loadApprovedSuppliers(){
-  const token = sessionStorage.getItem('op_token');
+  const token = OnPartSession.getToken('admin');
   try {
     const res = await fetch(`${API.BASE_URL}/api/suppliers`, {headers:{'Authorization':'Bearer '+token}});
     if(res.ok){
       const data = await res.json();
       allSuppliers = data.filter(s => s.status === 'approved');
       // If no approved suppliers, show all pending ones too
-      if(!allSuppliers.length) allSuppliers = data;
+      refreshBulkSupplierOptions();
     }
   } catch(e){}
 }
