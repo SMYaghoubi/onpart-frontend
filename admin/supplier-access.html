@@ -9,8 +9,30 @@
 </div></div></main></div><script src="../js/api.js"></script><script src="../js/admin.js"></script><script>
 Admin.renderSidebar('partners');Admin.renderTopbar('دسترسی تأمین‌کننده','ti-key');
 const supplierId=Number(new URLSearchParams(location.search).get('supplier'));let allBrands=[],selected=new Set();
-if(!supplierId){Admin.toast('شناسه تأمین‌کننده نامعتبر است','error');}
-async function load(){try{const [options,current]=await Promise.all([API.request('/api/supplier-portal/admin/scope-options'),API.request(`/api/supplier-portal/admin/suppliers/${supplierId}/scopes`)]);allBrands=options.brands||[];(current.scopes||[]).forEach(s=>{if(s.scope_type==='brand')selected.add(s.scope_value);if(s.scope_type==='assigned_company')document.getElementById('assignedCompany').checked=true});renderBrands()}catch(e){Admin.toast(e.message,'error')}}
-function renderBrands(){const q=document.getElementById('brandSearch').value.trim().toLowerCase();const root=document.getElementById('brands');root.replaceChildren();const rows=allBrands.filter(item=>!q||String(item.brand||'').toLowerCase().includes(q));if(!rows.length){const empty=document.createElement('div');empty.className='empty-brands';empty.textContent=allBrands.length?'برندی مطابق جستجو یافت نشد.':'هنوز روی محصولات فعال، برندی ثبت نشده است.';root.append(empty);return}rows.forEach(item=>{const brand=String(item.brand||'');const label=document.createElement('label');label.className='brand';const cb=document.createElement('input');cb.type='checkbox';cb.checked=selected.has(brand);cb.onchange=()=>cb.checked?selected.add(brand):selected.delete(brand);const count=document.createElement('span');count.className='brand-count';count.textContent=`${String(item.product_count||0).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d])} محصول`;label.append(cb,document.createTextNode(brand),count);root.append(label)})}
-async function saveScopes(){const btn=document.getElementById('saveBtn');btn.disabled=true;try{await API.request(`/api/supplier-portal/admin/suppliers/${supplierId}/scopes`,{method:'PUT',body:JSON.stringify({assigned_company:document.getElementById('assignedCompany').checked,brands:[...selected]})});Admin.toast('دسترسی ذخیره و پنل فعال شد')}catch(e){Admin.toast(e.message,'error')}finally{btn.disabled=false}}
-load();</script></body></html>
+const adminRequest=(path,options={})=>API.request(path,{...options,authContext:'admin'});
+function managementErrorMessage(error){return error&&[401,403].includes(error.status)?'نشست مدیریت منقضی شده یا مجوز کافی نیست.':'خطا در دریافت دسترسی‌های تأمین‌کننده.'}
+function showAccessError(error){const root=document.getElementById('brands'),message=managementErrorMessage(error);root.replaceChildren();const box=document.createElement('div');box.className='empty-brands';box.setAttribute('role','alert');box.textContent=message;if(error&&[401,403].includes(error.status)){const link=document.createElement('a');link.href='/admin/login';link.textContent='ورود دوباره به پنل مدیریت';link.style.cssText='display:block;margin-top:10px;color:#1d4ed8;font-weight:700';box.append(link);document.getElementById('saveBtn').disabled=true}root.append(box);Admin.toast(message,'error')}
+async function load(){
+  if(!supplierId){showAccessError({status:400});return}
+  document.getElementById('brands').innerHTML='<div class="empty-brands">در حال دریافت برندها...</div>';
+  try{
+    const [options,current]=await Promise.all([
+      adminRequest('/api/supplier-portal/admin/scope-options'),
+      adminRequest(`/api/supplier-portal/admin/suppliers/${supplierId}/scopes`)
+    ]);
+    allBrands=Array.isArray(options.brands)?options.brands.filter(item=>String(item.brand||'').trim()):[];
+    (current.scopes||[]).forEach(scope=>{
+      if(scope.scope_type==='brand'){
+        const brand=String(scope.scope_value||'').trim();
+        if(brand){const existing=allBrands.find(item=>String(item.brand).localeCompare(brand,'fa',{sensitivity:'base'})===0);const canonical=existing?String(existing.brand):brand;selected.add(canonical);if(!existing)allBrands.push({brand:canonical,product_count:0})}
+      }
+      if(scope.scope_type==='assigned_company')document.getElementById('assignedCompany').checked=true;
+    });
+    allBrands.sort((a,b)=>String(a.brand).localeCompare(String(b.brand),'fa',{sensitivity:'base',numeric:true}));
+    renderBrands();
+  }catch(error){showAccessError(error)}
+}
+function renderBrands(){const q=document.getElementById('brandSearch').value.trim().toLocaleLowerCase('fa-IR'),root=document.getElementById('brands');root.replaceChildren();const rows=allBrands.filter(item=>!q||String(item.brand||'').toLocaleLowerCase('fa-IR').includes(q));if(!rows.length){const empty=document.createElement('div');empty.className='empty-brands';empty.textContent=allBrands.length?'برندی مطابق جستجو یافت نشد.':'هنوز روی محصولات فعال، برندی ثبت نشده است.';root.append(empty);return}rows.forEach(item=>{const brand=String(item.brand||'');const label=document.createElement('label');label.className='brand';const cb=document.createElement('input');cb.type='checkbox';cb.checked=selected.has(brand);cb.onchange=()=>cb.checked?selected.add(brand):selected.delete(brand);const count=document.createElement('span');count.className='brand-count';count.textContent=`${String(item.product_count||0).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d])} محصول`;label.append(cb,document.createTextNode(brand),count);root.append(label)})}
+async function saveScopes(){const btn=document.getElementById('saveBtn');btn.disabled=true;try{await adminRequest(`/api/supplier-portal/admin/suppliers/${supplierId}/scopes`,{method:'PUT',body:JSON.stringify({assigned_company:document.getElementById('assignedCompany').checked,brands:[...selected]})});Admin.toast('دسترسی ذخیره و پنل فعال شد')}catch(error){const message=managementErrorMessage(error);Admin.toast(message,'error');if([401,403].includes(error.status))showAccessError(error)}finally{if(!document.querySelector('#brands [role="alert"]'))btn.disabled=false}}
+load();
+</script></body></html>

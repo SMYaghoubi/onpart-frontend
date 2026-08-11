@@ -23,6 +23,9 @@ test('three role sessions coexist and context follows clean routes',()=>{
   env.OnPartSession.setSession('user',jwt('user'),{role:'user'});
   env.OnPartSession.setSession('supplier',jwt('supplier'),{role:'supplier'});
   assert.equal(env.OnPartSession.contextFor(),'admin');
+  assert.equal(env.OnPartSession.contextFor('/api/supplier-portal/admin/updates'),'admin');
+  assert.equal(env.OnPartSession.contextFor('/api/supplier-portal/products'),'admin');
+  assert.equal(env.OnPartSession.getToken(env.OnPartSession.contextFor('/api/supplier-portal/admin/updates')),env.OnPartSession.getToken('admin'));
   assert.ok(env.OnPartSession.getToken('admin'));assert.ok(env.OnPartSession.getToken('user'));assert.ok(env.OnPartSession.getToken('supplier'));
 });
 test('logout and invalid tokens are isolated by role',()=>{
@@ -42,4 +45,10 @@ test('legacy key migrates only to matching namespace',()=>{
   const context={window:null,location:{pathname:'/admin/'},sessionStorage,localStorage,Date,JSON,Math,String,Array,decodeURIComponent,atob:v=>Buffer.from(v,'base64').toString('binary'),addEventListener(){}};
   context.window=context;vm.runInNewContext(source.slice(start,end),context);
   assert.equal(sessionStorage.getItem('op_token'),null);assert.equal(context.OnPartSession.getToken('admin'),token);assert.equal(context.OnPartSession.getToken('user'),null);
+});
+test('supplier portal page keeps its supplier context',()=>{
+  const env=manager('/supplier/');
+  env.OnPartSession.setSession('supplier',jwt('supplier'),{role:'supplier'});
+  assert.equal(env.OnPartSession.contextFor('/api/supplier-portal/products'),'supplier');
+  assert.equal(env.OnPartSession.contextFor('/api/supplier-portal/admin/updates'),'admin');
 });

@@ -53,8 +53,11 @@
   }
   function contextFor(requestPath=''){
     const path=String(requestPath||'');
-    if(path.startsWith('/api/supplier-portal')||location.pathname.startsWith('/supplier/'))return 'supplier';
-    if(location.pathname.startsWith('/admin/'))return 'admin';
+    const pagePath=String(location.pathname||'');
+    // Page ownership wins over endpoint naming. Admin management endpoints live
+    // under /supplier-portal too, but must never receive the supplier session.
+    if(pagePath.startsWith('/admin/')||path.startsWith('/api/supplier-portal/admin/'))return 'admin';
+    if(pagePath.startsWith('/supplier/')||path.startsWith('/api/supplier-portal'))return 'supplier';
     return 'user';
   }
   function getUserRaw(context){return sessionStorage.getItem(definitions[context]?.data)||''}
