@@ -404,22 +404,21 @@ function clearSelection(){
 }
 
 async function bulkDelete(){
-  if(!selectedIds.size) return;
-  if(!confirm(`آیا مطمئن هستید می‌خواهید ${fa(selectedIds.size)} محصول انتخاب‌شده را حذف کنید؟\nاین عمل قابل بازگشت نیست.`)) return;
-  const token = OnPartSession.getToken('admin');
+  if(!selectedIds.size)return;
+  const count=selectedIds.size;
+  if(!confirm(`آیا ${fa(count)} محصول انتخاب‌شده از فهرست فعال حذف شوند؟\nمحصولات دارای سابقه سفارش یا مالی آرشیو و سوابقشان حفظ می‌شود.`))return;
+  const button=document.querySelector('#bulkBar button[onclick="bulkDelete()"]');
+  if(button)button.disabled=true;
   try{
-    const res = await fetch(`${API.BASE_URL}/api/products/bulk-delete`,{
-      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body: JSON.stringify({ids: [...selectedIds]})
-    });
-    const d = await res.json();
-    if(res.ok) toast(`${fa(d.deleted)} محصول حذف شد`);
-    else toast(d.message||'خطا در حذف',false);
-  }catch(e){ toast('خطا در اتصال',false); }
-  selectedIds.clear();
-  loadProducts();
+    const result=await API.request('/api/products/bulk-delete',{method:'POST',authContext:'admin',body:JSON.stringify({ids:[...selectedIds]})});
+    const success=Number(result.deleted||0)+Number(result.archived||0)+Number(result.skipped||0);
+    toast(result.message||`${fa(success)} محصول پردازش شد`,!result.failed);
+    if(result.errors?.length)console.warn('Bulk product removal partial errors:',result.errors);
+    selectedIds.clear();
+    await loadProducts();
+  }catch(error){toast(error.message||'حذف گروهی محصولات انجام نشد؛ دوباره تلاش کنید',false)}
+  finally{if(button)button.disabled=false}
 }
-
 function openBulkEdit(){
   if(!selectedIds.size) return;
   document.getElementById('bulkEditCount').textContent = fa(selectedIds.size);

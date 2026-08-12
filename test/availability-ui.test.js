@@ -42,3 +42,11 @@ test('single product removal explains archive behavior and refreshes the active 
   assert.match(source,/closeModal\(\);\s*await loadProducts\(\)/);
   assert.doesNotMatch(source,/throw new Error\(\(await res\.json\(\)\)\.message \|\| 'خطا'\)/);
 });
+test('bulk product removal uses the safe endpoint and shows partial result details',()=>{
+  const source=read('admin/products.html');
+  assert.match(source,/API\.request\('\/api\/products\/bulk-delete'/);
+  assert.match(source,/method:'POST',authContext:'admin'/);
+  assert.match(source,/result\.deleted\|\|0/);assert.match(source,/result\.archived\|\|0/);assert.match(source,/result\.failed/);
+  assert.match(source,/selectedIds\.clear\(\);\s*await loadProducts\(\)/);
+  assert.doesNotMatch(source,/fetch\(`\$\{API\.BASE_URL\}\/api\/products\/bulk-delete/);
+});
