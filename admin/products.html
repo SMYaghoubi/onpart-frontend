@@ -11,7 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     body{background:#f1f5f9;}
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
     .sc{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);display:flex;align-items:center;gap:14px;}
     .sc-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
     .si-blue{background:#eff6ff;color:#1d4ed8;} .si-green{background:#dcfce7;color:#16a34a;}
@@ -91,7 +91,6 @@
       <div class="stats">
         <div class="sc"><div class="sc-icon si-blue"><i class="ti ti-packages"></i></div><div><div class="sc-val" id="totalCount">—</div><div class="sc-lbl">کل محصولات</div></div></div>
         <div class="sc"><div class="sc-icon si-green"><i class="ti ti-circle-check"></i></div><div><div class="sc-val" id="activeCount">—</div><div class="sc-lbl">موجود</div></div></div>
-        <div class="sc"><div class="sc-icon si-amber"><i class="ti ti-alert-circle"></i></div><div><div class="sc-val" id="lowCount">—</div><div class="sc-lbl">موجودی کم</div></div></div>
         <div class="sc"><div class="sc-icon si-red"><i class="ti ti-eye-off"></i></div><div><div class="sc-val" id="outCount">—</div><div class="sc-lbl">ناموجود</div></div></div>
       </div>
 
@@ -103,7 +102,7 @@
         </select>
         <select class="fi" id="stockF" onchange="renderTable()">
           <option value="">همه وضعیت‌ها</option>
-          <option value="high">موجود</option><option value="low">موجودی کم</option><option value="out">ناموجود</option>
+          <option value="available">موجود</option><option value="unavailable">ناموجود</option>
         </select>
         <button class="btn-import" onclick="document.getElementById('excelInput').click()"><i class="ti ti-file-upload"></i>ورود اکسل</button>
         <input type="file" id="excelInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel(this)"/>
@@ -134,7 +133,7 @@
               <th>کد محصول</th>
               <th style="text-align:right;min-width:220px">شرح محصول</th>
               <th>خودرو</th><th>برند</th><th>گروه</th>
-              <th>قیمت (تومان)</th><th>موجودی</th><th>گردش</th><th>وضعیت</th>
+              <th>قیمت (تومان)</th><th>گردش</th><th>وضعیت موجودی</th>
               <th>تامین‌کننده</th>
               <th>عملیات</th>
             </tr></thead>
@@ -180,8 +179,7 @@
           </div>
         </div>
         <div class="fg"><label>قیمت (تومان) *</label><input class="finput" id="f_price" placeholder="قیمت"/></div>
-        <div class="fg"><label>موجودی انبار</label><input class="finput" id="f_stock" placeholder="تعداد" value="0"/></div>
-        <div class="fg"><label>حداقل موجودی (هشدار)</label><input class="finput" id="f_minstock" placeholder="مثال: 10" value="5"/></div>
+        <div class="fg"><label for="f_available">وضعیت موجودی *</label><select class="fselect" id="f_available" required aria-required="true"><option value="true">موجود</option><option value="false">ناموجود</option></select></div>
         <div class="fg"><label>گردش</label><select class="fselect" id="f_flow"><option value="0">ندارد</option><option value="1">دارد</option></select></div>
         <div class="fg"><label>وضعیت</label><select class="fselect" id="f_status"><option value="active">فعال</option><option value="inactive">غیرفعال</option></select></div>
         <div class="fg full"><label>تامین‌کننده</label>
@@ -230,8 +228,8 @@
         <input class="finput" id="be_price" placeholder="قیمت جدید (تومان)"/>
       </div>
       <div class="be-row">
-        <label class="be-check"><input type="checkbox" class="be-enable" id="be_enable_stock"/><span>موجودی</span></label>
-        <input class="finput" id="be_stock" placeholder="موجودی جدید"/>
+        <label class="be-check"><input type="checkbox" class="be-enable" id="be_enable_available"/><span>وضعیت موجودی</span></label>
+        <select class="fselect" id="be_available"><option value="true">موجود</option><option value="false">ناموجود</option></select>
       </div>
       <div class="be-row">
         <label class="be-check"><input type="checkbox" class="be-enable" id="be_enable_supplier"/><span>تأمین‌کننده</span></label>
@@ -288,16 +286,12 @@ async function loadProducts({silent=false} = {}){
 }
 function updateStats(){
   document.getElementById('totalCount').textContent = fa(products.length);
-  document.getElementById('activeCount').textContent = fa(products.filter(p=>p.stock>p.min_stock).length);
-  document.getElementById('lowCount').textContent = fa(products.filter(p=>p.stock>0&&p.stock<=p.min_stock).length);
-  document.getElementById('outCount').textContent = fa(products.filter(p=>p.stock===0||p.stock==='0').length);
+  document.getElementById('activeCount').textContent = fa(products.filter(p=>p.available===true).length);
+  document.getElementById('outCount').textContent = fa(products.filter(p=>!(p.available===true)).length);
 }
 
 function stockStatus(p){
-  const s = Number(p.stock), m = Number(p.min_stock||5);
-  if(s===0) return {label:'ناموجود',cls:'b-red'};
-  if(s<=m) return {label:'کم',cls:'b-amber'};
-  return {label:'موجود',cls:'b-green'};
+  return (p.available===true) ? {label:'موجود',cls:'b-green'} : {label:'ناموجود',cls:'b-red'};
 }
 
 function renderTable(){
@@ -309,9 +303,8 @@ function renderTable(){
     if(cf && p.car !== cf) return false;
     if(sf){
       const st = stockStatus(p).label;
-      if(sf==='high' && st!=='موجود') return false;
-      if(sf==='low' && st!=='کم') return false;
-      if(sf==='out' && st!=='ناموجود') return false;
+      if(sf==='available' && st!=='موجود') return false;
+      if(sf==='unavailable' && st!=='ناموجود') return false;
     }
     return true;
   });
@@ -341,7 +334,6 @@ function renderTable(){
       <td><span class="badge b-blue">${Admin.escape(p.brand||'')}</span></td>
       <td style="font-size:11.5px;color:#777">${Admin.escape(p.category||'')}</td>
       <td style="font-weight:700">${fmt(p.price||0)}</td>
-      <td style="font-weight:700;color:${Number(p.stock)===0?'#dc2626':Number(p.stock)<=Number(p.min_stock||5)?'#d97706':'#111'}">${fa(p.stock||0)}</td>
       <td><span class="badge ${p.has_flow==1?'b-blue':'b-gray'}">${p.has_flow==1?'دارد':'ندارد'}</span></td>
       <td><span class="badge ${st.cls}">${st.label}</span></td>
       <td style="font-size:11.5px;color:#666">${Admin.escape(p.supplier_name||'—')}</td>
@@ -436,7 +428,7 @@ function openBulkEdit(){
 
 function closeBulkEdit(){
   document.getElementById('bulkEditModal').classList.remove('show');
-  ['be_category','be_car','be_brand','be_price','be_stock','be_supplier_search','be_supplier_id'].forEach(id=>{
+  ['be_category','be_car','be_brand','be_price','be_supplier_search','be_supplier_id'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.value='';
   });
@@ -459,7 +451,7 @@ async function applyBulkEdit(){
   if(document.getElementById('be_enable_car')?.checked) fields.car = document.getElementById('be_car').value;
   if(document.getElementById('be_enable_brand')?.checked) fields.brand = document.getElementById('be_brand').value;
   if(document.getElementById('be_enable_price')?.checked) fields.price = Number(document.getElementById('be_price').value.replace(/,/g,''));
-  if(document.getElementById('be_enable_stock')?.checked) fields.stock = Number(document.getElementById('be_stock').value);
+  if(document.getElementById('be_enable_available')?.checked) fields.available = document.getElementById('be_available').value==='true';
   if(document.getElementById('be_enable_supplier')?.checked){
     resolveBulkSupplier();
     const supplierValue=document.getElementById('be_supplier_id').value;
@@ -467,7 +459,7 @@ async function applyBulkEdit(){
     fields.supplier_id=supplierValue==='clear'?null:Number(supplierValue);
   }
   if(!Object.keys(fields).length){toast('حداقل یک فیلد را برای ویرایش انتخاب کنید',false);return}
-  if(('price' in fields&&!Number.isSafeInteger(fields.price))||('stock' in fields&&!Number.isSafeInteger(fields.stock))||fields.price<0||fields.stock<0){toast('قیمت و موجودی باید عدد صحیح نامنفی باشند',false);return}
+  if('price' in fields&&(!Number.isSafeInteger(fields.price)||fields.price<0)){toast('قیمت باید عدد صحیح نامنفی باشد',false);return}
   const button=document.querySelector('#bulkEditModal .btn-prim');button.disabled=true;
   try{
     const result=await API.request('/api/products/bulk',{method:'PATCH',authContext:'admin',body:JSON.stringify({ids:Array.from(selectedIds),fields})});
@@ -505,8 +497,7 @@ function openModal(mode, p){
     document.getElementById('f_car').value = p.car||'';
     document.getElementById('f_cat').value = p.category||'';
     document.getElementById('f_price').value = p.price||'';
-    document.getElementById('f_stock').value = p.stock||0;
-    document.getElementById('f_minstock').value = p.min_stock||5;
+    document.getElementById('f_available').value = (p.available===true)?'true':'false';
     document.getElementById('f_flow').value = p.has_flow||0;
     document.getElementById('f_status').value = p.status||'active';
     document.getElementById('f_note').value = p.note||'';
@@ -515,8 +506,7 @@ function openModal(mode, p){
   } else {
     ['f_desc','f_code','f_price','f_note','f_brand','f_car','f_cat','f_supplier_search'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('f_supplier_id').value='';
-    document.getElementById('f_stock').value='0';
-    document.getElementById('f_minstock').value='5';
+    document.getElementById('f_available').value='false';
   }
   document.getElementById('modal').classList.add('show');
 }
@@ -527,13 +517,13 @@ async function saveProduct(){
   const desc = document.getElementById('f_desc').value.trim();
   const code = document.getElementById('f_code').value.trim();
   const price = document.getElementById('f_price').value.trim();
-  if(!desc||!code||!price){ toast('لطفاً فیلدهای اجباری را پر کنید',false); return; }
+  const availabilityValue = document.getElementById('f_available').value;
+  if(!desc||!code||!price||!['true','false'].includes(availabilityValue)){ toast('لطفاً فیلدهای اجباری و وضعیت موجودی را تکمیل کنید',false); return; }
 
   const data = {
     description: desc, code, brand: document.getElementById('f_brand').value,
     car: document.getElementById('f_car').value, category: document.getElementById('f_cat').value,
-    price: Number(price.replace(/,/g,'')), stock: Number(document.getElementById('f_stock').value),
-    min_stock: Number(document.getElementById('f_minstock').value),
+    price: Number(price.replace(/,/g,'')), available: availabilityValue==='true',
     has_flow: Number(document.getElementById('f_flow').value),
     status: document.getElementById('f_status').value,
     note: document.getElementById('f_note').value,
@@ -548,7 +538,7 @@ async function saveProduct(){
     const result = await res.json();
     if(!res.ok){ console.error('Save product failed:', result); throw new Error(result.message||'خطای سرور'); }
     toast(currentId?'محصول ویرایش شد':'محصول اضافه شد');
-    closeModal(); loadProducts();
+    closeModal(); await loadProducts();
   } catch(e) {
     console.error('Save product error:', e);
     toast(e.message||'خطا در ذخیره', false);
@@ -569,15 +559,15 @@ async function deleteProduct(){
     });
     if(!res.ok) throw new Error((await res.json()).message || 'خطا');
     toast('محصول حذف شد');
-    closeModal(); loadProducts();
+    closeModal(); await loadProducts();
   } catch(e){ toast(e.message||'خطا در حذف',false); }
 }
 
 function exportExcel(){
-  const rows = [['کد','شرح','خودرو','برند','گروه','قیمت','موجودی','گردش','تامین‌کننده']];
+  const rows = [['کد','شرح','خودرو','برند','گروه','قیمت','وضعیت موجودی','گردش','تامین‌کننده']];
   filtered.forEach(p=>rows.push([
     p.code, p.description, p.car, p.brand, p.category,
-    p.price, p.stock,
+    p.price, (p.available===true)?'موجود':'ناموجود',
     p.has_flow==1?'دارد':'ندارد',
     p.supplier_id||''
   ]));
@@ -588,69 +578,46 @@ function exportExcel(){
 }
 
 function importExcel(input){
-  const file = input.files[0];
-  if(!file) return;
-
-  const reader = new FileReader();
-  reader.onload = async function(e){
-    try {
-      const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, {type:'array'});
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
-
-      if(!rows.length){ toast('فایل خالی است یا قابل خواندن نیست',false); input.value=''; return; }
-
-      // Map flexible column names (Persian or English) to our fields
-      const colMap = {
-        code: ['کد','کد محصول','code','Code'],
-        description: ['شرح','شرح محصول','نام','description','Description'],
-        car: ['خودرو','car','Car'],
-        brand: ['برند','brand','Brand'],
-        category: ['گروه','گروه کالا','گروه کالایی','دسته','category','Category'],
-        price: ['قیمت','price','Price'],
-        stock: ['موجودی','stock','Stock'],
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async function(e){
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      if(!rows.length)throw new Error('فایل خالی است یا قابل خواندن نیست');
+      const columns={
+        code:['کد','کد محصول','code','Code'],description:['شرح','شرح محصول','نام','description','Description'],
+        car:['خودرو','car','Car'],brand:['برند','brand','Brand'],category:['گروه','گروه کالا','گروه کالایی','دسته','category','Category'],
+        price:['قیمت','price','Price'],availability:['وضعیت موجودی','availability','Availability'],legacyStock:['موجودی','stock','Stock']
       };
-      function findVal(row, keys){
-        for(const k of keys){ if(row[k]!==undefined && row[k]!=='') return row[k]; }
-        return '';
-      }
-
-      const products = rows.map(row => ({
-        code: String(findVal(row, colMap.code)).trim(),
-        description: String(findVal(row, colMap.description)).trim(),
-        car: String(findVal(row, colMap.car)).trim(),
-        brand: String(findVal(row, colMap.brand)).trim(),
-        category: String(findVal(row, colMap.category)).trim(),
-        price: Number(String(findVal(row, colMap.price)).replace(/[^0-9.]/g,'')) || 0,
-        stock: Number(String(findVal(row, colMap.stock)).replace(/[^0-9.]/g,'')) || 0,
-      })).filter(p => p.code && p.description);
-
-      if(!products.length){
-        toast('هیچ ردیف معتبری در فایل یافت نشد (ستون کد و شرح الزامی است)',false);
-        input.value=''; return;
-      }
-
-      toast(`در حال وارد کردن ${fa(products.length)} محصول...`);
-
-      const token = OnPartSession.getToken('admin');
-      const res = await fetch(`${API.BASE_URL}/api/products/bulk-import`, {
-        method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-        body: JSON.stringify({products})
-      });
-      const result = await res.json();
-      if(!res.ok) throw new Error(result.message||'خطا در وارد کردن');
-
+      const find=(row,keys)=>{for(const key of keys)if(row[key]!==undefined&&row[key]!=='')return row[key];return ''};
+      const legacyRows=[];
+      const parsed=rows.map((row,index)=>{
+        const availabilityRaw=find(row,columns.availability),legacyRaw=find(row,columns.legacyStock);
+        let available=false;
+        if(availabilityRaw!==''){
+          const value=String(availabilityRaw).trim();
+          if(value!=='موجود'&&value!=='ناموجود')throw new Error(`ردیف ${index+2}: وضعیت موجودی فقط باید «موجود» یا «ناموجود» باشد`);
+          available=value==='موجود';
+        }else if(legacyRaw!==''){
+          const value=Number(String(legacyRaw).replace(/[,٬\s]/g,''));
+          if(!Number.isInteger(value)||value<0)throw new Error(`ردیف ${index+2}: موجودی عددی قدیمی معتبر نیست`);
+          available=value>0;legacyRows.push(index+2);
+        }else{throw new Error(`ردیف ${index+2}: ستون «وضعیت موجودی» الزامی است`)}
+        return {code:String(find(row,columns.code)).trim(),description:String(find(row,columns.description)).trim(),car:String(find(row,columns.car)).trim(),brand:String(find(row,columns.brand)).trim(),category:String(find(row,columns.category)).trim(),price:Number(String(find(row,columns.price)).replace(/[^0-9.]/g,''))||0,available};
+      }).filter(product=>product.code&&product.description);
+      if(!parsed.length)throw new Error('هیچ ردیف معتبری یافت نشد؛ ستون‌های کد و شرح الزامی هستند');
+      if(legacyRows.length&&!confirm(`این فایل قدیمی است و در ${fa(legacyRows.length)} ردیف موجودی عددی دارد. این مقادیر فقط به «موجود/ناموجود» تبدیل می‌شوند و عدد ذخیره نمی‌شود. ادامه می‌دهید؟`))return;
+      toast(`در حال وارد کردن ${fa(parsed.length)} محصول...`);
+      const result=await API.request('/api/products/bulk-import',{method:'POST',authContext:'admin',body:JSON.stringify({products:parsed})});
       toast(`موفق: ${fa(result.imported)} محصول جدید، ${fa(result.updated)} به‌روزرسانی شد${result.failed?` — ${fa(result.failed)} ناموفق`:''}`);
       loadProducts();
-    } catch(err){
-      toast('خطا در خواندن یا ارسال فایل: ' + err.message, false);
-    }
-    input.value = '';
+    }catch(error){toast('خطا در خواندن یا ارسال فایل: '+error.message,false)}
+    finally{input.value=''}
   };
   reader.readAsArrayBuffer(file);
 }
-
 // ── Searchable lists ──
 var allBrands = ['ایساکو','BOSCH','TEXTAR','NGK','وژن','دنسو','فدرال موگول','سایر'];
 var allCars = ['پژو ۴۰۵','پارس','دنا','سمند','پژو ۲۰۶','رنو ال ۹۰','تیبا','ساینا','کوئیک','مشترک','سایر'];
