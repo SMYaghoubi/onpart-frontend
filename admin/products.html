@@ -194,7 +194,7 @@
     </div>
     <div class="modal-foot">
       <button class="btn-prim" onclick="saveProduct()"><i class="ti ti-check"></i>ذخیره محصول</button>
-      <button class="btn-danger" id="delBtn" style="display:none" onclick="deleteProduct()"><i class="ti ti-trash"></i>حذف</button>
+      <button class="btn-danger" id="delBtn" style="display:none" onclick="confirmDelete()"><i class="ti ti-trash"></i>حذف</button>
       <button class="btn-sec" onclick="closeModal()">انصراف</button>
     </div>
   </div>
@@ -547,22 +547,23 @@ async function saveProduct(){
 
 async function confirmDelete(id){
   currentId = id || currentId;
-  if(!confirm('آیا از حذف این محصول مطمئن هستید؟')) return;
-  deleteProduct();
+  if(!currentId){toast('محصولی برای حذف انتخاب نشده است',false);return}
+  if(!confirm('این محصول از فروشگاه حذف می‌شود. اگر سابقه سفارش یا تأمین‌کننده داشته باشد، برای حفظ سوابق مالی آرشیو خواهد شد. ادامه می‌دهید؟'))return;
+  await deleteProduct();
 }
 
 async function deleteProduct(){
-  try {
-    const token = OnPartSession.getToken('admin');
-    const res = await fetch(`${API.BASE_URL}/api/products/${currentId}`, {
-      method:'DELETE', headers:{'Authorization':'Bearer '+token}
-    });
-    if(!res.ok) throw new Error((await res.json()).message || 'خطا');
-    toast('محصول حذف شد');
-    closeModal(); await loadProducts();
-  } catch(e){ toast(e.message||'خطا در حذف',false); }
+  const button=document.getElementById('delBtn');
+  if(button)button.disabled=true;
+  try{
+    const result=await API.request(`/api/products/${currentId}`,{method:'DELETE',authContext:'admin'});
+    selectedIds.delete(Number(currentId));
+    toast(result.message||'محصول از فهرست فعال حذف شد');
+    closeModal();
+    await loadProducts();
+  }catch(error){toast(error.message||'حذف محصول انجام نشد؛ دوباره تلاش کنید',false)}
+  finally{if(button)button.disabled=false}
 }
-
 function exportExcel(){
   const rows = [['کد','شرح','خودرو','برند','گروه','قیمت','وضعیت موجودی','گردش','تامین‌کننده']];
   filtered.forEach(p=>rows.push([

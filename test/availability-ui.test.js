@@ -33,3 +33,12 @@ test('single product create/edit uses a required binary field and sends no quant
   assert.doesNotMatch(source,/\bstock\s*:\s*Number\(document\.getElementById\('f_/);
   assert.match(source,/closeModal\(\); await loadProducts\(\)/);
 });
+test('single product removal explains archive behavior and refreshes the active list',()=>{
+  const source=read('admin/products.html');
+  assert.match(source,/اگر سابقه سفارش یا تأمین‌کننده داشته باشد، برای حفظ سوابق مالی آرشیو خواهد شد/);
+  assert.match(source,/API\.request\(`\/api\/products\/\$\{currentId\}`/);
+  assert.match(source,/method:'DELETE',authContext:'admin'/);
+  assert.match(source,/selectedIds\.delete\(Number\(currentId\)\)/);
+  assert.match(source,/closeModal\(\);\s*await loadProducts\(\)/);
+  assert.doesNotMatch(source,/throw new Error\(\(await res\.json\(\)\)\.message \|\| 'خطا'\)/);
+});
