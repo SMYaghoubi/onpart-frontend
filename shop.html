@@ -305,7 +305,8 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
 
     let products = [];
     let filtered = [];
-    const normalizeSearch = value => String(value||'').normalize('NFKC').replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/\s+/g,' ').trim().toLocaleLowerCase('fa-IR');
+    const normalizeSearch = value => String(value||'').normalize('NFKC').replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\s+/g,' ').trim().toLocaleLowerCase('fa-IR');
+    const MAX_ITEM_QUANTITY=9999;
 
     // Load from API
     let shopSettings = {};
@@ -367,9 +368,9 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
           flow: p.has_flow == 1,
           stock: Number(p.stock) > 0,
           price: Number(p.price),
-          stockQty: Number(p.stock),
           note: p.note || '',
           _searchText: normalizeSearch([p.description,p.code,p.car,p.brand,p.category,p.note].join(' ')),
+          _codeSearch: API.normalizeProductCode(p.code),
           _catSearch: normalizeSearch(p.category)
         }));
       } catch(e) {
@@ -483,9 +484,9 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
         OnPart.toast('این کالا موجود نیست', 'error');
         return false;
       }
-      if(product.stockQty > 0 && quantity > product.stockQty) {
-        quantity = product.stockQty;
-        OnPart.toast('تعداد انتخابی بیشتر از موجودی کالا بود', 'info');
+      if(quantity>MAX_ITEM_QUANTITY){
+        quantity=MAX_ITEM_QUANTITY;
+        OnPart.toast(`حداکثر تعداد مجاز برای هر کالا ${MAX_ITEM_QUANTITY.toLocaleString('fa-IR')} است`, 'info');
       }
       const previous = qtys[productId] || 0;
       qtys[productId] = quantity;
@@ -557,9 +558,10 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
     function scheduleFilter(){clearTimeout(filterTimer);filterTimer=setTimeout(doFilter,140)}
     function doFilter(){
       clearTimeout(filterTimer);
-      const t=normalizeSearch(document.getElementById('fText').value);
+      const rawSearch=document.getElementById('fText').value;
+      const t=normalizeSearch(rawSearch),codeSearch=API.normalizeProductCode(rawSearch);
       const car=document.getElementById('fCar').value,br=document.getElementById('fBrand').value,cat=normalizeSearch(document.getElementById('fCat').value);
-      filtered=products.filter(p=>(!t||p._searchText.includes(t))&&(!car||p.car===car)&&(!br||p.brand===br)&&(!cat||p._catSearch.includes(cat)));
+      filtered=products.filter(p=>(!t||p._searchText.includes(t)||p._codeSearch.includes(codeSearch))&&(!car||p.car===car)&&(!br||p.brand===br)&&(!cat||p._catSearch.includes(cat)));
       render();updateFilterSummary();
     }
 

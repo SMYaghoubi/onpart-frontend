@@ -295,11 +295,13 @@ function stockStatus(p){
 }
 
 function renderTable(){
-  const s = document.getElementById('searchInp').value;
+  const s = document.getElementById('searchInp').value.trim();
+  const normalizedCode=API.normalizeProductCode(s);
+  const normalizedText=s.normalize('NFKC').toLocaleLowerCase('fa-IR');
   const cf = document.getElementById('carF').value;
   const sf = document.getElementById('stockF').value;
   filtered = products.filter(p=>{
-    if(s && !p.description?.includes(s) && !p.code?.includes(s)) return false;
+    if(s && !String(p.description||'').normalize('NFKC').toLocaleLowerCase('fa-IR').includes(normalizedText) && !API.normalizeProductCode(p.code).includes(normalizedCode)) return false;
     if(cf && p.car !== cf) return false;
     if(sf){
       const st = stockStatus(p).label;
@@ -564,19 +566,13 @@ async function deleteProduct(){
   finally{if(button)button.disabled=false}
 }
 function exportExcel(){
-  const rows = [['کد','شرح','خودرو','برند','گروه','قیمت','وضعیت موجودی','گردش','تامین‌کننده']];
-  filtered.forEach(p=>rows.push([
-    p.code, p.description, p.car, p.brand, p.category,
-    p.price, (p.available===true)?'موجود':'ناموجود',
-    p.has_flow==1?'دارد':'ندارد',
-    p.supplier_id||''
-  ]));
-  const csv = rows.map(r=>r.join(',')).join('\n');
-  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
-  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='products.csv'; a.click();
+  const rows=filtered.map(p=>({'کد':String(p.code??''),'شرح':p.description,'خودرو':p.car,'برند':p.brand,'گروه':p.category,'قیمت':Number(p.price||0),'وضعیت موجودی':p.available===true?'موجود':'ناموجود','گردش':p.has_flow==1?'دارد':'ندارد','تامین‌کننده':p.supplier_id||''}));
+  const ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();
+  for(let row=2;row<=rows.length+1;row++){const cell=ws[`A${row}`];if(cell){cell.t='s';cell.v=String(cell.v??'');cell.z='@'}}
+  ws['!cols']=[{wch:18},{wch:48},{wch:18},{wch:18},{wch:20},{wch:16},{wch:16},{wch:10},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,ws,'محصولات');XLSX.writeFile(wb,'onpart-products.xlsx');
   toast('خروجی اکسل دانلود شد');
 }
-
 function importExcel(input){
   const file=input.files[0];
   if(!file)return;
@@ -584,7 +580,7 @@ function importExcel(input){
   reader.onload=async function(e){
     try{
       const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
-      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false});
       if(!rows.length)throw new Error('فایل خالی است یا قابل خواندن نیست');
       const columns={
         code:['کد','کد محصول','code','Code'],description:['شرح','شرح محصول','نام','description','Description'],

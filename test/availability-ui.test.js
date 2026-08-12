@@ -18,11 +18,12 @@ test('supplier manual, Excel and review flows expose only binary availability',(
   assert.match(review,/proposed_available/);assert.match(review,/available:item\.proposed_available/);
   assert.doesNotMatch(review,/type="number"[^>]*placeholder="بدون تغییر"/);
 });
-test('shop remains binary for display while retaining internal quantity caps',()=>{
+test('shop uses binary availability without treating the sentinel as a quantity cap',()=>{
   const source=read('shop.html');
-  assert.match(source,/p\.stock\?'<span class="chip ch-green">موجود/);
-  assert.match(source,/stockQty:\s*Number\(p\.stock\)/);
-  assert.match(source,/quantity > product\.stockQty/);
+  assert.match(source,/p\.stock\?'<span class="chip ch-green">/);
+  assert.match(source,/const MAX_ITEM_QUANTITY=9999/);
+  assert.match(source,/quantity>MAX_ITEM_QUANTITY/);
+  assert.doesNotMatch(source,/stockQty:\s*Number\(p\.stock\)|quantity\s*>\s*product\.stockQty/);
 });
 test('single product create/edit uses a required binary field and sends no quantity',()=>{
   const source=read('admin/products.html');
@@ -49,4 +50,29 @@ test('bulk product removal uses the safe endpoint and shows partial result detai
   assert.match(source,/result\.deleted\|\|0/);assert.match(source,/result\.archived\|\|0/);assert.match(source,/result\.failed/);
   assert.match(source,/selectedIds\.clear\(\);\s*await loadProducts\(\)/);
   assert.doesNotMatch(source,/fetch\(`\$\{API\.BASE_URL\}\/api\/products\/bulk-delete/);
+});
+test('admin and supplier Excel preserve product codes as text and use binary availability',()=>{
+  const admin=read('admin/products.html'),supplier=read('supplier/index.html');
+  for(const source of [admin,supplier]){
+    assert.match(source,/cell\.t='s'/);
+    assert.match(source,/cell\.z='@'/);
+    assert.match(source,/raw:false/);
+    assert.match(source,/وضعیت موجودی/);
+    assert.match(source,/موجود.*ناموجود/s);
+  }
+  assert.match(admin,/legacyRows/);
+  assert.match(supplier,/legacyRows/);
+  assert.doesNotMatch(admin,/\{'موجودی':/);
+  assert.doesNotMatch(supplier,/\{'موجودی':/);
+});
+
+test('shop, admin and supplier search use canonical product codes',()=>{
+  const api=read('js/api.js'),shop=read('shop.html'),admin=read('admin/products.html'),supplier=read('supplier/index.html');
+  assert.match(api,/normalizeProductCode\(value\)/);
+  assert.match(api,/\[۰-۹٠-٩\]/);
+  assert.match(api,/toLowerCase\(\)/);
+  assert.match(shop,/_codeSearch:\s*API\.normalizeProductCode\(p\.code\)/);
+  assert.match(admin,/API\.normalizeProductCode\(p\.code\)/);
+  assert.match(supplier,/new Map\(products\.map\(product=>\[API\.normalizeProductCode\(product\.code\),product\]\)\)/);
+  assert.match(supplier,/محصول با کد «\$\{originalCode\}» در محصولات مجاز شما یافت نشد/);
 });
