@@ -254,6 +254,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="../js/api.js"></script>
+<script src="../js/product-excel.js"></script>
 <script src="../js/admin.js"></script>
 <script>
 Admin.renderSidebar('products');
@@ -575,52 +576,37 @@ async function deleteProduct(){
   finally{if(button)button.disabled=false}
 }
 function exportExcel(){
-  const rows=filtered.map(p=>({'کد':String(p.code??''),'شرح':p.description,'خودرو':p.car,'برند':p.brand,'گروه':p.category,'قیمت':Number(p.price||0),'وضعیت موجودی':p.available===true?'موجود':'ناموجود','گردش':p.has_flow==1?'دارد':'ندارد','تامین‌کننده':p.supplier_id||''}));
-  const ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();
-  for(let row=2;row<=rows.length+1;row++){const cell=ws[`A${row}`];if(cell){cell.t='s';cell.v=String(cell.v??'');cell.z='@'}}
-  ws['!cols']=[{wch:18},{wch:48},{wch:18},{wch:18},{wch:20},{wch:16},{wch:16},{wch:10},{wch:18}];
+  const rows=filtered.map(product=>ProductExcel.row(product,product.supplier_name||product.supplier_id||''));
+  const ws=XLSX.utils.json_to_sheet(rows,{header:ProductExcel.ORDER}),wb=XLSX.utils.book_new();
+  ProductExcel.textCodeColumn(ws,rows.length);
+  ws['!cols']=[{wch:20},{wch:48},{wch:18},{wch:18},{wch:20},{wch:18},{wch:16},{wch:10},{wch:24}];
   XLSX.utils.book_append_sheet(wb,ws,'محصولات');XLSX.writeFile(wb,'onpart-products.xlsx');
   toast('خروجی اکسل دانلود شد');
 }
 function importExcel(input){
-  const file=input.files[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=async function(e){
-    try{
-      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
-      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false});
-      if(!rows.length)throw new Error('فایل خالی است یا قابل خواندن نیست');
-      const columns={
-        code:['کد','کد محصول','code','Code'],description:['شرح','شرح محصول','نام','description','Description'],
-        car:['خودرو','car','Car'],brand:['برند','brand','Brand'],category:['گروه','گروه کالا','گروه کالایی','دسته','category','Category'],
-        price:['قیمت','price','Price'],availability:['وضعیت موجودی','availability','Availability'],legacyStock:['موجودی','stock','Stock']
-      };
-      const find=(row,keys)=>{for(const key of keys)if(row[key]!==undefined&&row[key]!=='')return row[key];return ''};
-      const legacyRows=[];
-      const parsed=rows.map((row,index)=>{
-        const availabilityRaw=find(row,columns.availability),legacyRaw=find(row,columns.legacyStock);
-        let available=false;
-        if(availabilityRaw!==''){
-          const value=String(availabilityRaw).trim();
-          if(value!=='موجود'&&value!=='ناموجود')throw new Error(`ردیف ${index+2}: وضعیت موجودی فقط باید «موجود» یا «ناموجود» باشد`);
-          available=value==='موجود';
-        }else if(legacyRaw!==''){
-          const value=Number(String(legacyRaw).replace(/[,٬\s]/g,''));
-          if(!Number.isInteger(value)||value<0)throw new Error(`ردیف ${index+2}: موجودی عددی قدیمی معتبر نیست`);
-          available=value>0;legacyRows.push(index+2);
-        }else{throw new Error(`ردیف ${index+2}: ستون «وضعیت موجودی» الزامی است`)}
-        return {code:String(find(row,columns.code)).trim(),description:String(find(row,columns.description)).trim(),car:String(find(row,columns.car)).trim(),brand:String(find(row,columns.brand)).trim(),category:String(find(row,columns.category)).trim(),price:Number(String(find(row,columns.price)).replace(/[^0-9.]/g,''))||0,available};
-      }).filter(product=>product.code&&product.description);
-      if(!parsed.length)throw new Error('هیچ ردیف معتبری یافت نشد؛ ستون‌های کد و شرح الزامی هستند');
-      if(legacyRows.length&&!confirm(`این فایل قدیمی است و در ${fa(legacyRows.length)} ردیف موجودی عددی دارد. این مقادیر فقط به «موجود/ناموجود» تبدیل می‌شوند و عدد ذخیره نمی‌شود. ادامه می‌دهید؟`))return;
-      toast(`در حال وارد کردن ${fa(parsed.length)} محصول...`);
-      const result=await API.request('/api/products/bulk-import',{method:'POST',authContext:'admin',body:JSON.stringify({products:parsed})});
-      toast(`موفق: ${fa(result.imported)} محصول جدید، ${fa(result.updated)} به‌روزرسانی شد${result.failed?` — ${fa(result.failed)} ناموفق`:''}`);
-      loadProducts();
-    }catch(error){toast('خطا در خواندن یا ارسال فایل: '+error.message,false)}
-    finally{input.value=''}
-  };
+  const file=input.files[0];if(!file)return;const reader=new FileReader();
+  reader.onload=async event=>{try{
+    const wb=XLSX.read(new Uint8Array(event.target.result),{type:'array'}),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false});
+    if(!rows.length)throw new Error('فایل خالی است یا قابل خواندن نیست');
+    const legacyRows=[],parsed=rows.map((row,index)=>{
+      const line=index+2,availability=ProductExcel.availability(row,line),flow=ProductExcel.flow(row,line),supplierRaw=ProductExcel.value(row,'supplier');
+      if(availability.legacy)legacyRows.push(line);
+      const product={code:String(ProductExcel.value(row,'code')).trim(),description:String(ProductExcel.value(row,'description')).trim(),car:String(ProductExcel.value(row,'car')).trim(),brand:String(ProductExcel.value(row,'brand')).trim(),category:String(ProductExcel.value(row,'category')).trim(),price:Number(String(ProductExcel.value(row,'price')).replace(/[^0-9.]/g,''))||0,available:availability.available};
+      if(flow!==null)product.has_flow=flow;
+      if(Object.keys(row).some(key=>ProductExcel.aliases.supplier.includes(key))){
+        const raw=String(supplierRaw).trim();
+        if(!raw)product.supplier_id=null;
+        else{const supplier=allSuppliers.find(item=>String(item.id)===raw||String(item.company||item.name||'').trim()===raw);if(!supplier)throw new Error(`ردیف ${line}: تأمین‌کننده «${raw}» معتبر نیست`);product.supplier_id=Number(supplier.id);}
+      }
+      if(!product.code||!product.description)throw new Error(`ردیف ${line}: کد محصول و شرح محصول الزامی است`);
+      return product;
+    });
+    if(legacyRows.length&&!confirm(`این فایل قدیمی است و در ${fa(legacyRows.length)} ردیف موجودی عددی دارد. مقادیر فقط به موجود/ناموجود تبدیل می‌شوند. ادامه می‌دهید؟`))return;
+    toast(`در حال وارد کردن ${fa(parsed.length)} محصول...`);
+    const result=await API.request('/api/products/bulk-import',{method:'POST',authContext:'admin',body:JSON.stringify({products:parsed})});
+    toast(`موفق: ${fa(result.imported)} محصول جدید، ${fa(result.updated)} به‌روزرسانی شد${result.failed?` — ${fa(result.failed)} ناموفق`:''}`);
+    await loadProducts();
+  }catch(error){toast('خطا در خواندن یا ارسال فایل: '+error.message,false)}finally{input.value=''}};
   reader.readAsArrayBuffer(file);
 }
 // ── Searchable lists ──

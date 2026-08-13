@@ -384,7 +384,7 @@ function approveAll(){
 
 function exportExcel(){
   const rows=[['نام','تاریخ','مبلغ','بانک','پیگیری','وضعیت']];
-  filtered.forEach(p=>rows.push([p.user_name,p.pay_date?.slice(0,10),p.amount,p.bank,p.track_number,p.status]));
+  filtered.forEach(p=>rows.push([p.user_name,API.formatDate(p.pay_date),p.amount,p.bank,p.track_number,p.status]));
   const csv=rows.map(r=>r.join(',')).join('\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='payments.csv';a.click();

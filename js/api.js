@@ -40,9 +40,9 @@
 (function initOnPartSession(){
   if(window.OnPartSession) return;
   const definitions={
-    user:{token:'op_user_token',data:'op_user_data',roles:['user']},
-    admin:{token:'op_admin_token',data:'op_admin_data',roles:['admin','partner']},
-    supplier:{token:'op_supplier_token',data:'op_supplier',roles:['supplier']}
+    user:{token:'op_user_token',data:'op_user_data',roles:['user','partner','admin'],tokenContext:'shop'},
+    admin:{token:'op_admin_token',data:'op_admin_data',roles:['admin','partner'],tokenContext:'management'},
+    supplier:{token:'op_supplier_token',data:'op_supplier',roles:['supplier'],tokenContext:'supplier'}
   };
   function decodeToken(token){
     try{
@@ -66,7 +66,7 @@
     const def=definitions[context],claims=decodeToken(token),now=Math.floor(Date.now()/1000);
     if(!def||!claims||!claims.exp||claims.exp<=now)return false;
     const role=claims.role||(user&&user.role);
-    return def.roles.includes(role)&&(!user||!user.role||user.role===role);
+    return def.roles.includes(role)&&(!claims.context||claims.context===def.tokenContext)&&(!user||!user.role||user.role===role);
   }
   function notify(context,action){try{localStorage.setItem('op_session_signal',JSON.stringify({context,action,at:Date.now()}));localStorage.removeItem('op_session_signal')}catch(_){}}
   function clear(context,{signal=true}={}){
@@ -100,6 +100,23 @@
   });
   window.OnPartSession={definitions,decodeToken,contextFor,getToken,getUser,getUserRaw,setSession,clear,valid,migrateLegacy};
   migrateLegacy();
+})();
+(function initOnPartDate(){
+  const DATE_LOCALE='fa-IR-u-ca-persian-nu-arabext',PROJECT_TIME_ZONE='Asia/Tehran';
+  function parse(value){
+    if(value instanceof Date)return Number.isNaN(value.getTime())?null:value;
+    if(value==null||value==='')return null;
+    const raw=String(value).trim();if(!raw)return null;
+    const normalized=/^\d{4}-\d{2}-\d{2}$/.test(raw)?raw+'T12:00:00+03:30':/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(?::\d{2})?$/.test(raw)?raw.replace(' ','T')+'Z':raw;
+    const date=new Date(normalized);return Number.isNaN(date.getTime())?null:date;
+  }
+  function format(value,{withTime=false,dateStyle='medium'}={}){
+    const date=parse(value);if(!date)return '—';
+    const options={calendar:'persian',numberingSystem:'arabext',timeZone:PROJECT_TIME_ZONE,dateStyle};
+    if(withTime){delete options.dateStyle;Object.assign(options,{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});}
+    return new Intl.DateTimeFormat(DATE_LOCALE,options).format(date);
+  }
+  window.OnPartDate={format,parse,locale:DATE_LOCALE,timeZone:PROJECT_TIME_ZONE};
 })();
 // OnPart API Helper
 // All backend API calls centralized here
@@ -145,6 +162,8 @@ const API = {
       clearTimeout(timeout);
     }
   },
+
+  formatDate(value, options) { return OnPartDate.format(value, options); },
 
   normalizeProductCode(value) {
     const digits={'۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9','٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};

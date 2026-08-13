@@ -4,9 +4,10 @@ const vm=require('node:vm');
 const fs=require('node:fs');
 
 function storage(){const values=new Map();return {getItem:k=>values.has(k)?values.get(k):null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)}}
-function jwt(role,exp=Math.floor(Date.now()/1000)+3600){
-  const b=value=>Buffer.from(JSON.stringify(value)).toString('base64url');
-  return b({alg:'none'})+'.'+b({role,exp})+'.x';
+function jwt(role,exp=Math.floor(Date.now()/1000)+3600,context){
+  const b=value=>Buffer.from(JSON.stringify(value)).toString('base64url'),claims={role,exp};
+  if(context)claims.context=context;
+  return b({alg:'none'})+'.'+b(claims)+'.x';
 }
 function manager(pathname='/'){
   const source=fs.readFileSync(require.resolve('../js/api.js'),'utf8');
@@ -51,4 +52,12 @@ test('supplier portal page keeps its supplier context',()=>{
   env.OnPartSession.setSession('supplier',jwt('supplier'),{role:'supplier'});
   assert.equal(env.OnPartSession.contextFor('/api/supplier-portal/products'),'supplier');
   assert.equal(env.OnPartSession.contextFor('/api/supplier-portal/admin/updates'),'admin');
+});
+test('admin and partner can keep isolated shop and management sessions',()=>{
+  const env=manager('/shop'),shopToken=jwt('admin',undefined,'shop'),managementToken=jwt('admin',undefined,'management');
+  env.OnPartSession.setSession('user',shopToken,{role:'admin'});
+  env.OnPartSession.setSession('admin',managementToken,{role:'admin'});
+  assert.equal(env.OnPartSession.getToken('user'),shopToken);assert.equal(env.OnPartSession.getToken('admin'),managementToken);
+  assert.throws(()=>env.OnPartSession.setSession('admin',shopToken,{role:'admin'}));
+  env.OnPartSession.clear('user');assert.equal(env.OnPartSession.getToken('user'),null);assert.equal(env.OnPartSession.getToken('admin'),managementToken);
 });

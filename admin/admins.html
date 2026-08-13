@@ -104,6 +104,7 @@
               <th>نوع</th>
               <th>دسترسی‌ها</th>
               <th>آخرین ورود</th>
+              <th>آخرین خروج</th>
               <th>وضعیت</th>
               <th>عملیات</th>
             </tr></thead>
@@ -186,13 +187,6 @@ const PERMS = [
 
 let admins = [], filtered = [], currentId = null;
 
-// Sample data
-const sampleAdmins = [
-  {id:1, name:'مدیر سیستم', phone:'09000000000', type:'super', permissions:null, status:'active', last_login:'2024-06-05'},
-  {id:2, name:'علی احمدی',  phone:'09121234567', type:'limited', permissions:['orders','payments','reports'], status:'active', last_login:'2024-06-04'},
-  {id:3, name:'مریم رستمی', phone:'09151234567', type:'limited', permissions:['products','invoices'], status:'active', last_login:'2024-06-03'},
-];
-
 function toast(msg, ok=true){
   const t=document.getElementById('toast');
   t.innerHTML=`<i class="ti ti-${ok?'check':'x'}" style="color:${ok?'#4ade80':'#f87171'};font-size:18px"></i>${msg}`;
@@ -201,18 +195,17 @@ function toast(msg, ok=true){
 
 async function loadAdmins(){
   try {
-    const token = OnPartSession.getToken('admin');
-    const res = await fetch(`${API.BASE_URL}/api/users?role=admin&limit=100`, {headers:{'Authorization':'Bearer '+token}});
-    if(res.ok) admins = await res.json();
-    else admins = sampleAdmins;
-  } catch(e){ admins = sampleAdmins; }
-  updateStats(); renderTable();
+    const data=await API.request('/api/users?role=management&limit=100',{authContext:'admin',cache:'no-store'});
+    admins=(Array.isArray(data)?data:[]).map(user=>({...user,type:user.role==='admin'?'super':'limited',permissions:user.permissions||null}));
+  } catch(error){
+    admins=[];toast(error.message||'دریافت فهرست مدیران انجام نشد',false);
+  }
+  updateStats();renderTable();
 }
-
 function updateStats(){
   document.getElementById('totalAdmins').textContent = fa(admins.length);
-  document.getElementById('superAdmins').textContent = fa(admins.filter(a=>a.type==='super'||!a.permissions).length);
-  document.getElementById('limitedAdmins').textContent = fa(admins.filter(a=>a.type==='limited'&&a.permissions).length);
+  document.getElementById('superAdmins').textContent = fa(admins.filter(a=>a.role==='admin').length);
+  document.getElementById('limitedAdmins').textContent = fa(admins.filter(a=>a.role==='partner').length);
 }
 
 function renderTable(){
@@ -220,7 +213,7 @@ function renderTable(){
   filtered = admins.filter(a => !s || a.name?.includes(s) || a.phone?.includes(s));
 
   document.getElementById('adminTbody').innerHTML = filtered.map((a,i) => {
-    const isSuper = a.type==='super' || !a.permissions;
+    const isSuper = a.role==='admin';
     const perms = a.permissions || [];
     return `<tr>
       <td style="text-align:right"><div class="user-cell">
@@ -236,7 +229,8 @@ function renderTable(){
             return `<span class="perm-chip">${perm?.name||p}</span>`;
           }).join('')}</div>`}
       </td>
-      <td style="font-size:11.5px;color:#888">${a.last_login?.slice(0,10)||'—'}</td>
+      <td style="font-size:11.5px;color:#888">${API.formatDate(a.last_login_at,{withTime:true})}</td>
+      <td style="font-size:11.5px;color:#888">${API.formatDate(a.last_logout_at,{withTime:true})}</td>
       <td><span class="badge ${a.status==='active'?'b-green':'b-red'}">${a.status==='active'?'فعال':'غیرفعال'}</span></td>
       <td><div class="action-btns">
         <button class="ab ab-edit" onclick="editAdmin(${a.id})" title="ویرایش"><i class="ti ti-edit"></i></button>
@@ -292,7 +286,7 @@ function openModal(mode, a){
     document.getElementById('f_lname').value = nameParts.slice(1).join(' ')||'';
     document.getElementById('f_phone').value = a.phone||'';
     document.getElementById('f_pass').value = '';
-    document.getElementById('f_type').value = a.type||'limited';
+    document.getElementById('f_type').value = a.role==='admin'?'super':'limited';
     document.getElementById('f_status').value = a.status||'active';
     renderPermGrid(a.permissions||[]);
   } else {
@@ -330,7 +324,7 @@ async function saveAdmin(){
   }
 
   const data = {
-    name, phone, role:'admin',
+    name, phone, role:type==='super'?'admin':'partner',
     status: document.getElementById('f_status').value
   };
   if(pass) data.password = pass;

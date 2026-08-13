@@ -218,14 +218,16 @@ const Admin = {
   fa(n) { return n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); },
   fmt(n) { return this.fa(Number(n).toLocaleString()); },
 
-  logout() {
-    if (confirm('آیا می‌خواهید از سیستم خارج شوید؟')) {
+  async logout() {
+    if (!confirm('آیا می‌خواهید از سیستم خارج شوید؟')) return;
+    try {
+      await API.request('/api/auth/logout',{method:'POST',authContext:'admin'});
       OnPartSession.clear('admin');
-
-      window.location.href = '/admin/login';
+      window.location.href='/admin/login';
+    } catch(error) {
+      this.toast(error.message||'ثبت خروج انجام نشد؛ دوباره تلاش کنید','error');
     }
   },
-
   protect(requiredPerm = null) {
     const token = OnPartSession.getToken('admin');
     const user = this.getUser();
@@ -326,7 +328,7 @@ const Admin = {
           <div style="flex:1;min-width:0">
             <div style="font-size:12.5px;font-weight:${n.is_read?600:700};color:#111">${this.escape(n.title||'اعلان')}</div>
             <div style="font-size:11.5px;color:#888;margin-top:2px">${this.escape(n.body||'')}</div>
-            <div style="font-size:10.5px;color:#bbb;margin-top:3px">${new Date(n.created_at).toLocaleString('fa-IR')}</div>
+            <div style="font-size:10.5px;color:#bbb;margin-top:3px">${API.formatDate(n.created_at,{withTime:true})}</div>
           </div>
           ${!n.is_read ? '<div style="width:7px;height:7px;background:#1d4ed8;border-radius:50%;margin-top:5px;flex-shrink:0"></div>' : ''}
         </div>`;
@@ -381,30 +383,7 @@ const Admin = {
 };
 
 
-function toJalali(dateStr){
-  if(!dateStr) return '—';
-  try{
-    const d = new Date(dateStr);
-    if(isNaN(d)) return dateStr;
-    const gy=d.getFullYear(),gm=d.getMonth()+1,gd=d.getDate();
-    let jy=gy-1600,jm=0,jd=0,g_d_no,j_d_no,j_np,i;
-    const g_d_m=[31,28,31,30,31,30,31,31,30,31,30,31];
-    const j_d_m=[31,31,31,31,31,31,30,30,30,30,30,29];
-    let gy2=gy-1600;
-    g_d_no=365*gy2+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400);
-    for(i=0;i<gm-1;i++) g_d_no+=g_d_m[i];
-    if(gm>2&&((gy2%4===0&&gy2%100!==0)||(gy2%400===0))) g_d_no++;
-    g_d_no+=gd;
-    j_d_no=g_d_no-79;
-    j_np=Math.floor(j_d_no/12053); j_d_no%=12053;
-    jy=979+33*j_np+4*Math.floor(j_d_no/1461); j_d_no%=1461;
-    if(j_d_no>=366){jy+=Math.floor((j_d_no-1)/365);j_d_no=(j_d_no-1)%365;}
-    for(i=0;i<11&&j_d_no>=j_d_m[i];i++) j_d_no-=j_d_m[i];
-    jm=i+1; jd=j_d_no+1;
-    const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
-    return `${fa(jy)}/${fa(String(jm).padStart(2,'0'))}/${fa(String(jd).padStart(2,'0'))}`;
-  }catch(e){return dateStr||'—';}
-}
+function toJalali(dateStr){return window.OnPartDate?OnPartDate.format(dateStr):'—';}
 
 // Inject styles
 const adminStyle = document.createElement('style');

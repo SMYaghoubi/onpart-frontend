@@ -1,27 +1,4 @@
-function toJalali(dateStr){
-  if(!dateStr) return '—';
-  try{
-    const d = new Date(dateStr);
-    if(isNaN(d)) return dateStr;
-    const gy=d.getFullYear(),gm=d.getMonth()+1,gd=d.getDate();
-    let jy=gy-1600,jm=0,jd=0,g_d_no,j_d_no,j_np,i;
-    const g_d_m=[31,28,31,30,31,30,31,31,30,31,30,31];
-    const j_d_m=[31,31,31,31,31,31,30,30,30,30,30,29];
-    let gy2=gy-1600;
-    g_d_no=365*gy2+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400);
-    for(i=0;i<gm-1;i++) g_d_no+=g_d_m[i];
-    if(gm>2&&((gy2%4===0&&gy2%100!==0)||(gy2%400===0))) g_d_no++;
-    g_d_no+=gd;
-    j_d_no=g_d_no-79;
-    j_np=Math.floor(j_d_no/12053); j_d_no%=12053;
-    jy=979+33*j_np+4*Math.floor(j_d_no/1461); j_d_no%=1461;
-    if(j_d_no>=366){jy+=Math.floor((j_d_no-1)/365);j_d_no=(j_d_no-1)%365;}
-    for(i=0;i<11&&j_d_no>=j_d_m[i];i++) j_d_no-=j_d_m[i];
-    jm=i+1; jd=j_d_no+1;
-    const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
-    return `${fa(jy)}/${fa(String(jm).padStart(2,'0'))}/${fa(String(jd).padStart(2,'0'))}`;
-  }catch(e){return dateStr||'—';}
-}
+function toJalali(dateStr){return window.OnPartDate?OnPartDate.format(dateStr):'—';}
 
 // OnPart Shared Components
 const OnPart = {
@@ -461,10 +438,7 @@ const OnPart = {
     if(!token) { window.location.href = '/login'; return false; }
     try {
       const user = JSON.parse(OnPartSession.getUserRaw('user') || '{}');
-      if(user.role === 'admin' || user.role === 'partner') {
-        window.location.href = '/admin/';
-        return false;
-      }
+
     } catch(e) {}
     return true;
   }

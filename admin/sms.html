@@ -331,7 +331,7 @@ async function loadLogs(){
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
           <span class="badge ${l.status==='sent'?'b-green':'b-red'}">${l.status==='sent'?'ارسال شد':'ناموفق'}</span>
-          <div class="log-time" style="direction:ltr">${toJalali(l.created_at)} ${l.created_at?.slice(11,16)||''}</div>
+          <div class="log-time" style="direction:ltr">${API.formatDate(l.created_at,{withTime:true})}</div>
         </div>
       </div>`).join('')||'<div style="text-align:center;padding:20px;color:#aaa">پیامکی ارسال نشده</div>';
 

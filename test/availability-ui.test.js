@@ -52,10 +52,11 @@ test('bulk product removal uses the safe endpoint and shows partial result detai
   assert.doesNotMatch(source,/fetch\(`\$\{API\.BASE_URL\}\/api\/products\/bulk-delete/);
 });
 test('admin and supplier Excel preserve product codes as text and use binary availability',()=>{
-  const admin=read('admin/products.html'),supplier=read('supplier/index.html');
+  const admin=read('admin/products.html'),supplier=read('supplier/index.html'),contract=read('js/product-excel.js');
+  assert.match(contract,/cell\.t='s'/);
+  assert.match(contract,/cell\.z='@'/);
   for(const source of [admin,supplier]){
-    assert.match(source,/cell\.t='s'/);
-    assert.match(source,/cell\.z='@'/);
+    assert.match(source,/ProductExcel\.textCodeColumn/);
     assert.match(source,/raw:false/);
     assert.match(source,/وضعیت موجودی/);
     assert.match(source,/موجود.*ناموجود/s);

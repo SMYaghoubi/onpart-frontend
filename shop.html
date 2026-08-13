@@ -137,9 +137,6 @@
     .desc-popup-title{font-size:12.5px;font-weight:700;color:#111;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #f0f0f0;line-height:1.6;}
     .desc-popup-row{display:flex;justify-content:space-between;font-size:11.5px;color:#666;padding:4px 0;}
     .desc-popup-row b{color:#111;font-weight:600;}
-
-    .sel-dot { width: 17px; height: 17px; border: 2px solid #d1d5db; border-radius: 50%; cursor: pointer; transition: all .15s; }
-    .sel-dot.on { background: #1d4ed8; border-color: #1d4ed8; }
     /* Pager */
     .pager { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 28px 28px; }
     .pg { width: 32px; height: 32px; border: 1px solid #e5e7eb; border-radius: 7px; background: #fff; cursor: pointer; font-family: 'Vazirmatn', sans-serif; font-size: 12.5px; color: #555; display: flex; align-items: center; justify-content: center; }
@@ -252,7 +249,6 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
     <table class="tbl">
       <thead>
         <tr>
-          <th class="td-hide-mob" style="width:32px">▲</th>
           <th class="td-hide-mob" style="text-align:right;padding-right:14px">کد محصول</th>
           <th style="text-align:right;min-width:180px">
             <span class="td-hide-mob">شرح محصول</span>
@@ -376,7 +372,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       } catch(e) {
         products = [];
         filtered = [];
-        document.getElementById('tbody').innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px;color:#dc2626"><i class="ti ti-wifi-off" style="font-size:32px;display:block;margin-bottom:8px"></i>دریافت محصولات انجام نشد<br><button onclick="loadProducts()" style="margin-top:12px;border:none;border-radius:8px;padding:8px 14px;background:#1d4ed8;color:#fff;font-family:Vazirmatn;cursor:pointer">تلاش دوباره</button></td></tr>';
+        document.getElementById('tbody').innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:#dc2626"><i class="ti ti-wifi-off" style="font-size:32px;display:block;margin-bottom:8px"></i>دریافت محصولات انجام نشد<br><button onclick="loadProducts()" style="margin-top:12px;border:none;border-radius:8px;padding:8px 14px;background:#1d4ed8;color:#fff;font-family:Vazirmatn;cursor:pointer">تلاش دوباره</button></td></tr>';
         document.getElementById('pgInfo').textContent = 'خطا در بارگذاری';
         return;
       }
@@ -403,30 +399,29 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       document.getElementById('pgInfo').textContent = `${fa(products.length)} محصول`;
     }
 
-    const qtys = {}, sel = {}, cartSaveQueues = {};
+    const qtys = {}, cartSaveQueues = {};
 
     function renderSkeleton(){
       const body = document.getElementById('tbody');
       if(!body) return;
       body.innerHTML = Array.from({length:8}, () =>
-        '<tr class="skeleton-row"><td colspan="11"><div class="skeleton-line"></div></td></tr>'
+        '<tr class="skeleton-row"><td colspan="10"><div class="skeleton-line"></div></td></tr>'
       ).join('');
     }
 
     function render() {
       if(!products.length){
-        document.getElementById('tbody').innerHTML = `<tr><td colspan="11" style="text-align:center;padding:40px;color:#aaa"><i class="ti ti-package" style="font-size:32px;display:block;margin-bottom:8px"></i>در حال بارگذاری محصولات...</td></tr>`;
+        document.getElementById('tbody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:#aaa"><i class="ti ti-package" style="font-size:32px;display:block;margin-bottom:8px"></i>در حال بارگذاری محصولات...</td></tr>`;
         return;
       }
       if(!filtered.length){
-        document.getElementById('tbody').innerHTML = `<tr><td colspan="11" style="text-align:center;padding:40px;color:#aaa"><i class="ti ti-search" style="font-size:32px;display:block;margin-bottom:8px"></i>محصولی یافت نشد</td></tr>`;
+        document.getElementById('tbody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:#aaa"><i class="ti ti-search" style="font-size:32px;display:block;margin-bottom:8px"></i>محصولی یافت نشد</td></tr>`;
         return;
       }
       const rowsHtml = filtered.map((p,i) => { var stockB=p.stock?'<span class="chip ch-green">موجود</span>':'<span class="chip ch-red">ناموجود</span>'; var flowB='<span class="chip '+(p.flow?'ch-sky':'ch-gray')+'">'+(p.flow?'دارد':'ندارد')+'</span>';
         const q = qtys[p.id]||0, tot = q*p.price;
         const safeCode=esc(p.code),safeDesc=esc(p.desc),safeNote=esc(p.note||'—'),safeCar=esc(p.car),safeBrand=esc(p.brand),safeCat=esc(p.cat);
         return `<tr id="productRow_${p.id}">
-          <td class="td-hide-mob"><div class="sel-dot${sel[i]?' on':''}" onclick="toggleSel(${i})"></div></td>
           <td class="td-code td-hide-mob">${safeCode}</td>
           <td class="td-desc" style="position:relative">
             <div class="prod-code-mob td-show-mob"><span style="color:#bbb;font-size:9px">کد: </span>${safeCode}</div>
@@ -468,8 +463,6 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       updateCartCount();
       document.getElementById('pgInfo').textContent = `نمایش ${fa(filtered.length)} از ${fa(products.length)} محصول`;
     }
-
-    function toggleSel(i){sel[i]=!sel[i];render();}
     async function persistCartQuantity(productId, quantity) {
       const token = OnPartSession.getToken('user');
       if(!token) {
