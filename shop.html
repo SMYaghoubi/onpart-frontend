@@ -178,7 +178,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
   <div class="search-block">
     <div class="search-box">
       <div class="sb-top">
-        <input class="sb-input" id="fText" placeholder="جستجو بر اساس نام کالا یا کد محصول..." oninput="scheduleFilter()"/>
+        <input class="sb-input" id="fText" placeholder="جستجو در کد/OEM، شرح محصول، برند یا گروه کالا..." oninput="scheduleFilter()"/>
         <button class="sb-btn" onclick="doFilter()"><i class="ti ti-search"></i></button>
       </div>
       <div class="sb-filters">
@@ -188,8 +188,6 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
           <i class="ti ti-chevron-down arrow"></i>
           <select class="sb-select" id="fCar" onchange="doFilter();document.getElementById('lblCar').textContent=this.value||'نام خودرو'">
             <option value="">همه خودروها</option>
-            <option>پژو ۴۰۵</option><option>پارس</option><option>دنا</option>
-            <option>سمند</option><option>رنو ال ۹۰</option><option>پژو ۲۰۶</option><option>مشترک</option>
           </select>
         </div>
         <div class="sb-filter">
@@ -198,7 +196,6 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
           <i class="ti ti-chevron-down arrow"></i>
           <select class="sb-select" id="fBrand" onchange="doFilter();document.getElementById('lblBrand').textContent=this.value||'برند'">
             <option value="">همه برندها</option>
-            <option>ایساکو</option><option>BOSCH</option><option>TEXTAR</option>
           </select>
         </div>
         <div class="sb-filter">
@@ -301,7 +298,10 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
 
     let products = [];
     let filtered = [];
-    const normalizeSearch = value => String(value||'').normalize('NFKC').replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\s+/g,' ').trim().toLocaleLowerCase('fa-IR');
+    const normalizeSearch = (value,compact=false) => {
+      let normalized=String(value||'').normalize('NFKC').replace(/[\u064a\u0649]/g,'\u06cc').replace(/\u0643/g,'\u06a9').replace(/[\u06f0-\u06f9]/g,d=>'\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9'.indexOf(d)).replace(/[\u0660-\u0669]/g,d=>'\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669'.indexOf(d)).replace(/[\u200c\u200d\u200e\u200f\u2060]/g,' ').replace(/[\u2010-\u2015]/g,'-').replace(/\s+/g,' ').trim().toLocaleLowerCase('fa-IR');
+      return compact?normalized.replace(/[\s-]+/g,''):normalized;
+    };
     const MAX_ITEM_QUANTITY=9999;
 
     // Load from API
@@ -353,7 +353,10 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
     async function loadProducts(){
       renderSkeleton();
       try {
-        const data = await API.request('/api/products?limit=999999');
+        const [data,metadata] = await Promise.all([
+          API.request('/api/products?limit=999999'),
+          API.request('/api/products/metadata').catch(()=>({cars:[],brands:[],categories:[]}))
+        ]);
         products = (data.products || data).map(p => ({
           id: p.id,
           desc: p.description,
@@ -365,9 +368,11 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
           stock: Number(p.stock) > 0,
           price: Number(p.price),
           note: p.note || '',
-          _searchText: normalizeSearch([p.description,p.code,p.car,p.brand,p.category,p.note].join(' ')),
+          _searchText: normalizeSearch([p.description,p.brand,p.category].join(' '),true),
           _codeSearch: API.normalizeProductCode(p.code),
-          _catSearch: normalizeSearch(p.category)
+          _carKey: normalizeSearch(p.car,true),
+          _brandKey: normalizeSearch(p.brand,true),
+          _catKey: normalizeSearch(p.category,true)
         }));
       } catch(e) {
         products = [];
@@ -377,10 +382,9 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
         return;
       }
       filtered = [...products];
-      // Populate category filter from products
-      const cats = [...new Set(products.map(p=>p.cat).filter(Boolean))].sort();
-      const catSel = document.getElementById('fCat');
-      catSel.innerHTML = '<option value="">همه گروه‌ها</option>' + cats.map(c=>`<option>${c}</option>`).join('');
+      setFilterOptions('fCar',metadata.cars,'همه خودروها');
+      setFilterOptions('fBrand',metadata.brands,'همه برندها');
+      setFilterOptions('fCat',metadata.categories,'همه گروه‌ها');
 
       // Restore the signed-in user's cart from the server/database.
       Object.keys(qtys).forEach(key => delete qtys[key]);
@@ -547,14 +551,21 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
         else bar.style.display='none';
       }
     }
+    function setFilterOptions(id,values,emptyLabel){
+      const select=document.getElementById(id),current=select.value,fragment=document.createDocumentFragment();
+      const empty=document.createElement('option');empty.value='';empty.textContent=emptyLabel;fragment.appendChild(empty);
+      for(const label of values||[]){const option=document.createElement('option');option.value=label;option.textContent=label;fragment.appendChild(option)}
+      select.replaceChildren(fragment);if([...select.options].some(option=>option.value===current))select.value=current;
+    }
+
     let filterTimer;
     function scheduleFilter(){clearTimeout(filterTimer);filterTimer=setTimeout(doFilter,140)}
     function doFilter(){
       clearTimeout(filterTimer);
       const rawSearch=document.getElementById('fText').value;
-      const t=normalizeSearch(rawSearch),codeSearch=API.normalizeProductCode(rawSearch);
-      const car=document.getElementById('fCar').value,br=document.getElementById('fBrand').value,cat=normalizeSearch(document.getElementById('fCat').value);
-      filtered=products.filter(p=>(!t||p._searchText.includes(t)||p._codeSearch.includes(codeSearch))&&(!car||p.car===car)&&(!br||p.brand===br)&&(!cat||p._catSearch.includes(cat)));
+      const t=normalizeSearch(rawSearch,true),codeSearch=API.normalizeProductCode(rawSearch);
+      const car=normalizeSearch(document.getElementById('fCar').value,true),br=normalizeSearch(document.getElementById('fBrand').value,true),cat=normalizeSearch(document.getElementById('fCat').value,true);
+      filtered=products.filter(p=>(!t||p._searchText.includes(t)||p._codeSearch.includes(codeSearch))&&(!car||p._carKey===car)&&(!br||p._brandKey===br)&&(!cat||p._catKey===cat));
       render();updateFilterSummary();
     }
 
