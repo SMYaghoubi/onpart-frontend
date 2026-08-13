@@ -232,6 +232,10 @@
         <select class="fselect" id="be_available"><option value="true">موجود</option><option value="false">ناموجود</option></select>
       </div>
       <div class="be-row">
+        <label class="be-check"><input type="checkbox" class="be-enable" id="be_enable_flow" onchange="toggleBulkFlow(this.checked)"/><span>گردش</span></label>
+        <select class="fselect" id="be_flow" disabled aria-label="مقدار گردش"><option value="1">دارد</option><option value="0">ندارد</option></select>
+      </div>
+      <div class="be-row">
         <label class="be-check"><input type="checkbox" class="be-enable" id="be_enable_supplier"/><span>تأمین‌کننده</span></label>
         <div style="position:relative;flex:1;min-width:0">
           <input class="finput" id="be_supplier_search" list="be_supplier_options" placeholder="جستجو یا انتخاب تأمین‌کننده؛ برای حذف «بدون تأمین‌کننده»" autocomplete="off" oninput="resolveBulkSupplier()"/>
@@ -434,8 +438,12 @@ function closeBulkEdit(){
     if(el) el.value='';
   });
   document.querySelectorAll('.be-enable').forEach(cb=>cb.checked=false);
+  const flow=document.getElementById('be_flow');if(flow){flow.value='1';flow.disabled=true;}
 }
 
+function toggleBulkFlow(enabled){
+  const select=document.getElementById('be_flow');if(select)select.disabled=!enabled;
+}
 function resolveBulkSupplier(){
   const input=document.getElementById('be_supplier_search'),hidden=document.getElementById('be_supplier_id'),value=input.value.trim();
   if(value==='بدون تأمین‌کننده'){hidden.value='clear';return}
@@ -453,6 +461,7 @@ async function applyBulkEdit(){
   if(document.getElementById('be_enable_brand')?.checked) fields.brand = document.getElementById('be_brand').value;
   if(document.getElementById('be_enable_price')?.checked) fields.price = Number(document.getElementById('be_price').value.replace(/,/g,''));
   if(document.getElementById('be_enable_available')?.checked) fields.available = document.getElementById('be_available').value==='true';
+  if(document.getElementById('be_enable_flow')?.checked) fields.has_flow = Number(document.getElementById('be_flow').value);
   if(document.getElementById('be_enable_supplier')?.checked){
     resolveBulkSupplier();
     const supplierValue=document.getElementById('be_supplier_id').value;

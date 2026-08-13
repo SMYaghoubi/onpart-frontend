@@ -76,3 +76,12 @@ test('shop, admin and supplier search use canonical product codes',()=>{
   assert.match(supplier,/new Map\(products\.map\(product=>\[API\.normalizeProductCode\(product\.code\),product\]\)\)/);
   assert.match(supplier,/محصول با کد «\$\{originalCode\}» در محصولات مجاز شما یافت نشد/);
 });
+test('bulk product flow has an explicit opt-in and preserves the zero value',()=>{
+  const source=read('admin/products.html');
+  assert.match(source,/id="be_enable_flow"[^>]*onchange="toggleBulkFlow\(this\.checked\)"/);
+  assert.match(source,/id="be_flow" disabled[^>]*>\s*<option value="1">دارد<\/option><option value="0">ندارد<\/option>/);
+  assert.match(source,/if\(document\.getElementById\('be_enable_flow'\)\?\.checked\) fields\.has_flow = Number\(document\.getElementById\('be_flow'\)\.value\)/);
+  assert.doesNotMatch(source,/fields\.has_flow\s*=.*\|\||if\s*\(.*be_flow.*\.value\)\s*fields\.has_flow/);
+  assert.match(source,/flow\.value='1';flow\.disabled=true/);
+  assert.match(source,/closeBulkEdit\(\);selectedIds\.clear\(\);await loadProducts\(\)/);
+});
