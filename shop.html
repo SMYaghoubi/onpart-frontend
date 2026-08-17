@@ -350,13 +350,29 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       } catch(e){ return true; }
     }
 
+    const waitForProducts=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds));
+    async function requestShopData(path,{attempts=3}={}){
+      let lastError;
+      for(let attempt=1;attempt<=attempts;attempt++){
+        try{return await API.request(path,{cache:'no-store'})}
+        catch(error){
+          lastError=error;const transient=!error.status||error.status===429||error.status>=500;
+          if(!transient||attempt===attempts)throw error;
+          await waitForProducts(350*attempt);
+        }
+      }
+      throw lastError;
+    }
+
     async function loadProducts(){
       renderSkeleton();
+      let metadataError=null;
+      const metadataPromise=requestShopData('/api/products/metadata',{attempts:2}).catch(error=>{
+        metadataError=error;console.warn('Product filter metadata unavailable:',error.message);
+        return {cars:[],brands:[],categories:[]};
+      });
       try {
-        const [data,metadata] = await Promise.all([
-          API.request('/api/products?limit=999999'),
-          API.request('/api/products/metadata').catch(()=>({cars:[],brands:[],categories:[]}))
-        ]);
+        const data=await requestShopData('/api/products?limit=999999');
         products = (data.products || data).map(p => ({
           id: p.id,
           desc: p.description,
@@ -365,7 +381,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
           brand: p.brand || '',
           cat: p.category || '',
           flow: p.has_flow == 1,
-          stock: Number(p.stock) > 0,
+          stock: p.available===true || Number(p.stock) > 0,
           price: Number(p.price),
           note: p.note || '',
           _searchText: normalizeSearch([p.description,p.brand,p.category].join(' '),true),
@@ -377,14 +393,12 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       } catch(e) {
         products = [];
         filtered = [];
-        document.getElementById('tbody').innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:#dc2626"><i class="ti ti-wifi-off" style="font-size:32px;display:block;margin-bottom:8px"></i>دریافت محصولات انجام نشد<br><button onclick="loadProducts()" style="margin-top:12px;border:none;border-radius:8px;padding:8px 14px;background:#1d4ed8;color:#fff;font-family:Vazirmatn;cursor:pointer">تلاش دوباره</button></td></tr>';
-        document.getElementById('pgInfo').textContent = 'خطا در بارگذاری';
+        const message=e&&e.message?e.message:'دریافت محصولات از سرور انجام نشد';
+        document.getElementById('tbody').innerHTML = '<tr><td colspan="10" role="alert" style="text-align:center;padding:40px;color:#dc2626"><i class="ti ti-wifi-off" style="font-size:32px;display:block;margin-bottom:8px"></i>'+esc(message)+'<br><button onclick="loadProducts()" style="margin-top:12px;border:none;border-radius:8px;padding:8px 14px;background:#1d4ed8;color:#fff;font-family:Vazirmatn;cursor:pointer">تلاش دوباره</button></td></tr>';
+        document.getElementById('pgInfo').textContent = 'ارتباط با سرویس محصولات برقرار نشد';
         return;
       }
       filtered = [...products];
-      setFilterOptions('fCar',metadata.cars,'همه خودروها');
-      setFilterOptions('fBrand',metadata.brands,'همه برندها');
-      setFilterOptions('fCat',metadata.categories,'همه گروه‌ها');
 
       // Restore the signed-in user's cart from the server/database.
       Object.keys(qtys).forEach(key => delete qtys[key]);
@@ -401,6 +415,12 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
 
       render();
       document.getElementById('pgInfo').textContent = `${fa(products.length)} محصول`;
+
+      const metadata=await metadataPromise;
+      setFilterOptions('fCar',metadata.cars,'همه خودروها');
+      setFilterOptions('fBrand',metadata.brands,'همه برندها');
+      setFilterOptions('fCat',metadata.categories,'همه گروه‌ها');
+      if(metadataError) OnPart.toast('محصولات نمایش داده شدند؛ فیلترها موقتاً در دسترس نیستند', 'info');
     }
 
     const qtys = {}, cartSaveQueues = {};

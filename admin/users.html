@@ -230,6 +230,7 @@ const fa = n => n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
 const fmt = n => fa(Number(n).toLocaleString());
 const colors = ['#1d4ed8','#16a34a','#d97706','#7c3aed','#0f766e','#dc2626'];
 let users = [], filtered = [], currentId = null, page = 1;
+const managementUser=OnPartSession.getUser('admin');
 const PER_PAGE = 15;
 
 function toast(msg, ok=true){
@@ -246,7 +247,8 @@ async function loadUsers(){
     const token = OnPartSession.getToken('admin');
     const res = await fetch(API.BASE_URL+'/api/users?limit=500',{headers:{'Authorization':'Bearer '+token}});
     const data = await res.json();
-    users = (Array.isArray(data) ? data : (data.users || [])).filter(u=>u.role!=='admin');
+    const rows=Array.isArray(data) ? data : (data.users || []);
+    users=managementUser.role==='admin'?rows:rows.filter(u=>u.role!=='admin');
   } catch(e){ users = []; }
   updateStats(); renderTable();
 }
@@ -390,6 +392,7 @@ async function saveUser(){
     const result=await res.json();
     if(!res.ok) throw new Error(result.message);
     toast(currentId?'کاربر ویرایش شد':'کاربر اضافه شد');
+    if(currentId===Number(managementUser.id)&&data.role==='user'){OnPartSession.clear('admin');window.location.href='/shop';return}
     closeModal(); loadUsers();
   } catch(e){toast(e.message||'خطا',false);}
 }

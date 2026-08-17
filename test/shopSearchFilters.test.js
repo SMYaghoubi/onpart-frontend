@@ -20,7 +20,7 @@ test('shop combines free OR matching with normalized exact AND filters',()=>{
 });
 
 test('shop gets dynamic no-cache metadata instead of hard-coded filter values',()=>{
-  assert.match(source,/API\.request\('\/api\/products\/metadata'\)/);
+  assert.match(source,/requestShopData\('\/api\/products\/metadata'/);
   assert.match(source,/setFilterOptions\('fCar',metadata\.cars/);
   assert.match(source,/setFilterOptions\('fBrand',metadata\.brands/);
   assert.match(source,/setFilterOptions\('fCat',metadata\.categories/);
