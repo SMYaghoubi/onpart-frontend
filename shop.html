@@ -97,7 +97,7 @@
     .tbl { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,.06); }
     .tbl thead tr { background: #f8fafc; }
     .tbl th { padding: 11px 10px; font-size: 12px; font-weight: 700; color: #666; text-align: center; border-bottom: 2px solid #e5e7eb; white-space: nowrap; }
-    .tbl th:nth-child(3) { text-align: right; }
+    .tbl th[data-column="description"] { text-align: right; }
     .tbl tbody tr { border-bottom: 1px solid #f0f0f0; transition: background .1s; }
     .tbl tbody tr:hover { background: #f9fbff; }
     .tbl td { padding: 9px 10px; font-size: 12px; color: #333; text-align: center; white-space: nowrap; }
@@ -265,19 +265,19 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
     <table class="tbl">
       <thead>
         <tr>
-          <th class="td-hide-mob" style="text-align:right;padding-right:14px">کد محصول</th>
-          <th style="text-align:right;min-width:180px">
+          <th class="td-hide-mob" data-column="code">کد محصول</th>
+          <th data-column="description" style="min-width:180px">
             <span class="td-hide-mob">شرح محصول</span>
             <span class="td-show-mob" style="font-size:11px">کد محصول / شرح محصول</span>
           </th>
-          <th class="td-hide-mob">خودرو</th>
-          <th class="td-hide-mob">برند</th>
-          <th class="td-hide-mob">گروه کالا</th>
-          <th class="td-hide-mob">گردش</th>
-          <th class="td-hide-mob stock-col">موجودی</th>
-          <th id="priceHeader">قیمت (ت)</th>
-          <th>تعداد</th>
-          <th class="td-hide-mob">جمع کل</th>
+          <th class="td-hide-mob" data-column="car">خودرو</th>
+          <th class="td-hide-mob" data-column="brand">برند</th>
+          <th class="td-hide-mob" data-column="category">گروه کالا</th>
+          <th class="td-hide-mob" data-column="flow">گردش</th>
+          <th class="td-hide-mob stock-col" data-column="availability">موجودی</th>
+          <th id="priceHeader" data-column="price">قیمت (ت)</th>
+          <th data-column="quantity">تعداد</th>
+          <th class="td-hide-mob" data-column="total">جمع کل</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -480,8 +480,8 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
         const q = qtys[p.id]||0, tot = q*p.price;
         const safeCode=esc(p.code),safeDesc=esc(p.desc),safeNote=esc(p.note||'—'),safeCar=esc(p.car),safeBrand=esc(p.brand),safeCat=esc(p.cat);
         return `<tr id="productRow_${p.id}">
-          <td class="td-code td-hide-mob">${safeCode}</td>
-          <td class="td-desc" style="position:relative">
+          <td class="td-code td-hide-mob" data-column="code">${safeCode}</td>
+          <td class="td-desc" data-column="description" style="position:relative">
             <div class="prod-code-mob td-show-mob"><span style="color:#bbb;font-size:9px">کد: </span>${safeCode}</div>
             <div class="prod-name">${safeDesc}${p.note?`<button class="desc-info-btn" onclick="toggleDescPopup(event,${i})" title="توضیحات اضافه" aria-label="نمایش توضیحات ${safeDesc}"><i class="ti ti-info-circle"></i></button>`:''}</div>
             <div class="desc-popup" id="descPopup_${i}">
@@ -500,19 +500,19 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
               <span class="td-hide-mob">${flowB}</span>
             </div>
           </td>
-          <td class="td-hide-mob"><span class="chip ch-blue">${safeCar}</span></td>
-          <td class="td-hide-mob"><span class="chip ch-sky">${safeBrand}</span></td>
-          <td class="td-hide-mob"><span class="chip ch-gray">${safeCat}</span></td>
-          <td class="td-hide-mob">${flowB}</td>
-          <td class="td-hide-mob stock-col">${stockB}</td>
-          <td class="td-price unit-price-cell">${canShowPrice()?fmt(p.price):'<a href="/login" style="color:#1d4ed8;font-size:11px">ورود برای مشاهده</a>'}</td>
-          <td class="qty-cell"><div class="qty-wrap" id="productQtyWrap_${p.id}">
+          <td class="td-hide-mob" data-column="car"><span class="chip ch-blue">${safeCar}</span></td>
+          <td class="td-hide-mob" data-column="brand"><span class="chip ch-sky">${safeBrand}</span></td>
+          <td class="td-hide-mob" data-column="category"><span class="chip ch-gray">${safeCat}</span></td>
+          <td class="td-hide-mob" data-column="flow">${flowB}</td>
+          <td class="td-hide-mob stock-col" data-column="availability">${stockB}</td>
+          <td class="td-price unit-price-cell" data-column="price">${canShowPrice()?fmt(p.price):'<a href="/login" style="color:#1d4ed8;font-size:11px">ورود برای مشاهده</a>'}</td>
+          <td class="qty-cell" data-column="quantity"><div class="qty-wrap" id="productQtyWrap_${p.id}">
             <button class="qbtn" onclick="chg(${p.id},-1)" aria-label="کاهش تعداد ${safeDesc}" ${p.stock?'':'disabled'}>−</button>
             <input class="qinp" id="productQty_${p.id}" value="${fa(q)}" onchange="setQ(${p.id},this.value)" aria-label="تعداد ${safeDesc}" inputmode="numeric" ${p.stock?'':'disabled'}/>
             <button class="qbtn" onclick="chg(${p.id},1)" aria-label="افزایش تعداد ${safeDesc}" ${p.stock?'':'disabled'}>+</button>
             <span class="qty-status" id="productQtyStatus_${p.id}" aria-live="polite"></span>
           </div></td>
-          <td class="td-price td-hide-mob" id="productTotal_${p.id}">${tot?fmt(tot):''}</td>
+          <td class="td-price td-hide-mob" data-column="total" id="productTotal_${p.id}">${tot?fmt(tot):''}</td>
         </tr>`;
       });
       const body=document.getElementById('tbody'),fragment=document.createDocumentFragment();
