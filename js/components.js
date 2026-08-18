@@ -189,13 +189,15 @@ const OnPart = {
     return this.setCartItem(product.id, newQty);
   },
 
-  clearCart: async function() {
+  clearCart: async function(options) {
     var token = OnPartSession.getToken('user');
-    if(!token) return;
+    if(!token) return false;
     try {
-      await fetch(this.CART_API, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
-    } catch(e){}
-    this.updateCartCount();
+      var res = await fetch(this.CART_API, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+      if(!res.ok) return false;
+      if(!options || options.refreshCount !== false) await this.updateCartCount();
+      return true;
+    } catch(e){ return false; }
   },
 
   updateCartCount: async function() {

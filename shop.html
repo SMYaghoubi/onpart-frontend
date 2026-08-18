@@ -148,6 +148,10 @@
     .cart-panel { position: fixed; left: 0; top: 0; bottom: 0; width: 380px; background: #fff; box-shadow: -4px 0 24px rgba(0,0,0,.12); z-index: 501; display: flex; flex-direction: column; transform: translateX(-100%); transition: transform .3s; }
     .cart-panel.show { transform: translateX(0); }
     .cart-head { padding: 20px 24px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+    .cart-head-actions { display:flex;align-items:center;gap:8px; }
+    .btn-clear-cart { border:1px solid #fecaca;background:#fff;color:#b91c1c;border-radius:8px;padding:7px 10px;font-family:'Vazirmatn',sans-serif;font-size:11.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px; }
+    .btn-clear-cart:hover,.btn-clear-cart:focus-visible { background:#fef2f2;border-color:#ef4444;outline:2px solid rgba(239,68,68,.2);outline-offset:2px; }
+    .btn-clear-cart[hidden] { display:none; }
     .cart-title { font-size: 16px; font-weight: 800; color: #111; }
     .cart-close { width: 32px; height: 32px; background: #f3f4f6; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
     .cart-body { flex: 1; overflow-y: auto; padding: 16px; }
@@ -159,6 +163,21 @@
     .cart-foot { padding: 16px 24px; border-top: 1px solid #f0f0f0; }
     .cart-total { display: flex; justify-content: space-between; font-size: 15px; font-weight: 800; margin-bottom: 14px; }
     .btn-checkout { width: 100%; background: #1d4ed8; color: #fff; border: none; border-radius: 10px; padding: 13px; font-family: 'Vazirmatn', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .clear-cart-dialog { border:0;border-radius:16px;padding:0;width:min(92vw,430px);box-shadow:0 24px 70px rgba(15,23,42,.28);font-family:'Vazirmatn',sans-serif;color:#0f172a; }
+    .clear-cart-dialog::backdrop { background:rgba(15,23,42,.55); }
+    .clear-cart-dialog-inner { padding:24px;direction:rtl;text-align:right; }
+    .clear-cart-dialog-icon { width:44px;height:44px;border-radius:12px;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px; }
+    .clear-cart-dialog h2 { margin:0 0 8px;font-size:17px; }
+    .clear-cart-dialog p { margin:0;color:#64748b;font-size:13px;line-height:1.9; }
+    .clear-cart-dialog-actions { display:flex;gap:10px;justify-content:flex-end;margin-top:22px; }
+    .clear-cart-dialog-actions button { min-height:44px;border-radius:9px;padding:9px 16px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:700;cursor:pointer; }
+    .clear-cart-cancel { border:1px solid #cbd5e1;background:#fff;color:#334155; }
+    .clear-cart-confirm { border:1px solid #dc2626;background:#dc2626;color:#fff;min-width:132px; }
+    .clear-cart-dialog-actions button:disabled { opacity:.65;cursor:wait; }
+    .clear-cart-spinner { animation:clearCartSpin .75s linear infinite; }
+    @keyframes clearCartSpin { to { transform:rotate(360deg); } }
+    @media(max-width:430px){.cart-head{padding:16px}.btn-clear-cart{font-size:11px;padding:7px 8px}.clear-cart-dialog-inner{padding:20px}.clear-cart-dialog-actions{flex-direction:column-reverse}.clear-cart-dialog-actions button{width:100%}}
+    @media(prefers-reduced-motion:reduce){.clear-cart-spinner{animation:none}}
 
 /* Lightweight OnPart visual layer: decoration only, no per-row blur */
 body{background:linear-gradient(145deg,#f8fafc 0%,#eef4ff 45%,#f8fafc 100%);position:relative}
@@ -274,7 +293,10 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
   <div class="cart-panel" id="cartPanel" role="dialog" aria-modal="true" aria-labelledby="cartPanelTitle" tabindex="-1">
     <div class="cart-head">
       <div class="cart-title" id="cartPanelTitle">سبد خرید</div>
-      <button class="cart-close" onclick="closeCart()" aria-label="بستن سبد خرید"><i class="ti ti-x"></i></button>
+      <div class="cart-head-actions">
+        <button class="btn-clear-cart" id="clearCartButton" type="button" onclick="openClearCartConfirm()" hidden><i class="ti ti-trash" aria-hidden="true"></i>پاک کردن سبد خرید</button>
+        <button class="cart-close" onclick="closeCart()" aria-label="بستن سبد خرید"><i class="ti ti-x"></i></button>
+      </div>
     </div>
     <div class="cart-body" id="cartBody"><div style="text-align:center;padding:40px;color:#aaa">سبد خرید خالی است</div></div>
     <div class="cart-foot">
@@ -282,6 +304,18 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       <button class="btn-checkout" onclick="checkout()">ثبت سفارش</button>
     </div>
   </div>
+
+  <dialog class="clear-cart-dialog" id="clearCartDialog" aria-labelledby="clearCartDialogTitle" aria-describedby="clearCartDialogDescription">
+    <div class="clear-cart-dialog-inner">
+      <div class="clear-cart-dialog-icon" aria-hidden="true"><i class="ti ti-trash"></i></div>
+      <h2 id="clearCartDialogTitle">پاک کردن سبد خرید</h2>
+      <p id="clearCartDialogDescription">همه کالاهای سبد خرید حذف شوند؟ این عملیات قابل بازگشت نیست.</p>
+      <div class="clear-cart-dialog-actions">
+        <button class="clear-cart-cancel" id="clearCartCancel" type="button" onclick="closeClearCartConfirm()" autofocus>انصراف</button>
+        <button class="clear-cart-confirm" id="clearCartConfirm" type="button" onclick="confirmClearCart()">بله، پاک شود</button>
+      </div>
+    </div>
+  </dialog>
 
   <script src="js/components.js"></script>
   <script src="js/checkout-success.js"></script>
@@ -620,6 +654,8 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       const el2 = document.getElementById('cartCountBtn');
       if(el1) el1.textContent = fa(count);
       if(el2) el2.textContent = fa(count);
+      const clearButton=document.getElementById('clearCartButton');
+      if(clearButton) clearButton.hidden=count===0;
       updateTotalBar();
     }
 
@@ -676,6 +712,47 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       openCart();
     }
 
+    let clearCartInFlight=false;
+    function openClearCartConfirm(){
+      if(clearCartInFlight||!Object.values(qtys).some(value=>Number(value)>0)) return;
+      const dialog=document.getElementById('clearCartDialog');
+      if(!dialog.open) dialog.showModal();
+      requestAnimationFrame(()=>document.getElementById('clearCartCancel').focus());
+    }
+
+    function closeClearCartConfirm(){
+      if(clearCartInFlight) return;
+      const dialog=document.getElementById('clearCartDialog');
+      if(dialog.open) dialog.close();
+    }
+
+    async function confirmClearCart(){
+      if(clearCartInFlight) return;
+      if(!Object.values(qtys).some(value=>Number(value)>0)){closeClearCartConfirm();return;}
+      clearCartInFlight=true;
+      const cancel=document.getElementById('clearCartCancel');
+      const confirm=document.getElementById('clearCartConfirm');
+      cancel.disabled=true;confirm.disabled=true;
+      confirm.innerHTML='<i class="ti ti-loader-2 clear-cart-spinner" aria-hidden="true"></i> در حال پاک‌کردن…';
+      await Promise.allSettled(Object.values(cartSaveQueues));
+      const cleared=await OnPart.clearCart({refreshCount:false});
+      if(cleared){
+        Object.keys(qtys).forEach(key=>delete qtys[key]);
+        Object.keys(cartSaveQueues).forEach(key=>delete cartSaveQueues[key]);
+        products.forEach(product=>updateProductRow(product.id));
+        updateCartCount();
+        openCart();
+        document.getElementById('clearCartDialog').close();
+        OnPart.toast('سبد خرید با موفقیت پاک شد','success');
+      }else{
+        OnPart.toast('پاک‌کردن سبد انجام نشد؛ دوباره تلاش کنید','error');
+        confirm.textContent='تلاش دوباره';
+      }
+      clearCartInFlight=false;
+      cancel.disabled=false;confirm.disabled=false;
+      if(cleared) confirm.textContent='بله، پاک شود';
+    }
+
     function closeCart(){
       document.getElementById('cartOverlay').classList.remove('show');
       document.getElementById('cartPanel').classList.remove('show');
@@ -683,7 +760,14 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
     }
 
     document.addEventListener('keydown',function(e){
-      if(e.key==='Escape'&&document.getElementById('cartPanel').classList.contains('show')) closeCart();
+      if(e.key==='Escape'&&!document.getElementById('clearCartDialog').open&&document.getElementById('cartPanel').classList.contains('show')) closeCart();
+    });
+    const clearCartDialog=document.getElementById('clearCartDialog');
+    clearCartDialog.addEventListener('cancel',event=>{
+      if(clearCartInFlight) event.preventDefault();
+    });
+    clearCartDialog.addEventListener('click',event=>{
+      if(event.target===clearCartDialog&&!clearCartInFlight) clearCartDialog.close();
     });
 
     let checkoutInFlight = false;
