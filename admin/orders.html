@@ -320,7 +320,7 @@ function allowedOrderStatuses(order){
   return [order.status,...next.filter(status=>status!==order.status)];
 }
 
-let orders=[],filtered=[],allProducts=[],curOrderId=null,curSmsPhone='',noItemCount=0;
+let orders=[],filtered=[],allProducts=[],curOrderId=null,curSmsPhone='',noItemCount=0,ordersLoadError='';
 const PER=15;let page=1;
 
 function toast(msg,ok=true){
@@ -329,16 +329,24 @@ function toast(msg,ok=true){
 
 // ── LOAD ──
 async function loadOrders(){
+  ordersLoadError='';
   try{
     const token=OnPartSession.getToken('admin');
     const res=await fetch(`${API.BASE_URL}/api/orders?limit=200&admin=1`,{headers:{'Authorization':'Bearer '+token}});
-    if(res.ok)orders=await res.json();
-  }catch(e){}
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(data.message||'خطا در دریافت سفارش‌ها');
+    if(Array.isArray(data))orders=data;
+    else if(Array.isArray(data.orders))orders=data.orders;
+    else throw new Error('ساختار پاسخ سفارش‌ها معتبر نیست');
+  }catch(e){
+    orders=[];
+    ordersLoadError=e.message||'خطا در دریافت سفارش‌ها';
+    toast(ordersLoadError,false);
+  }
   filtered=[...orders];
   updateStats();
   renderTable();
 }
-
 async function loadProducts(){
   try{
     const res=await fetch(`${API.BASE_URL}/api/products?limit=500`);
@@ -366,11 +374,22 @@ function filterStat(status,el){
 
 // ── TABLE ──
 function renderTable(){
-  const s=document.getElementById('searchInp').value;
+  if(ordersLoadError){
+    document.getElementById('orderTbody').innerHTML='<tr><td colspan="7" style="padding:28px;text-align:center;color:#b91c1c">'+Admin.escape(ordersLoadError)+'<br><button class="btn-sec" style="margin-top:12px" onclick="loadOrders()">تلاش دوباره</button></td></tr>';
+    document.getElementById('pagerInfo').textContent='—';
+    document.getElementById('pagerBtns').innerHTML='';
+    return;
+  }  const s=document.getElementById('searchInp').value;
   const sf=document.getElementById('statusFilter').value;
   filtered=orders.filter(o=>(!s||(o.user_name?.includes(s)||String(o.id).includes(s)))&&(!sf||o.status===sf));
   const total=filtered.length,pages=Math.ceil(total/PER)||1;
-  if(page>pages)page=1;
+  if(!total){
+    page=1;
+    document.getElementById('pagerInfo').textContent='نمایش ۰ از ۰ سفارش';
+    document.getElementById('orderTbody').innerHTML='<tr><td colspan="7" style="padding:28px;text-align:center;color:#64748b">سفارشی ثبت نشده است.</td></tr>';
+    document.getElementById('pagerBtns').innerHTML='';
+    return;
+  }  if(page>pages)page=1;
   const start=(page-1)*PER,end=Math.min(start+PER,total);
   document.getElementById('pagerInfo').textContent=`نمایش ${fa(start+1)}–${fa(end)} از ${fa(total)} سفارش`;
   document.getElementById('orderTbody').innerHTML=filtered.slice(start,end).map((o,i)=>`
@@ -469,7 +488,7 @@ async function openDetail(i){
 async function loadDetailItems(orderId){
   try{
     const token=OnPartSession.getToken('admin');
-    const res=await fetch(`${API.BASE_URL}/api/orders/${orderId}`,{headers:{'Authorization':'Bearer '+token}});
+    const res=await fetch(`${API.BASE_URL}/api/orders/${orderId}?admin=1`,{headers:{'Authorization':'Bearer '+token}});
     const data=await res.json();
     const items=data.items||[];
     const el=document.getElementById('detailItems');
@@ -630,7 +649,7 @@ async function loadOrderItemsForEdit(orderId){
   invItemCount=0;
   try{
     const token=OnPartSession.getToken('admin');
-    const res=await fetch(`${API.BASE_URL}/api/orders/${orderId}`,{headers:{'Authorization':'Bearer '+token}});
+    const res=await fetch(`${API.BASE_URL}/api/orders/${orderId}?admin=1`,{headers:{'Authorization':'Bearer '+token}});
     const data=await res.json();
     const items=data.items||[];
     if(!items.length){ addInvItem(); return; }

@@ -133,7 +133,7 @@
         </div>
         <div class="stat">
           <div class="stat-top"><div class="stat-icon si-green"><i class="ti ti-users"></i></div><span class="stat-trend" id="trend_users" style="display:none"></span></div>
-          <div class="stat-val" id="stat_users">۰</div><div class="stat-lbl">کاربران فعال</div>
+          <div class="stat-val" id="stat_users">—</div><div class="stat-lbl">کاربران فعال</div>
         </div>
         <div class="stat">
           <div class="stat-top"><div class="stat-icon si-amber"><i class="ti ti-cash"></i></div><span class="stat-trend" id="trend_sales" style="display:none"></span></div>
@@ -316,11 +316,12 @@ function toJalali(dateStr){
     const loading='<tr><td colspan="5" style="padding:24px;color:#94a3b8">در حال دریافت اطلاعات...</td></tr>';
     document.getElementById('recentOrdersTable').innerHTML=loading;
     document.getElementById('pendingPayTable').innerHTML=loading;
+    document.getElementById('stat_users').textContent='—';
     try{
       const data=await API.request('/api/dashboard');
       const m=data.metrics||{};
       document.getElementById('stat_orders').textContent=fa(m.total_orders||0);
-      document.getElementById('stat_users').textContent=fa(m.active_users||0);
+      document.getElementById('stat_users').textContent=m.active_users==null?'—':fa(Number(m.active_users));
       document.getElementById('stat_sales').textContent=fmt(m.month_sales||0);
       document.getElementById('stat_partners').textContent=fa(m.active_partners||0);
       const orderLabels={pending_expert:'در انتظار بررسی',pending_customer:'در انتظار مشتری',pending_payment:'در انتظار پرداخت',preparing:'در حال تأمین',shipping:'در حال ارسال',delivered:'تحویل‌شده',cancelled:'لغوشده'};
@@ -342,6 +343,7 @@ function toJalali(dateStr){
   }
   loadDashboard();
   window.addEventListener('onpart:admin-notification', loadDashboard);
+  window.addEventListener('onpart:user-data-changed', loadDashboard);
   setInterval(loadDashboard, 30000);
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) loadDashboard(); });
 </script>
