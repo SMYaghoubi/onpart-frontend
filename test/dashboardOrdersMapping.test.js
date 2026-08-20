@@ -9,7 +9,8 @@ test('dashboard displays the API active-user count and never fabricates zero on 
   assert.match(page,/m\.active_users==null\?'—':fa\(Number\(m\.active_users\)\)/);
   assert.doesNotMatch(page,/stat_users'\)\.textContent=fa\(m\.active_users\|\|0\)/);
   assert.match(page,/id="stat_users">—</);
-  assert.match(page,/onpart:user-data-changed', loadDashboard/);
+  assert.match(page,/onpart:user-data-changed',refreshForUserData/);
+  assert.match(page,/AdminRefreshCoordinator\.create\(loadDashboard,\{delay:250\}\)/);
 });
 
 test('admin orders maps supported response shapes and distinguishes errors from a real empty list',()=>{

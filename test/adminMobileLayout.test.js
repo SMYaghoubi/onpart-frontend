@@ -14,7 +14,8 @@ test('admin content remains one viewport wide at mobile breakpoints',()=>{
   assert.match(source,/\.table-wrap,\.table-card\{width:100%!important;max-width:100%!important;overflow-x:auto!important/);
 });
 test('drawer controls support backdrop, toggle and Escape',()=>{
-  assert.match(source,/overlay\.onclick = \(\) => this\.closeSidebar\(\)/);
+  assert.match(source,/\[data-admin-sidebar-toggle\],\[data-admin-sidebar-close\],#sidebarOverlay/);
+  assert.match(source,/if\(this\._sidebarEventsBound\) return/);
   assert.match(source,/event\.key==='Escape'/);
   assert.match(source,/classList\.add\('open'\)/);
   assert.match(source,/classList\.remove\('open'\)/);

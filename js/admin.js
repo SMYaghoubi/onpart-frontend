@@ -4,7 +4,13 @@ const API_BASE = 'https://onpartpadmin.liara.run';
 const Admin = {
   _adminNotificationAudio: null,
   _adminNotificationSoundReady: false,
+  _adminNotificationSoundUnlocking: false,
+  _adminNotificationUnlockHandler: null,
   _adminNotificationStream: null,
+  _badgeLoadPromise: null,
+  _notifLoadPromise: null,
+  _notifTrailingNotify: false,
+  _sidebarEventsBound: false,
 
   // All pages with permission keys
   pages: [
@@ -74,9 +80,10 @@ const Admin = {
     if (!this.protect(activePage ? activePage.perm : null)) return;
 
     const user = this.getUser();
+    const sidebarInitiallyHidden=window.matchMedia?.('(max-width:768px)').matches?'true':'false';
     let html = `
-    <div class="sidebar" role="navigation" aria-label="منوی مدیریت">
-      <button type="button" class="sb-mobile-close" onclick="Admin.closeSidebar()" aria-label="بستن منو"><i class="ti ti-x"></i></button>
+    <div class="sidebar" role="navigation" aria-label="منوی مدیریت" aria-hidden="${sidebarInitiallyHidden}">
+      <button type="button" class="sb-mobile-close" data-admin-sidebar-close aria-label="بستن منو"><i class="ti ti-x"></i></button>
       <div class="sb-logo" style="justify-content:center;padding:22px 16px">
         <img src="../images/logo.png" alt="لوگوی آن‌پارت" style="height:54px;object-fit:contain"/>
       </div>`;
@@ -126,9 +133,9 @@ const Admin = {
 
     // Load once after render, then refresh at a controlled interval.
     this.initAdminNotifications();
-    setTimeout(() => { this.loadNotifs(false); this.loadBadges(); }, 500);
+    setTimeout(() => { if(!document.hidden){ this.loadNotifs(false); this.loadBadges(); } }, 500);
     if(!this._notifInterval) {
-      this._notifInterval = setInterval(() => { this.loadNotifs(true); this.loadBadges(); }, 20000);
+      this._notifInterval = setInterval(() => { if(!document.hidden){ this.loadNotifs(true); this.loadBadges(); } }, 20000);
     }
 
     // Create overlay only (the blue hamburger button is in topbar)
@@ -136,12 +143,44 @@ const Admin = {
       const overlay = document.createElement('div');
       overlay.className = 'sidebar-overlay';
       overlay.id = 'sidebarOverlay';
+      overlay.setAttribute('aria-hidden','true');
       document.body.appendChild(overlay);
-      overlay.onclick = () => this.closeSidebar();
     }
+    this.bindSidebarInteractions();
   },
 
-  async loadBadges() {
+  bindSidebarInteractions() {
+    if(this._sidebarEventsBound) return;
+    this._sidebarEventsBound = true;
+    this._sidebarClickHandler = event => {
+      const target = event.target?.closest?.('[data-admin-sidebar-toggle],[data-admin-sidebar-close],#sidebarOverlay');
+      if(!target) return;
+      if(target.matches('[data-admin-sidebar-toggle]')) this.toggleSidebar();
+      else this.closeSidebar();
+    };
+    this._sidebarKeyHandler = event => {
+      const sidebar=document.querySelector('.sidebar.open');
+      if(!sidebar) return;
+      if(event.key==='Escape'){this.closeSidebar();return;}
+      if(event.key==='Tab'){
+        const items=[...sidebar.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(el=>el.offsetParent!==null);
+        if(!items.length)return;
+        const first=items[0],last=items[items.length-1];
+        if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+        else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+      }
+    };
+    document.addEventListener('click',this._sidebarClickHandler);
+    document.addEventListener('keydown',this._sidebarKeyHandler);
+  },
+  loadBadges() {
+    if(document.hidden)return Promise.resolve();
+    if(this._badgeLoadPromise)return this._badgeLoadPromise;
+    this._badgeLoadPromise=this._loadBadgesNow().finally(()=>{this._badgeLoadPromise=null;});
+    return this._badgeLoadPromise;
+  },
+
+  async _loadBadgesNow() {
     try {
       const token = OnPartSession.getToken('admin');
       const h = {'Authorization':'Bearer '+token};
@@ -165,7 +204,7 @@ const Admin = {
       <div class="topbar-title"><i class="ti ${this.escape(icon)}"></i>${this.escape(title)}</div>
       <div class="topbar-right">
         <a href="/shop" onclick="sessionStorage.setItem('allow_shop','1')" style="display:flex;align-items:center;gap:5px;background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0;border-radius:8px;padding:6px 12px;text-decoration:none;font-size:12px;font-weight:600;font-family:Vazirmatn,sans-serif" title="مشاهده فروشگاه"><i class="ti ti-external-link" style="font-size:14px"></i>فروشگاه</a>
-        <button type="button" class="sb-burger" id="adminMenuButton" onclick="Admin.toggleSidebar()" aria-label="باز کردن منو" aria-controls="sidebar-placeholder" aria-expanded="false"><i class="ti ti-menu-2"></i></button>
+        <button type="button" class="sb-burger" id="adminMenuButton" data-admin-sidebar-toggle aria-label="باز کردن منو" aria-controls="sidebar-placeholder" aria-expanded="false"><i class="ti ti-menu-2"></i></button>
         <div class="search-box">
           <i class="ti ti-search" style="color:#aaa;font-size:16px"></i>
           <input placeholder="جستجو..."/>
@@ -247,40 +286,78 @@ const Admin = {
   },
 
   initAdminNotifications() {
-    if (this._adminNotificationAudio) return;
-    const audio = new Audio('/audio/onpart-notification.mp3');
-    audio.preload = 'auto';
-    this._adminNotificationAudio = audio;
-    const unlock = () => {
-      if (this._adminNotificationSoundReady) return;
-      audio.muted = true;
-      audio.play().then(() => {
-        audio.pause();
-        audio.currentTime = 0;
-        audio.muted = false;
-        this._adminNotificationSoundReady = true;
-      }).catch(() => { audio.muted = false; });
-    };
-    ['pointerdown','touchstart','click','keydown'].forEach(event =>
-      document.addEventListener(event, unlock, { passive: true })
-    );
-    if (window.EventSource) {
-      this._adminNotificationStream = new EventSource(API_BASE + '/api/announcements/stream');
-      this._adminNotificationStream.addEventListener('admin-notification', () => this.loadNotifs(true));
-      this._adminNotificationStream.addEventListener('user-data-changed', event => {
-        let detail={};try{detail=JSON.parse(event.data||'{}')}catch(_){}
+    if(!this._adminNotificationAudio){
+      const audio=new Audio('/audio/onpart-notification.mp3');
+      audio.preload='auto';
+      this._adminNotificationAudio=audio;
+      this.bindAdminAudioUnlock();
+    }
+    if(window.EventSource&&!this._adminNotificationStream){
+      this._adminNotificationStream=new EventSource(API_BASE+'/api/announcements/stream');
+      this._adminNotificationStream.addEventListener('admin-notification',()=>this.loadNotifs(true));
+      this._adminNotificationStream.addEventListener('user-data-changed',event=>{
+        let detail={};try{detail=JSON.parse(event.data||'{}');}catch(_){}
         window.dispatchEvent(new CustomEvent('onpart:user-data-changed',{detail}));
       });
     }
   },
 
-  playAdminNotificationSound() {
-    if (!this._adminNotificationSoundReady || !this._adminNotificationAudio) return;
-    this._adminNotificationAudio.currentTime = 0;
-    this._adminNotificationAudio.play().catch(() => { this._adminNotificationSoundReady = false; });
+  bindAdminAudioUnlock() {
+    if(this._adminNotificationSoundReady||this._adminNotificationUnlockHandler)return;
+    const unlock=()=>{
+      if(this._adminNotificationSoundReady||this._adminNotificationSoundUnlocking)return;
+      const audio=this._adminNotificationAudio;
+      if(!audio)return;
+      this._adminNotificationSoundUnlocking=true;
+      audio.muted=true;
+      let playResult;
+      try{playResult=audio.play();}
+      catch(error){audio.muted=false;this._adminNotificationSoundUnlocking=false;return;}
+      Promise.resolve(playResult).then(()=>{
+        audio.pause();audio.currentTime=0;audio.muted=false;
+        this._adminNotificationSoundReady=true;
+        this.removeAdminAudioUnlock();
+      }).catch(()=>{audio.muted=false;}).finally(()=>{
+        this._adminNotificationSoundUnlocking=false;
+      });
+    };
+    this._adminNotificationUnlockHandler=unlock;
+    document.addEventListener('pointerdown',unlock,{passive:true});
+    document.addEventListener('keydown',unlock);
   },
 
-  async loadNotifs(notify = false) {
+  removeAdminAudioUnlock() {
+    const unlock=this._adminNotificationUnlockHandler;
+    if(!unlock)return;
+    document.removeEventListener('pointerdown',unlock);
+    document.removeEventListener('keydown',unlock);
+    this._adminNotificationUnlockHandler=null;
+  },
+
+  playAdminNotificationSound() {
+    if(!this._adminNotificationSoundReady||!this._adminNotificationAudio)return;
+    this._adminNotificationAudio.currentTime=0;
+    this._adminNotificationAudio.play().catch(()=>{
+      this._adminNotificationSoundReady=false;
+      this.bindAdminAudioUnlock();
+    });
+  },
+  loadNotifs(notify = false) {
+    if(document.hidden)return Promise.resolve();
+    if(this._notifLoadPromise){
+      this._notifTrailingNotify=this._notifTrailingNotify||notify;
+      return this._notifLoadPromise;
+    }
+    this._notifLoadPromise=this._loadNotifsNow(notify).finally(()=>{
+      this._notifLoadPromise=null;
+      const trailing=this._notifTrailingNotify;
+      this._notifTrailingNotify=false;
+      if(trailing&&!document.hidden)queueMicrotask(()=>this.loadNotifs(true));
+    });
+    return this._notifLoadPromise;
+  },
+
+  async _loadNotifsNow(notify = false) {
     const token = OnPartSession.getToken('admin');
     if (!token) return;
     try {
@@ -337,15 +414,34 @@ const Admin = {
   },
 
   closeSidebar(restoreFocus = true) {
-    const sb=document.querySelector('.sidebar'),overlay=document.getElementById('sidebarOverlay'),button=document.getElementById('adminMenuButton');
-    if(sb)sb.classList.remove('open');if(overlay)overlay.classList.remove('show');
-    document.body.classList.remove('admin-menu-open');if(button){button.setAttribute('aria-expanded','false');if(restoreFocus)button.focus()}
+    const sidebar=document.querySelector('.sidebar');
+    const overlay=document.getElementById('sidebarOverlay');
+    const button=document.getElementById('adminMenuButton');
+    if(sidebar){sidebar.classList.remove('open');sidebar.setAttribute('aria-hidden',window.matchMedia?.('(max-width:768px)').matches?'true':'false');}
+    if(overlay){overlay.classList.remove('show');overlay.setAttribute('aria-hidden','true');}
+    document.body.classList.remove('admin-menu-open');
+    document.documentElement.classList.remove('admin-menu-open');
+    if(button){
+      button.setAttribute('aria-expanded','false');
+      if(restoreFocus) requestAnimationFrame(()=>{
+        if(!document.querySelector('.sidebar.open')) button.focus({preventScroll:true});
+      });
+    }
   },
   toggleSidebar() {
-    const sb=document.querySelector('.sidebar'),button=document.getElementById('adminMenuButton');if(!sb)return;
-    const opening=!sb.classList.contains('open');
-    if(opening){sb.classList.add('open');document.getElementById('sidebarOverlay')?.classList.add('show');document.body.classList.add('admin-menu-open');button?.setAttribute('aria-expanded','true');sb.querySelector('a,button,[tabindex]')?.focus()}
-    else this.closeSidebar();
+    const sidebar=document.querySelector('.sidebar');
+    const overlay=document.getElementById('sidebarOverlay');
+    const button=document.getElementById('adminMenuButton');
+    if(!sidebar)return;
+    const opening=!sidebar.classList.contains('open');
+    if(!opening){this.closeSidebar();return;}
+    sidebar.classList.add('open');
+    sidebar.setAttribute('aria-hidden','false');
+    if(overlay){overlay.classList.add('show');overlay.setAttribute('aria-hidden','false');}
+    document.body.classList.add('admin-menu-open');
+    document.documentElement.classList.add('admin-menu-open');
+    button?.setAttribute('aria-expanded','true');
+    sidebar.querySelector('a,button,[tabindex]')?.focus({preventScroll:true});
   },
 
   toggleNotifPanel() {
@@ -473,11 +569,11 @@ adminStyle.textContent = `
   @media(max-width:768px){
     .layout{display:block!important;width:100%!important;max-width:100vw!important;overflow-x:clip!important}
     #sidebar-placeholder{width:0!important;min-width:0!important}
-    html body .layout .sidebar{position:fixed!important;inset-block:0!important;right:0!important;left:auto!important;width:min(86vw,300px)!important;margin:0!important;transform:translate3d(calc(100% + 32px),0,0)!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;transition:transform .22s ease,opacity .18s ease,visibility .22s!important;padding-bottom:env(safe-area-inset-bottom)}
-    html body .layout .sidebar.open{transform:translate3d(0,0,0)!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+    html body .layout .sidebar{position:fixed!important;inset-block:0!important;right:0!important;left:auto!important;width:min(86vw,300px)!important;margin:0!important;transform:translate3d(calc(100% + 32px),0,0)!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;transition:transform .22s ease,opacity .18s ease,visibility 0s linear .22s!important;will-change:transform,opacity;padding-bottom:env(safe-area-inset-bottom)}
+    html body .layout .sidebar.open{transform:translate3d(0,0,0)!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;transition-delay:0s!important}
     .sidebar.open .sb-mobile-close{display:flex}
-    .sidebar-overlay{display:block!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;z-index:999!important;transition:opacity .18s ease,visibility .18s!important}
-    .sidebar-overlay.show{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+    .sidebar-overlay{display:block!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;z-index:999!important;transition:opacity .18s ease,visibility 0s linear .18s!important}
+    .sidebar-overlay.show{opacity:1!important;visibility:visible!important;pointer-events:auto!important;transition-delay:0s!important}
     .sidebar{z-index:1000!important}
     .main{display:block!important;flex:none!important;width:100%!important;max-width:100vw!important;min-width:0!important;margin:0!important;overflow-x:clip!important}
     .topbar{box-sizing:border-box;width:100%;min-height:54px;height:auto;gap:8px;padding:5px 10px!important;overflow:visible}
@@ -495,17 +591,6 @@ adminStyle.textContent = `
   @media(prefers-reduced-motion:reduce){.sidebar{transition:none!important}}
 `;
 document.head.appendChild(adminStyle);
-document.addEventListener('keydown',event=>{
-  const sidebar=document.querySelector('.sidebar.open');if(!sidebar)return;
-  if(event.key==='Escape'){Admin.closeSidebar();return}
-  if(event.key==='Tab'){
-    const items=[...sidebar.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(el=>el.offsetParent!==null);
-    if(!items.length)return;const first=items[0],last=items[items.length-1];
-    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
-    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
-  }
-});
-
 // Auto-add data-label to table cells for mobile card view
 function addTableLabels(){
   document.querySelectorAll('.tbl').forEach(tbl => {

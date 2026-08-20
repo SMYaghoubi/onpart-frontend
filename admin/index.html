@@ -255,6 +255,7 @@
 
 <script src="../js/api.js"></script>
 <script src="../js/admin.js"></script>
+<script src="../js/admin-refresh.js"></script>
 <script>
 
 function toJalali(dateStr){
@@ -312,11 +313,14 @@ function toJalali(dateStr){
   const statusBadge={pending_expert:'b-amber',pending_customer:'b-purple',pending_payment:'b-purple',preparing:'b-blue',shipping:'b-teal',delivered:'b-green',cancelled:'b-red'};
   const statusLabel={pending_expert:'منتظر تایید',pending_customer:'منتظر تایید',pending_payment:'منتظر پرداخت',preparing:'آماده‌سازی',shipping:'در ارسال',delivered:'تحویل شده',cancelled:'ابطال'};
 
-  async function loadDashboard(){
-    const loading='<tr><td colspan="5" style="padding:24px;color:#94a3b8">در حال دریافت اطلاعات...</td></tr>';
-    document.getElementById('recentOrdersTable').innerHTML=loading;
-    document.getElementById('pendingPayTable').innerHTML=loading;
-    document.getElementById('stat_users').textContent='—';
+  let dashboardHasData=false;
+  async function loadDashboard(reason='background'){
+    if(reason==='initial'&&!dashboardHasData){
+      const loading='<tr><td colspan="5" style="padding:24px;color:#94a3b8">در حال دریافت اطلاعات...</td></tr>';
+      document.getElementById('recentOrdersTable').innerHTML=loading;
+      document.getElementById('pendingPayTable').innerHTML=loading;
+      document.getElementById('stat_users').textContent='—';
+    }
     try{
       const data=await API.request('/api/dashboard');
       const m=data.metrics||{};
@@ -335,17 +339,34 @@ function toJalali(dateStr){
       const today=sales.length?Number(sales[sales.length-1].sales)||0:0,yesterday=sales.length>1?Number(sales[sales.length-2].sales)||0:0;
       document.getElementById('stat_today').textContent=fmt(today);document.getElementById('stat_yesterday').textContent=fmt(yesterday);document.getElementById('stat_growth').textContent=yesterday?fa(Math.round((today-yesterday)*100/yesterday))+'٪':'—';
       const profit=data.profit_7d||{};document.getElementById('recentOrders').innerHTML='<div style="padding:12px;background:#f0fdf4;border-radius:10px;margin-bottom:10px"><b>سود هفت روز:</b> '+fmt(profit.profit||0)+' تومان · '+fa(profit.percent||0)+'٪</div>'+(data.activities||[]).map(a=>'<a href="'+Admin.escape(a.link||'#')+'" style="display:block;padding:9px;border-bottom:1px solid #eee;text-decoration:none;color:#334155">'+Admin.escape(a.title)+'<small style="float:left">'+toJalali(a.created_at)+'</small></a>').join('');
+      dashboardHasData=true;
     }catch(e){
-      document.getElementById('recentOrdersTable').innerHTML='<tr><td colspan="5" class="empty">خطا در دریافت اطلاعات؛ دوباره تلاش کنید.</td></tr>';
-      document.getElementById('pendingPayTable').innerHTML='<tr><td colspan="3" class="empty">خطا در دریافت اطلاعات</td></tr>';
+      if(!dashboardHasData){
+        document.getElementById('recentOrdersTable').innerHTML='<tr><td colspan="5" class="empty">خطا در دریافت اطلاعات؛ دوباره تلاش کنید.</td></tr>';
+        document.getElementById('pendingPayTable').innerHTML='<tr><td colspan="3" class="empty">خطا در دریافت اطلاعات</td></tr>';
+      }
       Admin.toast(e.message,'error');
     }
   }
-  loadDashboard();
-  window.addEventListener('onpart:admin-notification', loadDashboard);
-  window.addEventListener('onpart:user-data-changed', loadDashboard);
-  setInterval(loadDashboard, 30000);
-  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) loadDashboard(); });
+  const dashboardRefresh=AdminRefreshCoordinator.create(loadDashboard,{delay:250});
+  const refreshForAdminNotification=()=>dashboardRefresh.request('admin-notification');
+  const refreshForUserData=()=>dashboardRefresh.request('user-data-changed');
+  const refreshWhenVisible=()=>{if(!document.hidden)dashboardRefresh.request('visibility');};
+  dashboardRefresh.request('initial',{immediate:true});
+  window.addEventListener('onpart:admin-notification',refreshForAdminNotification);
+  window.addEventListener('onpart:user-data-changed',refreshForUserData);
+  document.addEventListener('visibilitychange',refreshWhenVisible);
+  const dashboardInterval=setInterval(()=>{if(!document.hidden)dashboardRefresh.request('interval');},30000);
+  const cleanupDashboard=event=>{
+    if(event.persisted)return;
+    clearInterval(dashboardInterval);
+    dashboardRefresh.destroy();
+    window.removeEventListener('onpart:admin-notification',refreshForAdminNotification);
+    window.removeEventListener('onpart:user-data-changed',refreshForUserData);
+    document.removeEventListener('visibilitychange',refreshWhenVisible);
+    window.removeEventListener('pagehide',cleanupDashboard);
+  };
+  window.addEventListener('pagehide',cleanupDashboard);
 </script>
 </body>
 </html>
