@@ -91,10 +91,10 @@
       </div>
 
       <div class="tabs">
-        <button class="tab on" onclick="setTab(this,'pending')">در انتظار <span class="tab-badge" id="pendingBadge">0</span></button>
+        <button class="tab" onclick="setTab(this,'pending')">در انتظار <span class="tab-badge" id="pendingBadge">0</span></button>
         <button class="tab" onclick="setTab(this,'approved')">تأیید شده</button>
         <button class="tab" onclick="setTab(this,'rejected')">رد شده</button>
-        <button class="tab" onclick="setTab(this,'all')">همه</button>
+        <button class="tab on" onclick="setTab(this,'all')">همه</button>
       </div>
 
       <div class="toolbar">
@@ -107,7 +107,7 @@
 
       <div class="table-card">
         <div class="tc-head">
-          <div class="tc-title" id="tableTitle">پرداخت‌های در انتظار</div>
+          <div class="tc-title" id="tableTitle">همه پرداخت‌ها</div>
           <div style="display:flex;gap:8px">
             <button style="background:#dcfce7;color:#16a34a;border:none;border-radius:7px;padding:7px 14px;font-family:'Vazirmatn',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px" onclick="approveAll()"><i class="ti ti-checks"></i>تأیید همه</button>
             <button style="background:#f0fdf4;color:#16a34a;border:none;border-radius:7px;padding:7px 14px;font-family:'Vazirmatn',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px" onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i>اکسل</button>
@@ -147,6 +147,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="../js/api.js"></script>
+<script src="../js/admin-payment-data.js"></script>
 <script src="../js/admin.js"></script>
 <script>
 
@@ -179,12 +180,14 @@ Admin.renderTopbar('مدیریت پرداخت‌ها','ti-credit-card');
 const fa=n=>n.toString().replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 const fmt=n=>fa(Number(n).toLocaleString());
 const colors=['#1d4ed8','#16a34a','#d97706','#7c3aed','#0f766e','#dc2626'];
-let payments=[],filtered=[],currentId=null,curTab='pending',page=1,receiptObjectUrl=null;const PER=15;
+let payments=[],filtered=[],currentId=null,curTab='all',page=1,receiptObjectUrl=null;
+let paymentsLoading=false,paymentsLoadError=null,paymentsLoadPromise=null,paymentsRefreshQueued=false;
+const PER=15;
 
 function allocationLinks(payment){
   const rows=Array.isArray(payment.allocations)?[...payment.allocations]:[];
   if(!rows.length&&payment.order_id)rows.push({order_id:Number(payment.order_id),amount:Number(payment.allocated_amount||payment.amount||0)});
-  if(!rows.length)return '<span style="color:#94a3b8">تخصیص‌نیافته</span>';
+  if(!rows.length)return '<span style="color:#94a3b8">—</span>';
   return rows.map(row=>`<a class="order-link" href="/admin/orders?order=${Number(row.order_id)}"><i class="ti ti-shopping-bag"></i>#${fa(row.order_id)} <small>${fmt(row.amount)} ت</small></a>`).join(' ');
 }
 
@@ -202,24 +205,54 @@ async function deletePayment(id, btn){
   }catch(e){ toast('خطا در حذف پرداخت',false); }
 }
 
-async function loadPayments(){
-  try {
-    const token=OnPartSession.getToken('admin');
-    const res=await fetch(API.BASE_URL+'/api/payments',{headers:{'Authorization':'Bearer '+token}});
-    if(res.ok) payments=await res.json();
-    else payments=[];
-  } catch(e){ payments=[]; }
-  updateStats(); renderTable();
+function loadPayments(){
+  if(paymentsLoadPromise){
+    paymentsRefreshQueued=true;
+    return paymentsLoadPromise;
+  }
+  paymentsLoading=true;
+  paymentsLoadError=null;
+  updateStats();
+  renderTable();
+  paymentsLoadPromise=(async()=>{
+    try {
+      const token=OnPartSession.getToken('admin');
+      const res=await fetch(API.BASE_URL+'/api/payments?admin=1',{
+        headers:{'Authorization':'Bearer '+token},
+        cache:'no-store'
+      });
+      const payload=await res.json().catch(()=>({}));
+      if(!res.ok)throw new Error(payload.message||(res.status===401||res.status===403?'نشست مدیریت معتبر نیست':'خطا در دریافت فهرست پرداخت‌ها'));
+      payments=AdminPaymentData.parseResponse(payload);
+      paymentsLoadError=null;
+    } catch(error){
+      paymentsLoadError=error.message||'خطا در دریافت فهرست پرداخت‌ها';
+    } finally {
+      paymentsLoading=false;
+      paymentsLoadPromise=null;
+      updateStats();
+      renderTable();
+      if(paymentsRefreshQueued){
+        paymentsRefreshQueued=false;
+        queueMicrotask(loadPayments);
+      }
+    }
+  })();
+  return paymentsLoadPromise;
 }
 
 function updateStats(){
-  const pending=payments.filter(p=>p.status==='pending');
-  const approved=payments.filter(p=>p.status==='approved');
-  document.getElementById('pendingCount').textContent=fa(pending.length);
-  document.getElementById('pendingBadge').textContent=fa(pending.length);
-  document.getElementById('approvedSum').textContent=fmt(approved.reduce((s,p)=>s+Number(p.amount),0));
-  document.getElementById('rejectedCount').textContent=fa(payments.filter(p=>p.status==='rejected').length);
-  document.getElementById('totalSum').textContent=fmt(payments.reduce((s,p)=>s+Number(p.amount),0));
+  if(paymentsLoadError&&!payments.length){
+    ['pendingCount','approvedSum','rejectedCount','totalSum'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('pendingBadge').textContent='—';
+    return;
+  }
+  const stats=AdminPaymentData.summarize(payments);
+  document.getElementById('pendingCount').textContent=fa(stats.pendingCount);
+  document.getElementById('pendingBadge').textContent=fa(stats.pendingCount);
+  document.getElementById('approvedSum').textContent=fmt(stats.approvedMonthSum);
+  document.getElementById('rejectedCount').textContent=fa(stats.rejectedCount);
+  document.getElementById('totalSum').textContent=fmt(stats.totalSum);
 }
 
 const sBadge={approved:'b-green',pending:'b-amber',rejected:'b-red'};
@@ -230,10 +263,20 @@ function renderTable(){
   const bf=document.getElementById('bankF').value;
   const tabMap={pending:'pending',approved:'approved',rejected:'rejected',all:''};
   const st=tabMap[curTab];
-  filtered=payments.filter(p=>
-    (!s||(p.user_name?.includes(s)||p.track_number?.includes(s)))&&
-    (!bf||p.bank===bf)&&(!st||p.status===st)
-  );
+  if(paymentsLoading&&!payments.length){
+    document.getElementById('payTbody').innerHTML='<tr><td colspan="9" class="empty">در حال دریافت پرداخت‌ها...</td></tr>';
+    document.getElementById('pagerInfo').textContent='در حال دریافت...';
+    document.getElementById('pagerBtns').innerHTML='';
+    return;
+  }
+  if(paymentsLoadError){
+    const loginAction=/نشست|توکن|دسترسی|مجوز/.test(paymentsLoadError)?'<a class="btn-sec" href="/admin/login">ورود دوباره</a>':'';
+    document.getElementById('payTbody').innerHTML='<tr><td colspan="9" class="empty"><div style="display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap"><span>'+Admin.escape(paymentsLoadError)+'</span><button class="btn-sec" type="button" onclick="loadPayments()">تلاش دوباره</button>'+loginAction+'</div></td></tr>';
+    document.getElementById('pagerInfo').textContent='دریافت اطلاعات ناموفق بود';
+    document.getElementById('pagerBtns').innerHTML='';
+    return;
+  }
+  filtered=AdminPaymentData.filter(payments,{search:s,bank:bf,status:st});
   const total=filtered.length,pages=Math.max(1,Math.ceil(total/PER));
   if(page>pages)page=1;
   const start=(page-1)*PER,end=Math.min(start+PER,total);
@@ -326,7 +369,7 @@ function openModal(id){
 async function loadReceipt(id,type){
   const zone=document.getElementById('receiptPreview');if(!zone)return;
   try{
-    const response=await fetch(`${API.BASE_URL}/api/payments/${Number(id)}/receipt`,{headers:{'Authorization':'Bearer '+OnPartSession.getToken('admin')}});
+    const response=await fetch(`${API.BASE_URL}/api/payments/${Number(id)}/receipt?admin=1`,{headers:{'Authorization':'Bearer '+OnPartSession.getToken('admin')}});
     if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.message||'فایل فیش دریافت نشد')}
     const blob=await response.blob();
     if(receiptObjectUrl)URL.revokeObjectURL(receiptObjectUrl);
@@ -391,7 +434,9 @@ function exportExcel(){
 }
 
 let realtimePaymentTimer=null;
-window.addEventListener('onpart:user-data-changed',()=>{clearTimeout(realtimePaymentTimer);realtimePaymentTimer=setTimeout(loadPayments,250)});
+function schedulePaymentRefresh(){clearTimeout(realtimePaymentTimer);realtimePaymentTimer=setTimeout(loadPayments,250)}
+window.addEventListener('onpart:user-data-changed',schedulePaymentRefresh);
+window.addEventListener('onpart:admin-notification',schedulePaymentRefresh);
 loadPayments();
 </script>
 </body>

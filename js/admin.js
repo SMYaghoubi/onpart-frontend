@@ -218,10 +218,10 @@ const Admin = {
       };
       const [oRes,pRes] = await Promise.all([
         fetch(BASE+'/api/orders?limit=200&admin=1',{headers:h}).catch(()=>null),
-        fetch(BASE+'/api/payments',{headers:h}).catch(()=>null),
+        fetch(BASE+'/api/payments?admin=1',{headers:h,cache:'no-store'}).catch(()=>null),
       ]);
       if(oRes&&oRes.ok){ const d=await oRes.json(); setBadge('orders',d.filter(o=>o.status==='pending_expert').length); }
-      if(pRes&&pRes.ok){ const d=await pRes.json(); setBadge('payments',d.filter(p=>p.status==='pending').length); }
+      if(pRes&&pRes.ok){ const d=await pRes.json(); const rows=Array.isArray(d)?d:(Array.isArray(d.payments)?d.payments:[]); setBadge('payments',rows.filter(p=>['pending','pending_review','submitted'].includes(p.status)).length); }
     } catch(e){}
   },
 
