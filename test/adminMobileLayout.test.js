@@ -4,8 +4,8 @@ const fs=require('node:fs');
 const source=fs.readFileSync(require.resolve('../js/admin.js'),'utf8');
 test('closed mobile admin drawer is fully outside viewport and inert',()=>{
   assert.match(source,/translate3d\(calc\(100% \+ 32px\),0,0\)!important/);
-  assert.match(source,/opacity:0!important;visibility:hidden!important;pointer-events:none!important/);
-  assert.match(source,/sidebar\.open\{transform:translate3d\(0,0,0\)!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important/);
+  assert.match(source,/transform:translate3d\(calc\(100% \+ 32px\),0,0\)!important;visibility:hidden!important;pointer-events:none!important;contain:layout paint/);
+  assert.match(source,/sidebar\.open\{transform:translate3d\(0,0,0\)!important;visibility:visible!important;pointer-events:auto!important/);
 });
 test('admin content remains one viewport wide at mobile breakpoints',()=>{
   assert.match(source,/@media\(max-width:768px\)/);

@@ -19,8 +19,9 @@ test('dashboard coordinator merges bursts and allows at most one trailing refres
   assert.equal(calls,1);assert.equal(timers.size(),0);
   first.resolve();await waitTick();await waitTick();
   assert.equal(timers.size(),1);
-  timers.flush();await waitTick();
+  timers.flush();await waitTick();await waitTick();
   assert.equal(calls,2);
+  assert.equal(timers.size(),0);
   coordinator.destroy();
 });
 
@@ -56,7 +57,11 @@ test('admin audio unlock plays once per gesture, removes listeners on success an
   assert.equal((env.listeners.get('keydown')||[]).length,1);
   assert.equal((env.listeners.get('touchstart')||[]).length,0);
   assert.equal((env.listeners.get('click')||[]).length,0);
-  const unlock=env.listeners.get('pointerdown')[0];unlock();unlock();
+  const unlock=env.listeners.get('pointerdown')[0];
+  const menuControl={closest:()=>menuControl};
+  unlock({target:menuControl});await waitTick();
+  assert.equal(env.Admin._adminNotificationAudio.playCount,0);
+  unlock({target:null});unlock({target:null});await waitTick();
   assert.equal(env.Admin._adminNotificationAudio.playCount,1);
   pending.resolve();await waitTick();
   assert.equal((env.listeners.get('pointerdown')||[]).length,0);
@@ -64,8 +69,8 @@ test('admin audio unlock plays once per gesture, removes listeners on success an
 
   const failed=loadAdmin({playImpl:()=>Promise.reject(new Error('blocked'))});
   failed.Admin.initAdminNotifications();
-  failed.listeners.get('pointerdown')[0]();await waitTick();
-  failed.listeners.get('pointerdown')[0]();await waitTick();
+  failed.listeners.get('pointerdown')[0]({target:null});await waitTick();
+  failed.listeners.get('pointerdown')[0]({target:null});await waitTick();
   assert.equal(failed.Admin._adminNotificationAudio.playCount,2);
 });
 
@@ -78,6 +83,7 @@ test('sidebar close is synchronous, listeners bind once and aria/scroll lock sta
   env.document.getElementById=id=>id==='sidebarOverlay'?overlay:id==='adminMenuButton'?button:null;
   env.document.body.classList.add('admin-menu-open');env.document.documentElement.classList.add('admin-menu-open');
   env.Admin.bindSidebarInteractions();env.Admin.bindSidebarInteractions();
+  assert.equal((env.listeners.get('pointerup')||[]).length,1);
   assert.equal((env.listeners.get('click')||[]).length,1);
   assert.equal((env.listeners.get('keydown')||[]).length,1);
   const started=performance.now();env.Admin.closeSidebar();const elapsed=performance.now()-started;
@@ -86,7 +92,48 @@ test('sidebar close is synchronous, listeners bind once and aria/scroll lock sta
   assert.equal(sidebar.attrs['aria-hidden'],'true');assert.equal(overlay.attrs['aria-hidden'],'true');assert.equal(button.attrs['aria-expanded'],'false');
   assert.ok(elapsed<16,`class removal took ${elapsed}ms`);
   const source=fs.readFileSync(path.join(__dirname,'..','js/admin.js'),'utf8');
-  assert.match(source,/transition:transform \.22s/);assert.doesNotMatch(source,/backdrop-filter/);
+  assert.match(source,/transition:transform \.22s/);
+  assert.match(source,/contain:layout paint/);
+  assert.doesNotMatch(source,/translateX\(100%\)/);
+  assert.doesNotMatch(source,/backdrop-filter/);
+});
+
+test('menu pointer chain closes before audio work and flushes deferred polling once',async()=>{
+  const env=loadAdmin();env.Admin.initAdminNotifications();env.Admin.bindSidebarInteractions();
+  const sidebar={classList:classList(['open']),attrs:{},setAttribute(k,v){this.attrs[k]=v;},querySelector:()=>({focus(){}}),querySelectorAll:()=>[]};
+  const overlay={id:'sidebarOverlay',classList:classList(['show']),attrs:{},setAttribute(k,v){this.attrs[k]=v;}};
+  const button={attrs:{},setAttribute(k,v){this.attrs[k]=v;},focus(){},matches:selector=>selector.includes('toggle')};
+  button.closest=()=>button;
+  env.document.querySelector=selector=>{
+    if(selector==='.sidebar')return sidebar;
+    if(selector==='.sidebar.open')return sidebar.classList.contains('open')?sidebar:null;
+    return null;
+  };
+  env.document.getElementById=id=>id==='sidebarOverlay'?overlay:id==='adminMenuButton'?button:null;
+  env.document.body.classList.add('admin-menu-open');env.document.documentElement.classList.add('admin-menu-open');
+  env.Admin._badgeRefreshDeferred=true;env.Admin._notifRefreshDeferred=true;env.Admin._notifTrailingNotify=true;
+  let badgeCalls=0,notifCalls=0;
+  env.Admin.loadBadges=()=>{badgeCalls++;return Promise.resolve();};
+  env.Admin.loadNotifs=notify=>{notifCalls+=notify?1:100;return Promise.resolve();};
+  env.listeners.get('pointerdown')[0]({target:button});
+  env.listeners.get('pointerup')[0]({target:button});
+  assert.equal(sidebar.classList.contains('open'),false);
+  assert.equal(overlay.classList.contains('show'),false);
+  assert.equal(env.document.body.classList.contains('admin-menu-open'),false);
+  assert.equal(env.document.documentElement.classList.contains('admin-menu-open'),false);
+  assert.equal(env.Admin._adminNotificationAudio.playCount,0);
+  env.listeners.get('click')[0]({target:button});
+  assert.equal(sidebar.classList.contains('open'),false);
+  overlay.closest=()=>overlay;
+  sidebar.classList.add('open');overlay.classList.add('show');
+  env.listeners.get('pointerup')[0]({target:overlay});
+  assert.equal(sidebar.classList.contains('open'),false);
+  sidebar.classList.add('open');overlay.classList.add('show');
+  env.listeners.get('keydown')[1]({key:'Escape'});
+  assert.equal(sidebar.classList.contains('open'),false);
+  await waitTick();
+  assert.equal(badgeCalls,1);
+  assert.equal(notifCalls,1);
 });
 
 test('shared polling skips hidden pages and reuses overlapping requests',async()=>{
@@ -104,6 +151,8 @@ test('dashboard background refresh preserves rendered DOM and lifecycle listener
   assert.match(page,/if\(reason==='initial'&&!dashboardHasData\)/);
   assert.doesNotMatch(page,/async function loadDashboard\([^)]*\)\{\s*const loading=/);
   assert.match(page,/AdminRefreshCoordinator\.create\(loadDashboard,\{delay:250\}\)/);
+  assert.match(page,/if\(Admin\.isSidebarOpen\(\)\)/);
+  assert.match(page,/onpart:admin-sidebar-closed/);
   assert.match(page,/if\(!dashboardHasData\)\{/);
   assert.match(page,/removeEventListener\('onpart:admin-notification',refreshForAdminNotification\)/);
   assert.match(page,/clearInterval\(dashboardInterval\)/);

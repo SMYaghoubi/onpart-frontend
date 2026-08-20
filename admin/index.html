@@ -323,6 +323,10 @@ function toJalali(dateStr){
     }
     try{
       const data=await API.request('/api/dashboard');
+      if(Admin.isSidebarOpen()){
+        dashboardRefreshDeferred=true;
+        return;
+      }
       const m=data.metrics||{};
       document.getElementById('stat_orders').textContent=fa(m.total_orders||0);
       document.getElementById('stat_users').textContent=m.active_users==null?'—':fa(Number(m.active_users));
@@ -349,20 +353,35 @@ function toJalali(dateStr){
     }
   }
   const dashboardRefresh=AdminRefreshCoordinator.create(loadDashboard,{delay:250});
-  const refreshForAdminNotification=()=>dashboardRefresh.request('admin-notification');
-  const refreshForUserData=()=>dashboardRefresh.request('user-data-changed');
-  const refreshWhenVisible=()=>{if(!document.hidden)dashboardRefresh.request('visibility');};
-  dashboardRefresh.request('initial',{immediate:true});
+  let dashboardRefreshDeferred=false;
+  const requestDashboardRefresh=(reason,options)=>{
+    if(reason!=='initial'&&Admin.isSidebarOpen()){
+      dashboardRefreshDeferred=true;
+      return Promise.resolve();
+    }
+    return dashboardRefresh.request(reason,options);
+  };
+  const refreshForAdminNotification=()=>requestDashboardRefresh('admin-notification');
+  const refreshForUserData=()=>requestDashboardRefresh('user-data-changed');
+  const refreshWhenVisible=()=>{if(!document.hidden)requestDashboardRefresh('visibility');};
+  const refreshAfterSidebarClose=()=>{
+    if(!dashboardRefreshDeferred)return;
+    dashboardRefreshDeferred=false;
+    requestDashboardRefresh('sidebar-closed');
+  };
+  requestDashboardRefresh('initial',{immediate:true});
   window.addEventListener('onpart:admin-notification',refreshForAdminNotification);
   window.addEventListener('onpart:user-data-changed',refreshForUserData);
+  window.addEventListener('onpart:admin-sidebar-closed',refreshAfterSidebarClose);
   document.addEventListener('visibilitychange',refreshWhenVisible);
-  const dashboardInterval=setInterval(()=>{if(!document.hidden)dashboardRefresh.request('interval');},30000);
+  const dashboardInterval=setInterval(()=>{if(!document.hidden)requestDashboardRefresh('interval');},30000);
   const cleanupDashboard=event=>{
     if(event.persisted)return;
     clearInterval(dashboardInterval);
     dashboardRefresh.destroy();
     window.removeEventListener('onpart:admin-notification',refreshForAdminNotification);
     window.removeEventListener('onpart:user-data-changed',refreshForUserData);
+    window.removeEventListener('onpart:admin-sidebar-closed',refreshAfterSidebarClose);
     document.removeEventListener('visibilitychange',refreshWhenVisible);
     window.removeEventListener('pagehide',cleanupDashboard);
   };

@@ -10,7 +10,10 @@ const Admin = {
   _badgeLoadPromise: null,
   _notifLoadPromise: null,
   _notifTrailingNotify: false,
+  _notifRefreshDeferred: false,
+  _badgeRefreshDeferred: false,
   _sidebarEventsBound: false,
+  _sidebarPointerClickGuard: null,
 
   // All pages with permission keys
   pages: [
@@ -152,9 +155,22 @@ const Admin = {
   bindSidebarInteractions() {
     if(this._sidebarEventsBound) return;
     this._sidebarEventsBound = true;
+    this._sidebarPointerHandler = event => {
+      const target = event.target?.closest?.('[data-admin-sidebar-toggle],[data-admin-sidebar-close],#sidebarOverlay');
+      if(!target || !this.isSidebarOpen()) return;
+      this.closeSidebar();
+      this._sidebarPointerClickGuard=target;
+      clearTimeout(this._sidebarPointerGuardTimer);
+      this._sidebarPointerGuardTimer=setTimeout(()=>{this._sidebarPointerClickGuard=null;},1000);
+    };
     this._sidebarClickHandler = event => {
       const target = event.target?.closest?.('[data-admin-sidebar-toggle],[data-admin-sidebar-close],#sidebarOverlay');
       if(!target) return;
+      if(this._sidebarPointerClickGuard===target){
+        this._sidebarPointerClickGuard=null;
+        clearTimeout(this._sidebarPointerGuardTimer);
+        return;
+      }
       if(target.matches('[data-admin-sidebar-toggle]')) this.toggleSidebar();
       else this.closeSidebar();
     };
@@ -170,11 +186,22 @@ const Admin = {
         else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
       }
     };
-    document.addEventListener('click',this._sidebarClickHandler);
+    document.addEventListener('pointerup',this._sidebarPointerHandler,true);
+    document.addEventListener('click',this._sidebarClickHandler,true);
     document.addEventListener('keydown',this._sidebarKeyHandler);
+  },
+  isSidebarOpen() {
+    return !!document.querySelector('.sidebar.open');
+  },
+  isSidebarControlTarget(target) {
+    return !!target?.closest?.('[data-admin-sidebar-toggle],[data-admin-sidebar-close],#sidebarOverlay');
   },
   loadBadges() {
     if(document.hidden)return Promise.resolve();
+    if(this.isSidebarOpen()){
+      this._badgeRefreshDeferred=true;
+      return Promise.resolve();
+    }
     if(this._badgeLoadPromise)return this._badgeLoadPromise;
     this._badgeLoadPromise=this._loadBadgesNow().finally(()=>{this._badgeLoadPromise=null;});
     return this._badgeLoadPromise;
@@ -304,7 +331,17 @@ const Admin = {
 
   bindAdminAudioUnlock() {
     if(this._adminNotificationSoundReady||this._adminNotificationUnlockHandler)return;
-    const unlock=()=>{
+    const unlock=event=>{
+      if(this.isSidebarControlTarget(event?.target))return;
+      if(this.isSidebarOpen()&&event?.key==='Escape')return;
+      queueMicrotask(()=>this.tryAdminAudioUnlock());
+    };
+    this._adminNotificationUnlockHandler=unlock;
+    document.addEventListener('pointerdown',unlock,{passive:true});
+    document.addEventListener('keydown',unlock);
+  },
+
+  tryAdminAudioUnlock() {
       if(this._adminNotificationSoundReady||this._adminNotificationSoundUnlocking)return;
       const audio=this._adminNotificationAudio;
       if(!audio)return;
@@ -320,10 +357,6 @@ const Admin = {
       }).catch(()=>{audio.muted=false;}).finally(()=>{
         this._adminNotificationSoundUnlocking=false;
       });
-    };
-    this._adminNotificationUnlockHandler=unlock;
-    document.addEventListener('pointerdown',unlock,{passive:true});
-    document.addEventListener('keydown',unlock);
   },
 
   removeAdminAudioUnlock() {
@@ -344,6 +377,11 @@ const Admin = {
   },
   loadNotifs(notify = false) {
     if(document.hidden)return Promise.resolve();
+    if(this.isSidebarOpen()){
+      this._notifRefreshDeferred=true;
+      this._notifTrailingNotify=this._notifTrailingNotify||notify;
+      return Promise.resolve();
+    }
     if(this._notifLoadPromise){
       this._notifTrailingNotify=this._notifTrailingNotify||notify;
       return this._notifLoadPromise;
@@ -417,6 +455,7 @@ const Admin = {
     const sidebar=document.querySelector('.sidebar');
     const overlay=document.getElementById('sidebarOverlay');
     const button=document.getElementById('adminMenuButton');
+    const wasOpen=!!sidebar?.classList.contains('open');
     if(sidebar){sidebar.classList.remove('open');sidebar.setAttribute('aria-hidden',window.matchMedia?.('(max-width:768px)').matches?'true':'false');}
     if(overlay){overlay.classList.remove('show');overlay.setAttribute('aria-hidden','true');}
     document.body.classList.remove('admin-menu-open');
@@ -425,6 +464,18 @@ const Admin = {
       button.setAttribute('aria-expanded','false');
       if(restoreFocus) requestAnimationFrame(()=>{
         if(!document.querySelector('.sidebar.open')) button.focus({preventScroll:true});
+      });
+    }
+    if(wasOpen){
+      window.dispatchEvent(new CustomEvent('onpart:admin-sidebar-closed'));
+      queueMicrotask(()=>{
+        if(this._badgeRefreshDeferred){this._badgeRefreshDeferred=false;this.loadBadges();}
+        if(this._notifRefreshDeferred){
+          this._notifRefreshDeferred=false;
+          const notify=this._notifTrailingNotify;
+          this._notifTrailingNotify=false;
+          this.loadNotifs(notify);
+        }
       });
     }
   },
@@ -518,8 +569,6 @@ adminStyle.textContent = `
   .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;}
   .sidebar-overlay.show{display:block;}
   @media(max-width:768px){
-    .sidebar{transform:translateX(100%);transition:transform .3s ease;}
-    .sidebar.open{transform:translateX(0);}
     .main{margin-right:0!important;}
     .topbar{padding:0 14px;}
     .search-box{display:none!important;}
@@ -569,8 +618,8 @@ adminStyle.textContent = `
   @media(max-width:768px){
     .layout{display:block!important;width:100%!important;max-width:100vw!important;overflow-x:clip!important}
     #sidebar-placeholder{width:0!important;min-width:0!important}
-    html body .layout .sidebar{position:fixed!important;inset-block:0!important;right:0!important;left:auto!important;width:min(86vw,300px)!important;margin:0!important;transform:translate3d(calc(100% + 32px),0,0)!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;transition:transform .22s ease,opacity .18s ease,visibility 0s linear .22s!important;will-change:transform,opacity;padding-bottom:env(safe-area-inset-bottom)}
-    html body .layout .sidebar.open{transform:translate3d(0,0,0)!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;transition-delay:0s!important}
+    html body .layout .sidebar{position:fixed!important;inset-block:0!important;right:0!important;left:auto!important;width:min(86vw,300px)!important;margin:0!important;transform:translate3d(calc(100% + 32px),0,0)!important;visibility:hidden!important;pointer-events:none!important;contain:layout paint;will-change:transform;transition:transform .22s ease,visibility 0s linear .22s!important;padding-bottom:env(safe-area-inset-bottom)}
+    html body .layout .sidebar.open{transform:translate3d(0,0,0)!important;visibility:visible!important;pointer-events:auto!important;transition-delay:0s!important}
     .sidebar.open .sb-mobile-close{display:flex}
     .sidebar-overlay{display:block!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;z-index:999!important;transition:opacity .18s ease,visibility 0s linear .18s!important}
     .sidebar-overlay.show{opacity:1!important;visibility:visible!important;pointer-events:auto!important;transition-delay:0s!important}
