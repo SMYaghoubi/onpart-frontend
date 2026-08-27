@@ -366,7 +366,7 @@ function renderOrders(){
     const status=safeStatus(o.status);
     return `<tr>
       <td style="font-weight:600;color:#aaa">${OnPart.fa(i+1)}</td>
-      <td style="font-weight:700;color:#1d4ed8">#${OnPart.fa(o.id)}</td>
+      <td style="font-weight:700;color:#1d4ed8">${OnPart.fa(o.id)}</td>
       <td style="font-size:11.5px;color:#555">${toJalali(o.created_at,true)}</td>
       <td><span class="badge st-${status}">${statusLabels[status]}</span> ${o.payment_status?`<span class="badge ${o.payment_status==='approved'?'st-delivered':o.payment_status==='rejected'?'st-cancelled':'st-pending_payment'}">${paymentLabels[o.payment_status]||o.payment_status}</span>`:``}</td>
       <td style="font-weight:700">
@@ -387,7 +387,7 @@ function renderConfirms(){
   area.innerHTML=pending.map(o=>`
     <div class="confirm-row">
       <i class="ti ti-alert-circle" style="font-size:20px;color:#7c3aed;flex-shrink:0"></i>
-      <div style="flex:1;font-size:13px;color:#555">فاکتور سفارش <strong>#${OnPart.fa(o.id)}</strong> آماده تایید است</div>
+      <div style="flex:1;font-size:13px;color:#555">فاکتور سفارش <strong>${OnPart.fa(o.id)}</strong> آماده تایید است</div>
       <button class="btn-approve" onclick="confirmInvoice(${o.id})"><i class="ti ti-check"></i>تایید</button>
       <button class="btn-reject" onclick="rejectInvoice(${o.id})"><i class="ti ti-x"></i>رد</button>
     </div>`).join('');
@@ -400,7 +400,7 @@ function openItems(i){
   const status=safeStatus(o.status);
   document.getElementById('itemsModalBody').innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">
-      <div style="font-size:13px;color:#555">سفارش <strong style="color:#1d4ed8">#${OnPart.fa(o.id)}</strong> — ${toJalali(o.created_at,true)}</div>
+      <div style="font-size:13px;color:#555">سفارش <strong style="color:#1d4ed8">${OnPart.fa(o.id)}</strong> — ${toJalali(o.created_at,true)}</div>
       <span class="badge st-${status}">${statusLabels[status]}</span>
     </div>
     ${items.length?`<div style="overflow-x:auto">

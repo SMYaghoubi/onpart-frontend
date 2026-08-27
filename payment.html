@@ -479,7 +479,7 @@
     async function loadHistoryReceipt(target){
       if(!target||target.dataset.loaded==='1')return;target.dataset.loaded='1';
       try{
-        const response=await fetch(`${API_BASE}/api/payments/${Number(target.dataset.receiptPayment)}/receipt`,{headers:{'Authorization':'Bearer '+OnPartSession.getToken('user')}});
+        const response=await fetch(`${API.BASE_URL}/api/payments/${Number(target.dataset.receiptPayment)}/receipt`,{headers:{'Authorization':'Bearer '+OnPartSession.getToken('user')}});
         if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.message||'فایل فیش دریافت نشد')}
         const blob=await response.blob(),url=URL.createObjectURL(blob);receiptUrls.add(url);
         const pdf=blob.type==='application/pdf'||target.dataset.receiptType==='pdf';
@@ -502,7 +502,7 @@
       if(!token) return;
       const list = document.getElementById('historyList');
       try{
-        const res = await fetch('https://onpartpadmin.liara.run/api/payments', {
+        const res = await fetch(`${API.BASE_URL}/api/payments`, {
           headers:{'Authorization':'Bearer '+token}
         });
         if(!res.ok) throw new Error();
@@ -515,7 +515,6 @@
         const statusBadge = {approved:'b-green', pending:'b-amber', rejected:'b-red'};
         const statusText = {approved:'تأیید شده', pending:'در انتظار', rejected:'رد شده'};
         const statusGlyph = {approved:'check', pending:'clock', rejected:'x'};
-        const API_BASE = 'https://onpartpadmin.liara.run';
         list.innerHTML = payments.map((p,i) => `
           <div class="hist-item" style="flex-direction:column;align-items:stretch;cursor:pointer" onclick="toggleHistDetail(${i})">
             <div style="display:flex;align-items:center;gap:12px">

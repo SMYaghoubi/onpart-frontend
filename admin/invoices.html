@@ -240,7 +240,7 @@ function renderTable(){
 
   document.getElementById('invTbody').innerHTML=filtered.slice(start,end).map((v,i)=>`
     <tr>
-      <td style="font-weight:700;color:#1d4ed8">#${fa(v.id)}</td>
+      <td style="font-weight:700;color:#1d4ed8">${fa(v.id)}</td>
       <td style="text-align:right"><div class="user-cell">
         <div class="u-av" style="background:${colors[i%colors.length]}">${(v.user_name||'؟')[0]}</div>
         <div><div style="font-weight:600">${v.user_name||'—'}</div><div style="font-size:11px;color:#aaa">${v.user_phone||''}</div></div>
@@ -280,7 +280,7 @@ function openModal(i){
         <div><div class="inv-logo-name">On<span>Part</span></div><div style="font-size:11px;color:#aaa">سامانه فروش قطعات یدکی</div></div>
       </div>
       <div style="text-align:left">
-        <div class="inv-num">#${fa(v.id)}</div>
+        <div class="inv-num">${fa(v.id)}</div>
         <div class="inv-date">${toJalali(v.created_at)||'—'}</div>
         <div style="margin-top:6px"><span class="badge ${sBadge[v.status]||'b-gray'}">${sLabel[v.status]||v.status}</span></div>
       </div>
@@ -350,9 +350,9 @@ async function deleteInvoice(id, btn){
 function printInvoice(i){
   const v = filtered[i];
   const w = window.open('','_blank');
-  w.document.write(`<html dir="rtl"><head><title>فاکتور #${v.id}</title>
+  w.document.write(`<html dir="rtl"><head><title>فاکتور ${v.id}</title>
   <style>body{font-family:Tahoma;padding:20px;direction:rtl} table{width:100%;border-collapse:collapse} td,th{border:1px solid #ddd;padding:8px;text-align:right} .title{font-size:18px;font-weight:bold;margin-bottom:16px}</style></head>
-  <body><div class="title">فاکتور #${v.id}</div>
+  <body><div class="title">فاکتور ${v.id}</div>
   <p>تاریخ: ${toJalali(v.created_at)||'—'}</p>
   <p>مشتری: ${v.user_name||'—'}</p>
   <p>مبلغ: ${fmt(v.total)} تومان</p>

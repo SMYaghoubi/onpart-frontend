@@ -73,6 +73,7 @@
     .order-link{display:inline-flex;align-items:center;gap:4px;color:#1d4ed8;text-decoration:none;font-weight:700;background:#eff6ff;border-radius:7px;padding:4px 8px}
     .modal{width:min(680px,calc(100% - 24px));overflow:hidden!important;display:flex;flex-direction:column}.modal-body{overflow-y:auto;overscroll-behavior:contain}.modal-foot{flex-wrap:wrap;background:#fff}
     .modal-foot button:disabled,.ab:disabled{opacity:.55;cursor:wait}.receipt-zone img{box-shadow:0 10px 28px rgba(15,23,42,.12)}
+    .btn-manual{background:#1d4ed8;color:#fff;border:0;border-radius:8px;padding:8px 14px;font:700 12.5px Vazirmatn;cursor:pointer;display:flex;align-items:center;gap:6px}.manual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.manual-field{display:flex;flex-direction:column;gap:5px}.manual-field.full{grid-column:1/-1}.manual-field label{font-size:12px;font-weight:700;color:#475569}.manual-input{width:100%;border:1.5px solid #dbe4f0;border-radius:9px;background:#fff;padding:10px 11px;font:13px Vazirmatn;outline:none}.manual-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px #dbeafe}.manual-hint{font-size:10.5px;color:#64748b;line-height:1.7}.manual-state{border:1px dashed #cbd5e1;border-radius:9px;padding:10px;color:#64748b;background:#f8fafc;font-size:11.5px}.manual-submit:disabled{opacity:.6;cursor:wait}@media(max-width:620px){.manual-grid{grid-template-columns:1fr}.manual-field.full{grid-column:auto}.btn-manual{width:100%;justify-content:center}}
     @media(max-width:760px){.stats{grid-template-columns:1fr 1fr}.toolbar{align-items:stretch}.fi{width:100%}.tc-head{align-items:flex-start;gap:10px;flex-direction:column}.tc-head>div:last-child{width:100%;overflow:auto}.modal-overlay{align-items:flex-end}.modal{width:100%;max-height:94vh;border-radius:20px 20px 0 0}.info-grid{grid-template-columns:1fr}.modal-foot>*{flex:1;justify-content:center}.tabs{overflow-x:auto;padding-bottom:4px}.tab{flex-shrink:0}}
     @media(max-width:430px){.stats{grid-template-columns:1fr}.modal-body{padding:15px}.m-hero{padding:16px}.modal-foot .btn-sec{flex-basis:100%}}</style>
 </head>
@@ -109,6 +110,7 @@
         <div class="tc-head">
           <div class="tc-title" id="tableTitle">همه پرداخت‌ها</div>
           <div style="display:flex;gap:8px">
+            <button class="btn-manual" type="button" onclick="openManualPayment()"><i class="ti ti-plus"></i>ثبت دستی فیش</button>
             <button style="background:#dcfce7;color:#16a34a;border:none;border-radius:7px;padding:7px 14px;font-family:'Vazirmatn',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px" onclick="approveAll()"><i class="ti ti-checks"></i>تأیید همه</button>
             <button style="background:#f0fdf4;color:#16a34a;border:none;border-radius:7px;padding:7px 14px;font-family:'Vazirmatn',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px" onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i>اکسل</button>
           </div>
@@ -141,6 +143,30 @@
     </div>
     <div class="modal-body" id="modalBody"></div>
     <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="manualModal">
+  <div class="modal" style="width:min(720px,96vw)">
+    <div class="modal-head"><div class="modal-title"><i class="ti ti-receipt"></i>ثبت دستی فیش واریزی</div><button class="modal-close" type="button" onclick="closeManualPayment()"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div class="manual-grid">
+        <div class="manual-field full"><label for="manualUserSearch">جستجوی مشتری</label><input class="manual-input" id="manualUserSearch" autocomplete="off" placeholder="نام یا شماره موبایل" oninput="filterManualUsers()"></div>
+        <div class="manual-field full"><label for="manualUser">مشتری *</label><select class="manual-input" id="manualUser" onchange="manualUserChanged()"><option value="">ابتدا مشتری را انتخاب کنید</option></select></div>
+        <div class="manual-field full"><label for="manualOrder">سفارش / فاکتور متعلق به مشتری *</label><select class="manual-input" id="manualOrder"><option value="">ابتدا مشتری را انتخاب کنید</option></select><div class="manual-hint" id="manualOrderHint">فقط سفارش‌های بدهکار قابل انتخاب‌اند.</div></div>
+        <div class="manual-field"><label for="manualAmount">مبلغ (تومان) *</label><input class="manual-input" id="manualAmount" inputmode="numeric" autocomplete="off" oninput="formatManualAmount(this)" placeholder="بدون اعشار"></div>
+        <div class="manual-field"><label for="manualDate">تاریخ واریز شمسی *</label><input class="manual-input" id="manualDate" inputmode="numeric" placeholder="۱۴۰۵/۰۶/۰۵"><div class="manual-hint">تاریخ برای API به میلادی تبدیل می‌شود.</div></div>
+        <div class="manual-field full"><label for="manualSource">کارت مبدأ مشتری *</label><select class="manual-input" id="manualSource" onchange="manualSourceChanged()"><option value="manual">ورود دستی اطلاعات مبدأ</option></select><div class="manual-hint">کارت‌های ذخیره‌شده فقط به‌شکل mask‌شده نمایش داده می‌شوند.</div></div>
+        <div class="manual-field" id="manualSourceBankWrap"><label for="manualSourceBank">بانک مبدأ *</label><input class="manual-input" id="manualSourceBank" maxlength="80" placeholder="نام بانک"></div>
+        <div class="manual-field" id="manualSourceLast4Wrap"><label for="manualSourceLast4">چهار رقم آخر کارت *</label><input class="manual-input" id="manualSourceLast4" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="1234"></div>
+        <div class="manual-field full"><label for="manualDestination">حساب مقصد OnPart *</label><select class="manual-input" id="manualDestination"><option value="">ابتدا مشتری را انتخاب کنید</option></select></div>
+        <div class="manual-field"><label for="manualTrack">شماره پیگیری *</label><input class="manual-input" id="manualTrack" maxlength="100" autocomplete="off"></div>
+        <div class="manual-field"><label for="manualReceipt">تصویر/PDF فیش *</label><input class="manual-input" id="manualReceipt" type="file" accept="image/jpeg,image/png,application/pdf"><div class="manual-hint">حداکثر ۵ مگابایت؛ JPG، PNG یا PDF</div></div>
+        <div class="manual-field full"><label for="manualDescription">توضیحات</label><textarea class="manual-input" id="manualDescription" maxlength="1000" rows="3" style="resize:vertical"></textarea></div>
+        <div class="manual-state full" id="manualState">پرداخت با وضعیت «در انتظار تأیید» ثبت می‌شود و سپس از فرایند مالی فعلی عبور می‌کند.</div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn-approve manual-submit" id="manualSubmit" type="button" onclick="submitManualPayment()"><i class="ti ti-check"></i>ثبت فیش در انتظار</button><button class="btn-sec" type="button" onclick="closeManualPayment()">انصراف</button></div>
   </div>
 </div>
 
@@ -179,6 +205,35 @@ Admin.renderTopbar('مدیریت پرداخت‌ها','ti-credit-card');
 
 const fa=n=>n.toString().replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 const fmt=n=>fa(Math.round(Number(n)||0).toLocaleString('fa-IR',{maximumFractionDigits:0}));
+
+let manualUsers=[],manualOptions=null;
+const englishDigits=value=>String(value||'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+function formatManualAmount(input){const digits=englishDigits(input.value).replace(/\D/g,'');input.value=digits?Number(digits).toLocaleString('fa-IR'):''}
+function todayJalali(){const parts=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const get=type=>parts.find(part=>part.type===type)?.value||'';return `${get('year')}/${get('month')}/${get('day')}`}
+function jalaliDateToIso(value){
+  const match=englishDigits(value).trim().match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);if(!match)throw new Error('تاریخ شمسی را به‌شکل ۱۴۰۵/۰۶/۰۵ وارد کنید');
+  let jy=Number(match[1]),jm=Number(match[2]),jd=Number(match[3]),gDayNo,jDayNo,jNp,i;const gDays=[31,28,31,30,31,30,31,31,30,31,30,31],jDays=[31,31,31,31,31,31,30,30,30,30,30,29],maxDay=jm<=6?31:jm<=11?30:29;
+  if(jm<1||jm>12||jd<1||jd>maxDay)throw new Error('تاریخ شمسی نامعتبر است');jy-=979;jDayNo=365*jy+Math.floor(jy/33)*8+Math.floor((jy%33+3)/4);for(i=0;i<jm-1;i++)jDayNo+=jDays[i];jDayNo+=jd-1;gDayNo=jDayNo+79;let gy=1600+400*Math.floor(gDayNo/146097);gDayNo%=146097;let leap=true;if(gDayNo>=36525){gDayNo--;gy+=100*Math.floor(gDayNo/36524);gDayNo%=36524;if(gDayNo>=365)gDayNo++;else leap=false}gy+=4*Math.floor(gDayNo/1461);gDayNo%=1461;if(gDayNo>=366){leap=false;gDayNo--;gy+=Math.floor(gDayNo/365);gDayNo%=365}for(i=0;gDayNo>=gDays[i]+(i===1&&leap?1:0);i++)gDayNo-=gDays[i]+(i===1&&leap?1:0);const pad=n=>String(n).padStart(2,'0');return `${gy}-${pad(i+1)}-${pad(gDayNo+1)}`;
+}
+function renderManualUsers(rows=manualUsers){const select=document.getElementById('manualUser'),current=select.value;select.innerHTML='<option value="">انتخاب مشتری...</option>'+rows.map(user=>`<option value="${Number(user.id)}">${Admin.escape(user.name||'بدون نام')} — ${Admin.escape(user.phone||'')}</option>`).join('');if(rows.some(user=>String(user.id)===current))select.value=current}
+function filterManualUsers(){const q=String(document.getElementById('manualUserSearch').value||'').trim().toLowerCase();renderManualUsers(manualUsers.filter(user=>!q||String(user.name||'').toLowerCase().includes(q)||String(user.phone||'').includes(englishDigits(q))))}
+async function loadManualUsers(){const data=await API.request('/api/users?limit=500');manualUsers=(Array.isArray(data)?data:(data.users||[])).filter(user=>user.status==='active');renderManualUsers()}
+async function openManualPayment(){
+  document.getElementById('manualModal').classList.add('show');document.getElementById('manualDate').value=todayJalali();document.getElementById('manualState').textContent='در حال دریافت مشتریان...';
+  try{if(!manualUsers.length)await loadManualUsers();document.getElementById('manualState').textContent='پرداخت با وضعیت «در انتظار تأیید» ثبت می‌شود و سپس از فرایند مالی فعلی عبور می‌کند.'}catch(error){document.getElementById('manualState').textContent=error.message||'خطا در دریافت مشتریان'}
+}
+function closeManualPayment(){document.getElementById('manualModal').classList.remove('show')}
+async function manualUserChanged(){
+  const userId=Number(document.getElementById('manualUser').value),order=document.getElementById('manualOrder'),source=document.getElementById('manualSource'),dest=document.getElementById('manualDestination');manualOptions=null;
+  if(!userId){order.innerHTML='<option value="">ابتدا مشتری را انتخاب کنید</option>';return}
+  order.innerHTML='<option value="">در حال دریافت سفارش‌ها...</option>';
+  try{manualOptions=await API.request('/api/payments/manual-options?user_id='+userId);const orders=manualOptions.orders||[],cards=manualOptions.cards||[],destinations=manualOptions.destinations||[];order.innerHTML='<option value="">انتخاب سفارش...</option>'+orders.map(item=>`<option value="${Number(item.id)}">سفارش ${fa(item.id)} — بدهی ${fmt(item.debt_remaining)} تومان</option>`).join('');source.innerHTML=cards.map(card=>`<option value="card:${Number(card.id)}">${Admin.escape(card.bank_name||card.title||'کارت')} — ${Admin.escape(card.masked_number)}</option>`).join('')+'<option value="manual">ورود دستی بانک و چهار رقم آخر</option>';dest.innerHTML='<option value="">انتخاب حساب مقصد...</option>'+destinations.map(item=>`<option value="${Admin.escape(item.value)}">${Admin.escape(item.label)}</option>`).join('');document.getElementById('manualOrderHint').textContent=orders.length?'فقط سفارش‌های بدهکار این مشتری نمایش داده می‌شوند.':'این مشتری سفارش بدهکار قابل پرداخت ندارد.';manualSourceChanged()}catch(error){order.innerHTML='<option value="">خطا در دریافت سفارش‌ها</option>';document.getElementById('manualState').textContent=error.message||'خطا در دریافت اطلاعات مشتری'}
+}
+function manualSourceChanged(){const manual=document.getElementById('manualSource').value==='manual';document.getElementById('manualSourceBankWrap').style.display=manual?'flex':'none';document.getElementById('manualSourceLast4Wrap').style.display=manual?'flex':'none'}
+async function submitManualPayment(){
+  const button=document.getElementById('manualSubmit');if(button.disabled)return;const file=document.getElementById('manualReceipt').files[0];
+  try{const userId=Number(document.getElementById('manualUser').value),orderId=Number(document.getElementById('manualOrder').value),amount=englishDigits(document.getElementById('manualAmount').value).replace(/\D/g,''),source=document.getElementById('manualSource').value,destination=document.getElementById('manualDestination').value,track=document.getElementById('manualTrack').value.trim();if(!userId||!orderId)throw new Error('مشتری و سفارش را انتخاب کنید');if(!amount)throw new Error('مبلغ تومان را وارد کنید');if(!destination)throw new Error('حساب مقصد را انتخاب کنید');if(!track)throw new Error('شماره پیگیری را وارد کنید');if(!file)throw new Error('تصویر یا PDF فیش را انتخاب کنید');const fd=new FormData();fd.append('user_id',userId);fd.append('order_id',orderId);fd.append('amount',amount);fd.append('pay_date',jalaliDateToIso(document.getElementById('manualDate').value));fd.append('track_number',track);fd.append('dest_account',destination);fd.append('description',document.getElementById('manualDescription').value.trim());fd.append('file',file);if(source.startsWith('card:'))fd.append('saved_card_id',source.slice(5));else{fd.append('source_bank',document.getElementById('manualSourceBank').value.trim());fd.append('source_last4',englishDigits(document.getElementById('manualSourceLast4').value))}button.disabled=true;button.innerHTML='<i class="ti ti-loader-2"></i>در حال ثبت...';const response=await fetch(API.BASE_URL+'/api/payments/manual',{method:'POST',headers:{Authorization:'Bearer '+OnPartSession.getToken('admin')},body:fd});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||'خطا در ثبت دستی فیش');Admin.toast(data.message||'فیش ثبت شد','success');closeManualPayment();await loadPayments()}catch(error){Admin.toast(error.message||'خطا در ثبت دستی فیش','error')}finally{button.disabled=false;button.innerHTML='<i class="ti ti-check"></i>ثبت فیش در انتظار'}
+}
 const colors=['#1d4ed8','#16a34a','#d97706','#7c3aed','#0f766e','#dc2626'];
 let payments=[],filtered=[],currentId=null,curTab='all',page=1,receiptObjectUrl=null;
 let paymentsLoading=false,paymentsLoadError=null,paymentsLoadPromise=null,paymentsRefreshQueued=false;
@@ -188,7 +243,7 @@ function allocationLinks(payment){
   const rows=Array.isArray(payment.allocations)?[...payment.allocations]:[];
   if(!rows.length&&payment.order_id)rows.push({order_id:Number(payment.order_id),amount:Number(payment.allocated_amount||payment.amount||0)});
   if(!rows.length)return '<span style="color:#94a3b8">—</span>';
-  return rows.map(row=>`<a class="order-link" href="/admin/orders?order=${Number(row.order_id)}"><i class="ti ti-shopping-bag"></i>#${fa(row.order_id)} <small>${fmt(row.amount)} ت</small></a>`).join(' ');
+  return rows.map(row=>`<a class="order-link" href="/admin/orders?order=${Number(row.order_id)}"><i class="ti ti-shopping-bag"></i>${fa(row.order_id)} <small>${fmt(row.amount)} ت</small></a>`).join(' ');
 }
 
 async function deletePayment(id, btn){
@@ -286,7 +341,7 @@ function renderTable(){
     <tr>
       <td style="text-align:right"><div class="user-cell">
         <div class="u-av" style="background:${colors[Number(p.id)%colors.length]}">${Admin.escape((p.user_name||'؟')[0])}</div>
-        <div><div style="font-weight:600">${Admin.escape(p.user_name||'—')}</div><div style="font-size:11px;color:#aaa">${Admin.escape(p.user_phone||'')}</div></div>
+        <div><div style="font-weight:600">${Admin.escape(p.user_name||'—')}</div><div style="font-size:11px;color:#aaa">${Admin.escape(p.user_phone||'')}</div>${p.submission_source==='management'?`<div style="font-size:10px;color:#1d4ed8">ثبت مدیریت: ${Admin.escape(p.submitted_by_name||'مدیر')}</div>`:''}</div>
       </div></td>
       <td><div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:center">${allocationLinks(p)}</div>${p.status==='approved'&&Number(p.unallocated_amount)>0?`<div class="payment-status-note">${fmt(p.unallocated_amount)} ت تخصیص‌نیافته</div>`:''}</td>
       <td>${toJalali(p.pay_date||p.created_at)||'—'}</td>
@@ -341,6 +396,7 @@ function openModal(id){
       <div class="info-box"><div class="info-lbl">حساب مقصد</div><div class="info-val" style="direction:ltr;font-family:monospace">${Admin.escape(p.dest_account||'—')}</div></div>
       <div class="info-box"><div class="info-lbl">شماره پیگیری</div><div class="info-val" style="direction:ltr;font-family:monospace">${Admin.escape(p.track_number||'—')}</div></div>
       <div class="info-box"><div class="info-lbl">مبلغ</div><div class="info-val">${fmt(p.amount)} تومان</div></div>
+      <div class="info-box"><div class="info-lbl">ثبت‌کننده</div><div class="info-val">${p.submission_source==='management'?'مدیریت — '+Admin.escape(p.submitted_by_name||'مدیر'):'کاربر'}</div></div>
       <div class="info-box"><div class="info-lbl">تخصیص به سفارش‌ها</div><div class="info-val" style="display:flex;gap:5px;flex-wrap:wrap">${allocationLinks(p)}</div></div>
       <div class="info-box"><div class="info-lbl">بدهی باقی‌مانده سفارش</div><div class="info-val">${p.debt_remaining==null?'—':fmt(p.debt_remaining)+' تومان'}</div></div>
     </div>

@@ -395,7 +395,7 @@ function renderTable(){
   document.getElementById('pagerInfo').textContent=`نمایش ${fa(start+1)}–${fa(end)} از ${fa(total)} سفارش`;
   document.getElementById('orderTbody').innerHTML=filtered.slice(start,end).map((o,i)=>`
     <tr>
-      <td style="font-weight:700">#${fa(o.id)}</td>
+      <td style="font-weight:700">${fa(o.id)}</td>
       <td style="text-align:right"><div style="display:flex;align-items:center;gap:8px">
         <div class="u-av" style="background:${colors[i%colors.length]}">${Admin.escape((o.user_name||'؟')[0])}</div>
         <div><div style="font-weight:600">${Admin.escape(o.user_name||'—')}</div><div style="font-size:11px;color:#aaa">${Admin.escape(o.user_phone||'')}</div></div>
@@ -437,7 +437,7 @@ async function deleteOrder(id,btn){
 // ── DETAIL ──
 async function openDetail(i){
   const o=filtered[i];
-  document.getElementById('detailNum').textContent=`#${fa(o.id)}`;
+  document.getElementById('detailNum').textContent=`${fa(o.id)}`;
   const statusList=['pending_expert','pending_customer','pending_payment','preparing','shipping','delivered'];
   const idx=statusList.indexOf(o.status);
   document.getElementById('detailBody').innerHTML=`
@@ -614,7 +614,7 @@ function onShipMethodChange(){
 let invItemCount=0;
 async function openInvoiceEdit(i){
   const o=filtered[i];curOrderId=o.id;invItemCount=0;
-  document.getElementById('invoiceNum').textContent=`#${fa(o.id)}`;
+  document.getElementById('invoiceNum').textContent=`${fa(o.id)}`;
   document.getElementById('invoiceBody').innerHTML=`
     <div style="background:#fff3cd;border-radius:9px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#856404;display:flex;align-items:center;gap:8px"><i class="ti ti-edit"></i>ویرایش فاکتور — ${o.user_name||''}</div>
     <div style="display:grid;grid-template-columns:2.5fr 0.7fr 1fr 0.7fr 1fr auto;gap:6px;margin-bottom:6px;padding:0 2px">

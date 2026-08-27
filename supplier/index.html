@@ -87,7 +87,7 @@
         if(confirm(`${changes.size} ردیف دارای تغییر واقعی آماده است. اکنون ارسال شود؟`))submitChanges('excel',file.name);
       }catch(error){showErrors([error.message||'فایل اکسل قابل خواندن نیست'])}};
       reader.readAsArrayBuffer(file);input.value='';
-    }    function renderHistory(){const labels={pending:'در انتظار بررسی',approved:'تأیید شده',rejected:'رد شده'};document.getElementById('history').innerHTML=batches.length?batches.map(b=>`<div style="display:flex;gap:10px;align-items:center;padding:10px;border-bottom:1px solid #eee;font-size:12px"><b>#${fa(b.id)}</b><span>${b.source==='excel'?'اکسل':'دستی'} · ${fa(b.item_count)} محصول</span><span class="status ${b.status}" style="margin-right:auto">${labels[b.status]}</span>${b.markup_percent!=null?`<span>افزایش ${fa(b.markup_percent)}٪</span>`:''}</div>`).join(''):'<div class="empty">هنوز تغییری ارسال نشده است.</div>'}
+    }    function renderHistory(){const labels={pending:'در انتظار بررسی',approved:'تأیید شده',rejected:'رد شده'};document.getElementById('history').innerHTML=batches.length?batches.map(b=>`<div style="display:flex;gap:10px;align-items:center;padding:10px;border-bottom:1px solid #eee;font-size:12px"><b>${fa(b.id)}</b><span>${b.source==='excel'?'اکسل':'دستی'} · ${fa(b.item_count)} محصول</span><span class="status ${b.status}" style="margin-right:auto">${labels[b.status]}</span>${b.markup_percent!=null?`<span>افزایش ${fa(b.markup_percent)}٪</span>`:''}</div>`).join(''):'<div class="empty">هنوز تغییری ارسال نشده است.</div>'}
     function logout(){OnPartSession.clear('supplier');location.replace('/supplier/login')}
     load();
   </script>
