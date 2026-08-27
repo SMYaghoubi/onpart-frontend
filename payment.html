@@ -229,7 +229,7 @@
             <button class="file-remove" type="button" aria-label="حذف فایل انتخاب‌شده" onclick="removeFile()"><i class="ti ti-x"></i></button>
           </div>          <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.pdf" style="display:none" onchange="handleFile(this.files[0])"/>
         </div>
-        <div class="fg" style="margin-bottom:0"><label class="flabel">توضیحات (اختیاری)</label><textarea class="finput" rows="2" style="resize:none" placeholder="توضیحات تکمیلی..."></textarea></div>
+        <div class="fg" style="margin-bottom:0"><label class="flabel" for="paymentDescription">توضیحات (اختیاری)</label><textarea class="finput" id="paymentDescription" name="description" rows="2" maxlength="1000" style="resize:none" placeholder="توضیحات تکمیلی..."></textarea></div>
         <button class="btn-submit" id="submitPaymentBtn" type="button" onclick="handleSubmit()"><i class="ti ti-send"></i>ثبت و ارسال فیش واریز</button>
       </div>
     </div>
@@ -331,6 +331,8 @@
         const destAccount = document.getElementById('destAccount').value;
         if(savedCardId) fd.append('saved_card_id', savedCardId);
         if(destAccount) fd.append('dest_account', destAccount);
+        const description=document.getElementById('paymentDescription')?.value.trim();
+        if(description) fd.append('description',description);
         const orderId = new URLSearchParams(window.location.search).get('order');
         if(orderId) fd.append('order_id', orderId);
         if(selectedReceiptFile) fd.append('file', selectedReceiptFile);

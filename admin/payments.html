@@ -178,7 +178,7 @@ Admin.renderSidebar('payments');
 Admin.renderTopbar('مدیریت پرداخت‌ها','ti-credit-card');
 
 const fa=n=>n.toString().replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
-const fmt=n=>fa(Number(n).toLocaleString());
+const fmt=n=>fa(Math.round(Number(n)||0).toLocaleString('fa-IR',{maximumFractionDigits:0}));
 const colors=['#1d4ed8','#16a34a','#d97706','#7c3aed','#0f766e','#dc2626'];
 let payments=[],filtered=[],currentId=null,curTab='all',page=1,receiptObjectUrl=null;
 let paymentsLoading=false,paymentsLoadError=null,paymentsLoadPromise=null,paymentsRefreshQueued=false;
@@ -345,6 +345,7 @@ function openModal(id){
       <div class="info-box"><div class="info-lbl">بدهی باقی‌مانده سفارش</div><div class="info-val">${p.debt_remaining==null?'—':fmt(p.debt_remaining)+' تومان'}</div></div>
     </div>
     ${isPending?'<div class="payment-status-note"><i class="ti ti-clock"></i>پرداخت ثبت شده و منتظر تأیید واحد مالی است.</div>':''}
+    ${p.description?`<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;padding:11px 12px;margin:12px 0;font-size:13px;color:#1e3a8a;white-space:pre-wrap"><strong>توضیحات کاربر:</strong> ${Admin.escape(p.description)}</div>`:''}
     ${p.has_receipt ? `
     <div class="receipt-zone" id="receiptPreview" style="cursor:default">
       <i class="ti ti-loader-2"></i>

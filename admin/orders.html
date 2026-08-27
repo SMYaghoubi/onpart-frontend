@@ -75,13 +75,14 @@
 
 /* Order detail dialog — readable, scroll-safe and mobile friendly */
 #detailModal{padding:22px;background:rgba(15,23,42,.58)}
-#detailModal .modal{width:min(920px,100%)!important;max-height:min(90vh,860px);border-radius:22px;overflow:hidden;box-shadow:0 28px 80px rgba(15,23,42,.3);border:1px solid rgba(255,255,255,.7)}
+#detailModal .modal{width:min(920px,100%)!important;max-height:min(90vh,860px);border-radius:22px;overflow:hidden;box-shadow:0 28px 80px rgba(15,23,42,.3);border:1px solid rgba(255,255,255,.7);display:flex;flex-direction:column}
 #detailModal .modal-head{padding:18px 22px;background:linear-gradient(135deg,#172554,#1d4ed8);color:#fff;border:0;position:sticky;top:0;z-index:4}
 #detailModal .modal-head .modal-title{font-size:16px}.order-number-pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:5px 10px;margin-right:8px}
 #detailModal .modal-close{color:#fff;background:rgba(255,255,255,.12);border-radius:10px}
-#detailModal .modal-body{padding:22px;background:#f8fafc;overflow:auto;overscroll-behavior:contain}
+#detailModal .modal-head,#detailModal .modal-foot{flex:0 0 auto}
+#detailModal .modal-body{padding:22px;background:#f8fafc;overflow:auto;overscroll-behavior:contain;min-height:0;flex:1 1 auto}
 #detailBody>div:first-child>div{background:#fff!important;border:1px solid #e2e8f0;box-shadow:0 5px 16px rgba(15,23,42,.04);padding:14px!important}
-#detailItems{background:#fff!important;border:1px solid #e2e8f0!important;overflow:hidden}
+#detailItems{background:#fff!important;border:1px solid #e2e8f0!important;max-height:min(42vh,420px);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable}
 #detailItems>div{min-height:44px}
 #detailModal .modal-foot{padding:14px 22px;background:#fff;border-top:1px solid #e2e8f0;position:sticky;bottom:0;z-index:4;display:flex;gap:8px;flex-wrap:wrap}
 #detailModal .modal-foot .btn-sec{margin-right:auto}
@@ -306,7 +307,7 @@ Admin.renderSidebar('orders');
 Admin.renderTopbar('مدیریت سفارشات','ti-shopping-bag');
 
 const fa=n=>n.toString().replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
-const fmt=n=>fa(Number(n).toLocaleString());
+const fmt=n=>fa(Math.round(Number(n)||0).toLocaleString('fa-IR',{maximumFractionDigits:0}));
 const colors=['#1d4ed8','#16a34a','#d97706','#7c3aed','#0f766e','#dc2626'];
 const paymentLabels={pending:'در انتظار بررسی',approved:'پرداخت تأیید شد',rejected:'پرداخت رد شد'};
 const statusLabels={pending_expert:'منتظر تایید کارشناس',pending_customer:'منتظر تایید مشتری',pending_payment:'منتظر پرداخت',preparing:'آماده‌سازی',shipping:'در ارسال',delivered:'تحویل شده',cancelled:'ابطال شده'};
@@ -660,7 +661,7 @@ async function loadOrderItemsForEdit(orderId){
       const inp=document.querySelector(`#invrow_${j} .prod-inp`);
       if(inp) inp.value=it.description||'';
       document.getElementById(`invqty_${j}`).value=it.quantity;
-      document.getElementById(`invprice_${j}`).value=it.price;
+      document.getElementById(`invprice_${j}`).value=Math.round(Number(it.price)||0);
       document.getElementById(`invdisc_${j}`).value=it.discount||0;
       calcItemRow('inv',j);
     });
@@ -709,7 +710,7 @@ function makeItemRow(prefix,j){
       <input class="item-inp prod-inp" data-prefix="${prefix}" data-j="${j}" style="text-align:right" placeholder="کد یا نام محصول..." oninput="searchProd(this)" autocomplete="off"/>
     </div>
     <input type="number" id="${prefix}qty_${j}" class="item-inp" value="1" min="1" oninput="calcItemRow('${prefix}',${j})"/>
-    <input type="number" id="${prefix}price_${j}" class="item-inp" value="0" oninput="calcItemRow('${prefix}',${j})"/>
+    <input type="number" id="${prefix}price_${j}" class="item-inp" value="0" min="0" step="1" inputmode="numeric" oninput="calcItemRow('${prefix}',${j})"/>
     <input type="number" id="${prefix}disc_${j}" class="item-inp" value="0" min="0" max="100" oninput="calcItemRow('${prefix}',${j})"/>
     <input type="number" id="${prefix}total_${j}" class="item-inp" value="0" readonly style="background:#eff6ff;font-weight:700"/>
     <button onclick="removeItemRow('${prefix}',${j})" style="background:#fee2e2;color:#dc2626;border:none;border-radius:7px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-trash" style="font-size:13px"></i></button>
@@ -772,7 +773,7 @@ function searchProd(inp){
 function pickProd(desc,price,productId){
   if(activeProdInp)activeProdInp.value=desc;
   const priceEl=document.getElementById(`${activeProdPrefix}price_${activeProdJ}`);
-  if(priceEl){priceEl.value=price;calcItemRow(activeProdPrefix,activeProdJ);}
+  if(priceEl){priceEl.value=Math.round(Number(price)||0);calcItemRow(activeProdPrefix,activeProdJ);}
   const row=document.getElementById(`${activeProdPrefix}row_${activeProdJ}`);
   if(row) row.dataset.productId=productId;
   document.getElementById('prodDropdown').style.display='none';

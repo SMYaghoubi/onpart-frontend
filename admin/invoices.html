@@ -176,7 +176,7 @@ Admin.renderSidebar('invoices');
 Admin.renderTopbar('مدیریت فاکتورها','ti-receipt');
 
 const fa=n=>n.toString().replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
-const fmt=n=>fa(Number(n).toLocaleString());
+const fmt=n=>fa(Math.round(Number(n)||0).toLocaleString('fa-IR',{maximumFractionDigits:0}));
 const colors=['#1d4ed8','#16a34a','#d97706','#7c3aed','#0f766e','#dc2626'];
 let invoices=[],filtered=[],page=1;const PER=15;
 
@@ -355,7 +355,7 @@ function printInvoice(i){
   <body><div class="title">فاکتور #${v.id}</div>
   <p>تاریخ: ${toJalali(v.created_at)||'—'}</p>
   <p>مشتری: ${v.user_name||'—'}</p>
-  <p>مبلغ: ${Number(v.total||0).toLocaleString()} تومان</p>
+  <p>مبلغ: ${fmt(v.total)} تومان</p>
   <script>window.print();window.close();<\/script></body></html>`);
 }
 

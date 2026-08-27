@@ -81,7 +81,7 @@
       </div>
 
       <div class="toolbar">
-        <input class="fi fi-input" placeholder="جستجو نام، موبایل..." id="searchInp" oninput="renderTable()" autocomplete="off" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+        <input class="fi fi-input" type="search" name="onpart-admin-user-filter" placeholder="جستجو نام، موبایل..." id="searchInp" oninput="renderTable()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-form-type="other"/>
         <select class="fi" id="roleF" onchange="renderTable()">
           <option value="">همه نقش‌ها</option>
           <option value="user">کاربر عادی</option>
@@ -331,7 +331,7 @@ function openModal(mode,u){
     document.getElementById('f_role').value=u.role||'user';
     document.getElementById('f_status').value=u.status||'active';
     document.getElementById('f_credit').value=u.credit_limit||0;
-    document.getElementById('f_state').value=u.state||'';
+    document.getElementById('f_state').value=u.province||u.state||'';
     document.getElementById('f_city').value=u.city||'';
     document.getElementById('f_addr').value=u.address||'';
     document.getElementById('f_shop_name').value=u.shop_name||'';
@@ -377,7 +377,8 @@ async function saveUser(){
     password:document.getElementById('f_pass').value||undefined,
     role:document.getElementById('f_role').value,status:document.getElementById('f_status').value,
     credit_limit:Number(document.getElementById('f_credit').value),
-    state:document.getElementById('f_state').value,city:document.getElementById('f_city').value,
+    province:document.getElementById('f_state').value,state:document.getElementById('f_state').value,
+    city:document.getElementById('f_city').value,
     address:document.getElementById('f_addr').value,
     shop_name:document.getElementById('f_shop_name').value,
     national_code:document.getElementById('f_national_code').value,
@@ -477,6 +478,13 @@ function exportUsers(){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='users.csv';a.click();
 }
 
+function resetUserSearch(){
+  const input=document.getElementById('searchInp');
+  if(input){input.value='';input.defaultValue='';}
+  page=1;
+}
+resetUserSearch();
+window.addEventListener('pageshow',()=>{resetUserSearch();renderTable()});
 let userDebtRefreshTimer;window.addEventListener('onpart:user-data-changed',()=>{clearTimeout(userDebtRefreshTimer);userDebtRefreshTimer=setTimeout(loadUsers,250)});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadUsers()});
 loadUsers();
