@@ -26,6 +26,13 @@ test('same dynamic response is returned on desktop and mobile without cache reus
   assert.equal(mobile.calls[0].options.cache,'no-store');
 });
 
+test('empty logo URLs stay empty and upload paths resolve to backend storage',()=>{
+  const {context}=apiContext('/admin/settings','Mobile');
+  for(const value of ['',null,undefined,'  '])assert.equal(context.API.safeUrl(value),'');
+  assert.equal(context.API.safeUrl('/uploads/bank-logo-123.png'),'https://onpartpadmin.liara.run/uploads/bank-logo-123.png');
+  assert.equal(context.API.safeUrl('javascript:alert(1)'),'');
+});
+
 test('production API origin is fixed and has no storage override or service worker',()=>{
   const api=fs.readFileSync(require.resolve('../js/api.js'),'utf8');
   assert.match(api,/BASE_URL:\s*'https:\/\/onpartpadmin\.liara\.run'/);
