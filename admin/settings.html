@@ -273,7 +273,9 @@ async function loadSettings(){
   } catch(e){ console.error('loadSettings error:', e); }
 }
 
+let pendingBankLogoUploads=0;
 async function saveSettings(section){
+  if(section==='bank'&&pendingBankLogoUploads){toast('لطفاً تا پایان بارگذاری لوگو صبر کنید',false);return}
   const token=OnPartSession.getToken('admin');
   let data={};
   if(section==='general'){
@@ -294,7 +296,6 @@ async function saveSettings(section){
       if(!grid) return;
       const gridInputs=grid.querySelectorAll('input');
       const logoInput=item.querySelector('input[type=file]');
-      const logoImg=item.querySelector('.bank-logo-preview img');
       banks.push({
         name: gridInputs[0]?.value||'',
         owner: gridInputs[1]?.value||'',
@@ -371,7 +372,7 @@ function createBankItem(b){
   div.innerHTML = `
     <div class="bank-item-logo">
       <div class="bank-logo-preview">
-        ${logoUrl ? `<img src="${Admin.escape(logoUrl)}" alt="لوگوی ${Admin.escape(b.name||'بانک')}"/>` : '<i class="ti ti-building-bank"></i>'}
+        ${logoUrl ? `<img src="${Admin.escape(logoUrl)}" alt="لوگوی ${Admin.escape(b.name||'بانک')}" onerror="bankLogoFailed(this)"/>` : '<i class="ti ti-building-bank"></i>'}
       </div>
       <div style="flex:1">
         <div style="font-size:12px;color:#888;margin-bottom:6px">لوگو بانک (اختیاری)</div>
@@ -398,22 +399,44 @@ function addBank(){
   document.getElementById('bankList').appendChild(createBankItem());
 }
 
+function bankLogoFailed(image){
+  const wrap=image.closest('.bank-item-logo');
+  if(!wrap)return;
+  wrap.querySelector('.bank-logo-preview').innerHTML='<i class="ti ti-building-bank"></i>';
+  const status=wrap.querySelector('.bank-upload-status');
+  status.textContent='لوگوی ذخیره‌شده در دسترس نیست؛ دوباره بارگذاری کنید.';
+  status.className='bank-upload-status error';
+}
+
+function loadBankLogo(url){
+  return new Promise((resolve,reject)=>{
+    const image=new Image();
+    const fail=()=>{clearTimeout(timer);image.onload=image.onerror=null;reject(new Error('تصویر بارگذاری‌شده از سرور قابل نمایش نیست؛ دوباره تلاش کنید.'))};
+    const timer=setTimeout(fail,15000);
+    image.onload=()=>{clearTimeout(timer);image.onload=image.onerror=null;resolve(image)};
+    image.onerror=fail;image.alt='لوگوی بانک';image.src=url;
+  });
+}
+
 async function previewLogo(input){
   const file=input.files&&input.files[0];if(!file)return;
   const wrap=input.closest('.bank-item-logo'),preview=wrap.querySelector('.bank-logo-preview');
   const status=wrap.querySelector('.bank-upload-status'),button=wrap.querySelector('.bank-upload-btn');
   if(file.size>2*1024*1024){status.textContent='حجم لوگو باید کمتر از ۲ مگابایت باشد';status.className='bank-upload-status error';input.value='';return}
+  const previousPreview=preview.innerHTML;
   const localUrl=URL.createObjectURL(file);preview.innerHTML='<img src="'+localUrl+'" alt="پیش‌نمایش لوگوی بانک">';
-  status.textContent='در حال بارگذاری امن لوگو…';status.className='bank-upload-status';button.disabled=true;
+  status.textContent='در حال بارگذاری لوگو…';status.className='bank-upload-status';button.disabled=true;pendingBankLogoUploads++;
   const form=new FormData();form.append('logo',file);
   try{
     const result=await API.request('/api/settings/bank-logo',{method:'POST',body:form});
+    if(!/^\/uploads\/bank-logo-[A-Za-z0-9._%-]+$/.test(result.url||''))throw new Error('آدرس لوگوی بارگذاری‌شده معتبر نیست');
+    const image=await loadBankLogo(API.safeUrl(result.url));
+    preview.replaceChildren(image);
     input.dataset.logo=result.url;
-    const image=preview.querySelector('img');if(image)image.src=API.safeUrl(result.url)+'?v='+Date.now();
     wrap.querySelector('.legacy-logo-warning')?.remove();
     status.textContent='بارگذاری شد؛ برای ثبت نهایی دکمه ذخیره را بزنید.';status.className='bank-upload-status ok';
-  }catch(error){preview.innerHTML='<i class="ti ti-building-bank"></i>';input.dataset.logo='';status.textContent=error.message||'بارگذاری لوگو انجام نشد';status.className='bank-upload-status error'}
-  finally{button.disabled=false;URL.revokeObjectURL(localUrl);input.value=''}
+  }catch(error){preview.innerHTML=previousPreview;status.textContent=error.message||'بارگذاری لوگو انجام نشد';status.className='bank-upload-status error'}
+  finally{pendingBankLogoUploads--;button.disabled=false;URL.revokeObjectURL(localUrl);input.value=''}
 }
 
 setTimeout(function(){ loadSettings(); }, 100);
