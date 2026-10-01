@@ -1,3 +1,10 @@
+(function initMobileForms(){
+  if(document.querySelector('link[data-onpart-mobile-forms]'))return;
+  const link=document.createElement('link');
+  link.rel='stylesheet';link.href='/css/mobile-forms.css';
+  link.setAttribute('data-onpart-mobile-forms','');
+  document.head.appendChild(link);
+})();
 (function initCleanUrls(){
   function cleanInternalUrl(value){
     if(typeof value!=='string'||!value||/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(value)) return value;
@@ -103,11 +110,14 @@
 })();
 (function initOnPartDate(){
   const DATE_LOCALE='fa-IR-u-ca-persian-nu-arabext',PROJECT_TIME_ZONE='Asia/Tehran';
+  const calendar=new Intl.DateTimeFormat('en-US-u-ca-persian-nu-latn',{timeZone:PROJECT_TIME_ZONE,year:'numeric',month:'2-digit',day:'2-digit'});
+  const pad=n=>String(n).padStart(2,'0');
   function parse(value){
     if(value instanceof Date)return Number.isNaN(value.getTime())?null:value;
     if(value==null||value==='')return null;
     const raw=String(value).trim();if(!raw)return null;
-    const normalized=/^\d{4}-\d{2}-\d{2}$/.test(raw)?raw+'T12:00:00+03:30':/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(?::\d{2})?$/.test(raw)?raw.replace(' ','T')+'Z':raw;
+    // Calendar dates have no timezone; unzoned SQL/API timestamps are UTC.
+    const normalized=/^\d{4}-\d{2}-\d{2}$/.test(raw)?raw+'T12:00:00+03:30':/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/.test(raw)?raw.replace(' ','T')+'Z':raw;
     const date=new Date(normalized);return Number.isNaN(date.getTime())?null:date;
   }
   function format(value,{withTime=false,dateStyle='medium'}={}){
@@ -116,7 +126,40 @@
     if(withTime){delete options.dateStyle;Object.assign(options,{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});}
     return new Intl.DateTimeFormat(DATE_LOCALE,options).format(date);
   }
-  window.OnPartDate={format,parse,locale:DATE_LOCALE,timeZone:PROJECT_TIME_ZONE};
+  function parts(value){
+    const date=parse(value);if(!date)return null;
+    const result={};
+    for(const part of calendar.formatToParts(date)){
+      if(part.type==='year')result.y=Number(part.value);
+      if(part.type==='month')result.m=Number(part.value);
+      if(part.type==='day')result.d=Number(part.value);
+    }
+    return result;
+  }
+  function inputDate(value){
+    const p=parts(value);return p?`${p.y}/${pad(p.m)}/${pad(p.d)}`.replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]):'—';
+  }
+  function fromJalali(value){
+    const raw=String(value||'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    const match=raw.trim().match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);if(!match)return null;
+    const y=Number(match[1]),m=Number(match[2]),d=Number(match[3]);
+    if(y<1||y>9377||m<1||m>12||d<1||d>31)return null;
+    // Use the same Intl calendar in both directions, including leap years.
+    const dayMs=86400000,target=y*10000+m*100+d;
+    let lo=Math.floor(Date.UTC(y+621,0,1)/dayMs),hi=Math.floor(Date.UTC(y+622,11,31)/dayMs);
+    while(lo<=hi){
+      const mid=Math.floor((lo+hi)/2),date=new Date(mid*dayMs+12*3600000),p=parts(date),key=p.y*10000+p.m*100+p.d;
+      if(key===target)return `${date.getUTCFullYear()}-${pad(date.getUTCMonth()+1)}-${pad(date.getUTCDate())}`;
+      if(key<target)lo=mid+1;else hi=mid-1;
+    }
+    return null;
+  }
+  function daysInMonth(y,m){
+    if(m<1||m>12)return 0;
+    const start=fromJalali(`${y}/${m}/1`),end=fromJalali(`${m===12?y+1:y}/${m===12?1:m+1}/1`);
+    return start&&end?Math.round((Date.parse(end+'T12:00:00Z')-Date.parse(start+'T12:00:00Z'))/86400000):0;
+  }
+  window.OnPartDate={format,parse,parts,inputDate,fromJalali,daysInMonth,locale:DATE_LOCALE,timeZone:PROJECT_TIME_ZONE};
 })();
 // OnPart API Helper
 // All backend API calls centralized here
@@ -182,6 +225,7 @@ const API = {
   safeUrl(value) {
     try {
       const raw = String(value || '').trim();
+      if(!raw)return '';
       const base = raw.startsWith('/uploads/') ? this.BASE_URL : window.location.origin;
       const url = new URL(raw, base);
       return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
