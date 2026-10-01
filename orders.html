@@ -162,28 +162,8 @@
 </div>
 
 <script>
-function toJalali(d,withTime){
-  if(!d)return'—';
-  try{
-    const dt=new Date(d);if(isNaN(dt))return d;
-    const gy=dt.getFullYear(),gm=dt.getMonth()+1,gd=dt.getDate();
-    let jy,jm,jd,gdn,jdn,jnp,i;
-    const gdm=[31,28,31,30,31,30,31,31,30,31,30,31],jdm=[31,31,31,31,31,31,30,30,30,30,30,29];
-    let gy2=gy-1600;
-    gdn=365*gy2+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400);
-    for(i=0;i<gm-1;i++)gdn+=gdm[i];
-    if(gm>2&&((gy2%4===0&&gy2%100!==0)||(gy2%400===0)))gdn++;
-    gdn+=gd;jdn=gdn-79;jnp=Math.floor(jdn/12053);jdn%=12053;
-    jy=979+33*jnp+4*Math.floor(jdn/1461);jdn%=1461;
-    if(jdn>=366){jy+=Math.floor((jdn-1)/365);jdn=(jdn-1)%365;}
-    for(i=0;i<11&&jdn>=jdm[i];i++)jdn-=jdm[i];
-    jm=i+1;jd=jdn+1;
-    const fa=n=>String(n).replace(/\d/g,x=>'۰۱۲۳۴۵۶۷۸۹'[x]);
-    const date=fa(jy)+'/'+fa(String(jm).padStart(2,'0'))+'/'+fa(String(jd).padStart(2,'0'));
-    if(!withTime)return date;
-    const h=dt.getHours(),mn=dt.getMinutes();
-    return date+' '+fa(String(h).padStart(2,'0'))+':'+fa(String(mn).padStart(2,'0'));
-  }catch(e){return d;}
+function toJalali(d,withTime=false){
+  return withTime?OnPartDate.format(d,{withTime:true}):OnPartDate.inputDate(d);
 }
 
 const paymentLabels={pending:'در انتظار بررسی',approved:'پرداخت تأیید شد',rejected:'پرداخت رد شد'};
@@ -219,34 +199,20 @@ function resetFilters(){
 
 // ── Jalali Datepicker ──
 const dpMonths=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
-const dpMDays=[31,31,31,31,31,31,30,30,30,30,30,29];
 const dpWd=['ش','ی','د','س','چ','پ','ج'];
-let dpActive=null,dpY=1403,dpM=1,dpFromVal=null,dpToVal=null;
+const dpToday=OnPartDate.parts(new Date());
+let dpActive=null,dpY=dpToday.y,dpM=dpToday.m,dpFromVal=null,dpToVal=null;
 
 function toFa(n){return String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);}
 
-function jToG(jy,jm,jd){
-  let gy=jy+621,leap,g_d_no,j_d_no,j_np,i;
-  const g_d_m=[31,28,31,30,31,30,31,31,30,31,30,31];
-  const j_d_m=[31,31,31,31,31,31,30,30,30,30,30,29];
-  j_d_no=365*(jy-979)+Math.floor((jy-979)/4)-Math.floor((jy-979)/100)+Math.floor((jy-979)/400);
-  for(i=0;i<jm-1;i++)j_d_no+=j_d_m[i];
-  j_d_no+=jd;
-  g_d_no=j_d_no+79;
-  gy=1600+400*Math.floor(g_d_no/146097);g_d_no=g_d_no%146097;
-  leap=true;
-  if(g_d_no>=36525){g_d_no--;gy+=100*Math.floor(g_d_no/36524);g_d_no=g_d_no%36524;if(g_d_no>=365)g_d_no++;else leap=false;}
-  gy+=4*Math.floor(g_d_no/1461);g_d_no%=1461;
-  if(g_d_no>=366){leap=false;g_d_no--;gy+=Math.floor(g_d_no/365);g_d_no=g_d_no%365;}
-  for(i=0;g_d_no>=g_d_m[i]+((i===1&&leap)?1:0);i++)g_d_no-=g_d_m[i]+((i===1&&leap)?1:0);
-  return new Date(gy,i,g_d_no+1);
+function dpDow(jy,jm,jd){
+  const date=OnPartDate.fromJalali(`${jy}/${jm}/${jd}`);
+  return (new Date(date+'T12:00:00Z').getUTCDay()+1)%7;
 }
-
-function dpDow(jy,jm,jd){return(jToG(jy,jm,jd).getDay()+1)%7;}
 
 function renderDp(which){
   const el=document.getElementById(which==='from'?'dpFrom':'dpTo');
-  const first=dpDow(dpY,dpM,1),days=dpMDays[dpM-1];
+  const first=dpDow(dpY,dpM,1),days=OnPartDate.daysInMonth(dpY,dpM);
   const selVal=which==='from'?dpFromVal:dpToVal;
   let html=`<div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);padding:12px 14px">
     <div style="display:flex;align-items:center;justify-content:space-between">
@@ -338,16 +304,10 @@ function renderOrders(){
   let filtered=myOrders.filter(o=>{
     if(q && !String(o.id).includes(q)) return false;
     if(sf && o.status!==sf) return false;
-    if(dpFromVal && o.created_at){
-      const j=toJalali(o.created_at,false).replace(/\//g,'/');
-      // Compare YYYY/MM/DD
-      const jKey=toJalali(o.created_at,false);
-      if(jKey<dpFromVal) return false;
-    }
-    if(dpToVal && o.created_at){
-      const jKey=toJalali(o.created_at,false);
-      if(jKey>dpToVal) return false;
-    }
+    const p=OnPartDate.parts(o.created_at);
+    const day=p?`${p.y}/${String(p.m).padStart(2,'0')}/${String(p.d).padStart(2,'0')}`:'';
+    if(dpFromVal && day && day<dpFromVal) return false;
+    if(dpToVal && day && day>dpToVal) return false;
     return true;
   });
 
