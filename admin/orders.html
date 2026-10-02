@@ -280,28 +280,7 @@
 <script src="../js/admin.js"></script>
 <script>
 
-function toJalali(dateStr){
-  if(!dateStr) return '—';
-  try{
-    const d=new Date(dateStr);if(isNaN(d))return dateStr;
-    const gy=d.getFullYear(),gm=d.getMonth()+1,gd=d.getDate();
-    let jy=gy-1600,jm=0,jd=0,g_d_no,j_d_no,j_np,i;
-    const g_d_m=[31,28,31,30,31,30,31,31,30,31,30,31];
-    const j_d_m=[31,31,31,31,31,31,30,30,30,30,30,29];
-    let gy2=gy-1600;
-    g_d_no=365*gy2+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400);
-    for(i=0;i<gm-1;i++)g_d_no+=g_d_m[i];
-    if(gm>2&&((gy2%4===0&&gy2%100!==0)||(gy2%400===0)))g_d_no++;
-    g_d_no+=gd;j_d_no=g_d_no-79;
-    j_np=Math.floor(j_d_no/12053);j_d_no%=12053;
-    jy=979+33*j_np+4*Math.floor(j_d_no/1461);j_d_no%=1461;
-    if(j_d_no>=366){jy+=Math.floor((j_d_no-1)/365);j_d_no=(j_d_no-1)%365;}
-    for(i=0;i<11&&j_d_no>=j_d_m[i];i++)j_d_no-=j_d_m[i];
-    jm=i+1;jd=j_d_no+1;
-    const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
-    return fa(jy)+'/'+fa(String(jm).padStart(2,'0'))+'/'+fa(String(jd).padStart(2,'0'));
-  }catch(e){return dateStr||'—';}
-}
+function toJalali(dateStr){return OnPartDate.inputDate(dateStr);}
 
 Admin.renderSidebar('orders');
 Admin.renderTopbar('مدیریت سفارشات','ti-shopping-bag');
@@ -900,7 +879,7 @@ async function submitNewOrder(){
       body:JSON.stringify({user_id:selectedCustomer.id,user_name:selectedCustomer.name,user_phone:selectedCustomer.phone,items,total,status:document.getElementById('no_status').value,note:document.getElementById('no_note').value})
     });
     const data=await res.json();
-    orders.unshift({id:data.id||Date.now(),user_name:selectedCustomer.name,user_phone:selectedCustomer.phone,created_at:new Date().toISOString().slice(0,10),items_count:items.length,total,status:document.getElementById('no_status').value});
+    orders.unshift({id:data.id||Date.now(),user_name:selectedCustomer.name,user_phone:selectedCustomer.phone,created_at:new Date().toISOString(),items_count:items.length,total,status:document.getElementById('no_status').value});
     filtered=[...orders];renderTable();updateStats();closeNewOrder();
     toast(`سفارش ${selectedCustomer.name} ثبت شد ✓`);
   }catch(e){toast('خطا در ثبت سفارش',false);}
