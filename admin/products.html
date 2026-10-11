@@ -274,7 +274,7 @@ let productRequestSequence = 0;
 async function loadProducts({silent=false} = {}){
   const sequence=++productRequestSequence;
   try {
-    const data=await API.request('/api/products?limit=99999&admin=1',{authContext:'admin',cache:'no-store'});
+    const data=await API.request('/api/products?limit=99999&admin=1',{authContext:'admin',cache:'no-store',timeout:120000});
     if(sequence!==productRequestSequence)return;
     if(!data||!Array.isArray(data.products))throw new Error('پاسخ محصولات معتبر نیست');
     products=data.products;updateStats();renderTable();
@@ -602,10 +602,23 @@ function importExcel(input){
       return product;
     });
     if(legacyRows.length&&!confirm(`این فایل قدیمی است و در ${fa(legacyRows.length)} ردیف موجودی عددی دارد. مقادیر فقط به موجود/ناموجود تبدیل می‌شوند. ادامه می‌دهید؟`))return;
-    toast(`در حال وارد کردن ${fa(parsed.length)} محصول...`);
-    const result=await API.request('/api/products/bulk-import',{method:'POST',authContext:'admin',timeout:180000,body:JSON.stringify({products:parsed})});
-    toast(`موفق: ${fa(result.imported)} محصول جدید، ${fa(result.updated)} به‌روزرسانی شد${result.failed?` — ${fa(result.failed)} ناموفق`:''}`);
-    await loadProducts();
+    const BATCH_SIZE=200;
+    let imported=0,updated=0,failed=0;
+    for(let start=0;start<parsed.length;start+=BATCH_SIZE){
+      const batch=parsed.slice(start,start+BATCH_SIZE),end=Math.min(start+BATCH_SIZE,parsed.length);
+      toast(`در حال وارد کردن ${fa(start+1)} تا ${fa(end)} از ${fa(parsed.length)} محصول...`);
+      const result=await API.request('/api/products/bulk-import',{
+        method:'POST',
+        authContext:'admin',
+        timeout:120000,
+        body:JSON.stringify({products:batch})
+      });
+      imported+=Number(result.imported||0);
+      updated+=Number(result.updated||0);
+      failed+=Number(result.failed||0);
+    }
+    toast(`موفق: ${fa(imported)} محصول جدید، ${fa(updated)} به‌روزرسانی شد${failed?` — ${fa(failed)} ناموفق`:''}`);
+    await loadProducts({silent:true});
   }catch(error){toast('خطا در خواندن یا ارسال فایل: '+error.message,false)}finally{input.value=''}};
   reader.readAsArrayBuffer(file);
 }
