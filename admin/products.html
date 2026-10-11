@@ -603,7 +603,7 @@ function importExcel(input){
     });
     if(legacyRows.length&&!confirm(`این فایل قدیمی است و در ${fa(legacyRows.length)} ردیف موجودی عددی دارد. مقادیر فقط به موجود/ناموجود تبدیل می‌شوند. ادامه می‌دهید؟`))return;
     toast(`در حال وارد کردن ${fa(parsed.length)} محصول...`);
-    const result=await API.request('/api/products/bulk-import',{method:'POST',authContext:'admin',body:JSON.stringify({products:parsed})});
+    const result=await API.request('/api/products/bulk-import',{method:'POST',authContext:'admin',timeout:180000,body:JSON.stringify({products:parsed})});
     toast(`موفق: ${fa(result.imported)} محصول جدید، ${fa(result.updated)} به‌روزرسانی شد${result.failed?` — ${fa(result.failed)} ناموفق`:''}`);
     await loadProducts();
   }catch(error){toast('خطا در خواندن یا ارسال فایل: '+error.message,false)}finally{input.value=''}};
