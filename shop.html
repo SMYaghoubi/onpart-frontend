@@ -23,8 +23,8 @@
     body { background: #f3f4f6; }
     /* Search Block */
     .search-block { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 16px 28px; }
-    .search-box { max-width: 900px; margin: 0 auto; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
-    .sb-top { display: flex; align-items: center; border-bottom: 1px solid #e2e8f0; }
+    .search-box { max-width: 900px; margin: 0 auto; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; }
+    .sb-top { display: flex; align-items: center; border-bottom: 1px solid #e2e8f0; border-radius: 11px 11px 0 0; overflow: hidden; }
     .sb-input { flex: 1; min-width: 0; width: 100%; border: none; background: transparent; padding: 13px 18px; font-family: 'Vazirmatn', sans-serif; font-size: 14px; outline: none; color: #111; }
     .sb-input::placeholder { color: #bbb; }
     .sb-btn { background: #1d4ed8; color: #fff; border: none; padding: 0 28px; height: 48px; font-family: 'Vazirmatn', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
@@ -40,6 +40,32 @@
     .sb-filter-val { font-size: 13px; color: #333; font-weight: 500; }
     .sb-filter i.arrow { margin-right: auto; color: #bbb; font-size: 14px; }
     .sb-select { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+    .sb-filters { position: relative; }
+    .sb-filter.enhanced { display: block; padding: 0; border-radius: 0 0 10px 10px; }
+    .sb-filter-trigger { display: flex; align-items: center; gap: 10px; padding: 11px 18px; width: 100%; min-height: 56px; height: 100%; text-align: start; font: inherit; color: inherit; background: transparent; border: 0; border-radius: inherit; cursor: pointer; }
+    .sb-filter-trigger > div { min-width: 0; }
+    .sb-filter-trigger[aria-expanded="true"], .sb-filter.has-selection { background: #edf4ff; }
+    .sb-filter.has-selection .sb-filter-val, .sb-filter-trigger[aria-expanded="true"] i.arrow { color: #1d4ed8; }
+    .sb-filter-trigger[aria-expanded="true"] i.arrow { transform: rotate(180deg); }
+    .sb-filter-trigger:focus-visible, .sb-menu-option:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
+    .sb-filter-menu { position: absolute; inset-block-start: calc(100% + 7px); inset-inline-start: 0; width: clamp(245px, 100%, 360px); z-index: 15; padding: 10px; background: #fff; border: 1px solid #cbdaf6; border-radius: 14px; box-shadow: 0 14px 32px rgba(30,64,175,.17); }
+    .sb-filter:last-child .sb-filter-menu { inset-inline: auto 0; }
+    .sb-menu-search { position: relative; margin-bottom: 8px; }
+    .sb-menu-search i { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); color: #1d4ed8; pointer-events: none; }
+    .sb-menu-search input { width: 100%; min-height: 42px; padding: 8px 34px 8px 10px; font: inherit; font-size: 16px; border: 1px solid #dbe5f7; border-radius: 9px; background: #f8fbff; color: #172554; }
+    .sb-menu-search input:focus { outline: 2px solid #2563eb; outline-offset: -1px; }
+    .sb-menu-options { max-height: min(340px, 45vh); overflow-y: auto; overscroll-behavior: contain; }
+    .sb-menu-option { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 42px; padding: 8px 10px; text-align: start; overflow-wrap: anywhere; font: 500 13px Vazirmatn,sans-serif; color: #243654; background: #fff; border: 1px solid #e6eefb; border-radius: 8px; cursor: pointer; }
+    .sb-menu-option + .sb-menu-option { margin-block-start: 4px; }
+    .sb-menu-option:hover, .sb-menu-option[aria-pressed="true"] { background: #edf4ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .sb-menu-empty { margin: 10px 2px 4px; color: #52647e; font-size: 13px; }
+    @media (max-width: 640px) {
+      .sb-filter.enhanced { position: static; }
+      .sb-filter-trigger { gap: 4px; padding: 8px 5px; }
+      .sb-filter-trigger .sb-filter-lbl { display: none; }
+      .sb-filter-trigger i.icon { font-size: 15px; }
+      .sb-filter-menu, .sb-filter:last-child .sb-filter-menu { inset-inline: 0; width: auto; }
+    }
     /* Action Bar */
     .action-bar { display: flex; gap: 10px; padding: 14px 28px 0; }
     .ab { display: flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 9px; font-family: 'Vazirmatn', sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; }
@@ -210,7 +236,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
           <i class="ti ti-car icon"></i>
           <div><span class="sb-filter-lbl">فیلتر بر اساس</span><span class="sb-filter-val" id="lblCar">نام خودرو</span></div>
           <i class="ti ti-chevron-down arrow"></i>
-          <select class="sb-select" id="fCar" onchange="doFilter();document.getElementById('lblCar').textContent=this.value||'نام خودرو'">
+          <select class="sb-select" id="fCar" onchange="doFilter();syncFilterLabels()" aria-label="نام خودرو">
             <option value="">همه خودروها</option>
           </select>
         </div>
@@ -218,7 +244,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
           <i class="ti ti-tag icon"></i>
           <div><span class="sb-filter-lbl">فیلتر بر اساس</span><span class="sb-filter-val" id="lblBrand">برند</span></div>
           <i class="ti ti-chevron-down arrow"></i>
-          <select class="sb-select" id="fBrand" onchange="doFilter();document.getElementById('lblBrand').textContent=this.value||'برند'">
+          <select class="sb-select" id="fBrand" onchange="doFilter();syncFilterLabels()" aria-label="برند">
             <option value="">همه برندها</option>
           </select>
         </div>
@@ -226,7 +252,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
           <i class="ti ti-category icon"></i>
           <div><span class="sb-filter-lbl">فیلتر بر اساس</span><span class="sb-filter-val" id="lblCat">گروه کالایی</span></div>
           <i class="ti ti-chevron-down arrow"></i>
-          <select class="sb-select" id="fCat" onchange="doFilter();document.getElementById('lblCat').textContent=this.value||'گروه کالایی'">
+          <select class="sb-select" id="fCat" onchange="doFilter();syncFilterLabels()" aria-label="گروه کالایی">
             <option value="">همه گروه‌ها</option>
           </select>
         </div>
@@ -325,6 +351,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
   <script src="js/components.js"></script>
   <script src="js/checkout-success.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/shop-filter-menu.js"></script>
   <script>
     OnPart.renderNavbar('shop');
     const fa = n => n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
@@ -341,6 +368,14 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       let normalized=String(value||'').normalize('NFKC').replace(/[\u064a\u0649]/g,'\u06cc').replace(/\u0643/g,'\u06a9').replace(/[\u06f0-\u06f9]/g,d=>'\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f8\u06f9'.indexOf(d)).replace(/[\u0660-\u0669]/g,d=>'\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669'.indexOf(d)).replace(/[\u200c\u200d\u200e\u200f\u2060]/g,' ').replace(/[\u2010-\u2015]/g,'-').replace(/\s+/g,' ').trim().toLocaleLowerCase('fa-IR');
       return compact?normalized.replace(/[\s-]+/g,''):normalized;
     };
+    const shopFilterIds = ['fCar', 'fBrand', 'fCat'];
+    const filterSync = shopFilterIds.map(id => {
+      const select = document.getElementById(id);
+      if (typeof enhanceShopFilter === 'function') return enhanceShopFilter(select, normalizeSearch);
+      const label = select.parentElement.querySelector('.sb-filter-val');
+      return () => { label.textContent = selectedFilterLabel(id) || select.getAttribute('aria-label'); };
+    });
+    function syncFilterLabels() { filterSync.forEach(sync => sync()); }
     const MAX_ITEM_QUANTITY=9999;
 
     // Load from API
@@ -456,9 +491,14 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       document.getElementById('pgInfo').textContent = `${fa(products.length)} محصول`;
 
       const metadata=await metadataPromise;
-      setFilterOptions('fCar',metadata.cars,'همه خودروها');
-      setFilterOptions('fBrand',metadata.brands,'همه برندها');
-      setFilterOptions('fCat',metadata.categories,'همه گروه‌ها');
+      const hadFilter = shopFilterIds.some(id => document.getElementById(id).value);
+      if (!metadataError) {
+        setFilterOptions('fCar',metadata.cars,'همه خودروها',metadata.labels?.cars);
+        setFilterOptions('fBrand',metadata.brands,'همه برندها',metadata.labels?.brands);
+        setFilterOptions('fCat',metadata.categories,'همه گروه‌ها',metadata.labels?.categories);
+        syncFilterLabels();
+      }
+      if (hadFilter || document.getElementById('fText').value) doFilter();
       if(metadataError) OnPart.toast('محصولات نمایش داده شدند؛ فیلترها موقتاً در دسترس نیستند', 'info');
     }
 
@@ -610,11 +650,22 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
         else bar.style.display='none';
       }
     }
-    function setFilterOptions(id,values,emptyLabel){
+    function setFilterOptions(id,values,emptyLabel,labels={}){
       const select=document.getElementById(id),current=select.value,fragment=document.createDocumentFragment();
       const empty=document.createElement('option');empty.value='';empty.textContent=emptyLabel;fragment.appendChild(empty);
-      for(const label of values||[]){const option=document.createElement('option');option.value=label;option.textContent=label;fragment.appendChild(option)}
+      for (const source of values || []) {
+        const option = document.createElement('option');
+        option.value = source;
+        const label = Object.hasOwn(labels, source) ? labels[source] : source;
+        option.textContent=label;
+        fragment.appendChild(option);
+      }
       select.replaceChildren(fragment);if([...select.options].some(option=>option.value===current))select.value=current;
+    }
+
+    function selectedFilterLabel(id) {
+      const select = document.getElementById(id);
+      return select.value ? select.selectedOptions[0].textContent : '';
     }
 
     let filterTimer;
@@ -633,9 +684,9 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       if(!summary) return;
       const values=[
         ['جست‌وجو',document.getElementById('fText').value.trim()],
-        ['خودرو',document.getElementById('fCar').value],
-        ['برند',document.getElementById('fBrand').value],
-        ['گروه',document.getElementById('fCat').value]
+        ['خودرو',selectedFilterLabel('fCar')],
+        ['برند',selectedFilterLabel('fBrand')],
+        ['گروه',selectedFilterLabel('fCat')]
       ].filter(item=>item[1]);
       summary.innerHTML=values.map(item=>'<span class="filter-chip">'+esc(item[0])+': '+esc(item[1])+'</span>').join('')
         +(values.length?'<button class="clear-filters" onclick="clearFilters()"><i class="ti ti-x"></i> پاک‌کردن فیلترها</button>':'');
@@ -643,12 +694,8 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
 
     function clearFilters(){
       document.getElementById('fText').value='';
-      document.getElementById('fCar').value='';
-      document.getElementById('fBrand').value='';
-      document.getElementById('fCat').value='';
-      document.getElementById('lblCar').textContent='نام خودرو';
-      document.getElementById('lblBrand').textContent='برند';
-      document.getElementById('lblCat').textContent='گروه کالایی';
+      shopFilterIds.forEach(id => { document.getElementById(id).value = ''; });
+      syncFilterLabels();
       doFilter();
       document.getElementById('fText').focus();
     }
