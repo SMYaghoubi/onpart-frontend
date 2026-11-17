@@ -67,6 +67,24 @@
     .bank-logo-preview{width:58px!important;height:58px!important;background:#fff!important;border:1px solid #dbe5f2;box-shadow:0 4px 12px rgba(15,23,42,.06)}
     .bank-upload-btn{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:8px;padding:7px 12px;font:600 12px Vazirmatn;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
     .bank-upload-status{font-size:11px;color:#64748b;margin-top:5px}.bank-upload-status.error{color:#dc2626}.bank-upload-status.ok{color:#15803d}
+    .filter-admin-toolbar,.filter-admin-row,.filter-admin-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+    .filter-admin-toolbar{margin-block:14px 8px}
+    .filter-admin-control{min-height:42px;padding:8px 11px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#172554;font:inherit}
+    .filter-admin-toolbar input{flex:1;min-width:min(100%,200px)}
+    .filter-admin-button{min-height:42px;padding:7px 12px;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;color:#1e40af;font:inherit;cursor:pointer}
+    .filter-admin-button:hover{background:#dbeafe}
+    .filter-admin-button:disabled{opacity:.6;cursor:default}
+    .filter-admin-button.primary{background:#1d4ed8;color:#fff;border-color:#1d4ed8}
+    .filter-admin-list{max-height:420px;overflow:auto;overscroll-behavior:contain;display:grid;gap:5px}
+    .filter-admin-row{justify-content:space-between;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px}
+    .filter-admin-name{flex:1 1 180px;overflow-wrap:anywhere}
+    .filter-admin-name small{display:block;color:#52647e}
+    .filter-admin-status{font-size:13px;color:#475569;margin-block:8px}
+    .filter-admin-status[data-error]{color:#b91c1c}
+    .filter-admin-dialog{width:min(420px,calc(100% - 32px));margin:auto;padding:20px;border:1px solid #cbdaf6;border-radius:14px;color:#172554;background:#fff}
+    .filter-admin-dialog::backdrop{background:rgba(15,23,42,.45)}
+    .filter-admin-dialog h3{margin:0 0 12px}
+    .filter-admin-dialog input{display:block;width:100%;margin:6px 0 14px}
     .legacy-logo-warning{display:inline-flex;align-items:center;gap:4px;margin-top:5px;padding:4px 7px;background:#fff7ed;color:#c2410c;border-radius:6px;font-size:10.5px}
     .bank-item-grid input[dir=ltr]{text-align:left;unicode-bidi:plaintext;letter-spacing:.4px}</style>
 </head>
@@ -82,6 +100,7 @@
           <a class="sn-item active" href="#general"><i class="ti ti-info-circle"></i><span>اطلاعات عمومی</span></a>
           <a class="sn-item" href="#bank"><i class="ti ti-building-bank"></i><span>حساب‌های بانکی</span></a>
           <a class="sn-item" href="#shop"><i class="ti ti-shopping-cart"></i><span>تنظیمات فروشگاه</span></a>
+          <a class="sn-item" href="#shop-filters"><i class="ti ti-filter"></i><span>مدیریت فیلترهای فروشگاه</span></a>
           <a class="sn-item" href="#access"><i class="ti ti-shield"></i><span>امنیت</span></a>
           <a class="sn-item" href="#notif"><i class="ti ti-bell"></i><span>اعلان‌ها</span></a>
           <a class="sn-item" href="#admin-pw"><i class="ti ti-lock"></i><span>تغییر رمز ادمین</span></a>
@@ -141,6 +160,35 @@
             </div>
             <div class="save-bar"><button class="btn-save" onclick="saveSettings('shop')"><i class="ti ti-check"></i>ذخیره</button></div>
           </div>
+
+          <section class="card" id="shop-filters" aria-labelledby="filterAdminTitle">
+            <div class="card-title" id="filterAdminTitle"><i class="ti ti-filter" aria-hidden="true"></i>مدیریت فیلترهای فروشگاه</div>
+            <p class="filter-admin-status">نام نمایشی گزینه‌ها را تغییر دهید یا آن‌ها را از منوی فروشگاه پنهان کنید. برای نمایش محصولات زیر یک گزینهٔ جدید، همان نام را در مشخصات محصول ثبت کنید.</p>
+            <div class="filter-admin-toolbar">
+              <select class="filter-admin-control" id="filterAdminGroup" aria-label="نوع فیلتر">
+                <option value="cars">نام خودرو</option>
+                <option value="brands">برند</option>
+                <option value="categories">گروه کالایی</option>
+              </select>
+              <input class="filter-admin-control" type="search" id="filterAdminSearch" placeholder="جست‌وجوی گزینه‌ها" aria-label="جست‌وجوی گزینه‌ها">
+              <button type="button" class="filter-admin-button primary" id="filterAdminAdd" disabled>افزودن گزینه</button>
+              <button type="button" class="filter-admin-button" id="filterAdminRetry" hidden>تلاش دوباره</button>
+            </div>
+            <p class="filter-admin-status" id="filterAdminStatus" role="status"></p>
+            <div class="filter-admin-list" id="filterAdminList" role="list" aria-label="گزینه‌های فیلتر"></div>
+            <dialog class="filter-admin-dialog" id="filterAdminDialog" aria-labelledby="filterAdminDialogTitle">
+              <form id="filterAdminForm">
+                <h3 id="filterAdminDialogTitle"></h3>
+                <label for="filterAdminName">نام نمایشی</label>
+                <input class="filter-admin-control" id="filterAdminName" required maxlength="500" autocomplete="off">
+                <p class="filter-admin-status" id="filterAdminFormStatus" role="status"></p>
+                <div class="filter-admin-actions">
+                  <button class="filter-admin-button primary" type="submit">ذخیره</button>
+                  <button class="filter-admin-button" id="filterAdminCancel" type="button">انصراف</button>
+                </div>
+              </form>
+            </dialog>
+          </section>
 
           <!-- ACCESS -->
           <div class="card" id="access">
@@ -212,6 +260,7 @@
 
 <script src="../js/api.js"></script>
 <script src="../js/admin.js"></script>
+<script src="../js/admin-shop-filters.js" defer></script>
 <script>
 Admin.renderSidebar('settings');
 Admin.renderTopbar('تنظیمات سایت','ti-settings');
