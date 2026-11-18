@@ -85,7 +85,8 @@
       .tbl { display:block; border-radius:0; box-shadow:none; background:transparent; }
       .tbl thead { display:none; }
       .tbl tbody { display:flex; flex-direction:column; gap:10px; }
-      .tbl tbody tr { display:grid; grid-template-columns:1fr; padding:14px; border:1px solid #e5e7eb; border-radius:14px; background:#fff; box-shadow:0 2px 8px rgba(15,23,42,.04); }
+      .tbl tbody tr { display:grid; grid-template-columns:1fr; padding:14px; border:1px solid #dce6f3; border-radius:14px; background:#fbfdff; box-shadow:0 2px 8px rgba(15,23,42,.04); }
+      .tbl tbody tr.product-row { position:relative; padding-inline-start:20px; }
       .tbl tbody tr td { display:block; width:100%; border:none; padding:0; white-space:normal; min-width:0; }
       /* Description cell takes full width */
       .td-desc { min-width:0; padding:0!important; }
@@ -95,8 +96,11 @@
       .prod-meta .td-hide-mob { display:inline-flex!important; }
       /* Price and stock cells */
       .unit-price-cell { display:flex!important; align-items:center; justify-content:space-between; margin-top:12px; padding:10px 0!important; border-top:1px solid #eef2f7!important; color:#1d4ed8!important; font-size:14px!important; font-weight:800!important; white-space:nowrap!important; }
-      .unit-price-cell::before { content:'قیمت واحد'; color:#64748b; font-size:11.5px; font-weight:500; }
-      .unit-price-cell .price-unit { display:inline; margin-inline-start:5px; font-size:12px; font-weight:600; }
+      .unit-price-cell::before, .product-total::before { color:#64748b; font-size:11.5px; font-weight:500; }
+      .unit-price-cell::before { content:attr(data-price-label); }
+      .product-total:not(:empty) { display:flex; align-items:center; justify-content:space-between; gap:8px; padding-block:8px; color:#152744; }
+      .product-total:not(:empty)::before { content:'جمع کل'; }
+      .product-total:empty { display:none; }
       /* Quantity cell */
       td.qty-cell { display:block!important; }
       .qbtn { min-width:44px!important; height:44px!important; }
@@ -119,19 +123,34 @@
     .td-show-mob { display:none; }
     .prod-code-mob { font-size:13px; color:#334155; font-weight:700; font-family:monospace; margin-bottom:3px; letter-spacing:.3px; }
     .prod-code-label { font-family:'Vazirmatn',sans-serif; font-size:12px; }
-    .price-unit { display:none; }
-    .prod-name { font-size:12.5px; font-weight:600; }
+    .prod-name { font-size:14px; font-weight:700; color:#152744; }
     .prod-meta { display:none; align-items:center; flex-wrap:wrap; gap:5px; margin-top:7px; }
     .ab-req  { background: #fff; color: #444; border: 1.5px solid #e5e7eb; flex: 1; }
     /* Table */
-    .table-wrap { padding: 12px 28px 32px; overflow-x: auto; }
-    .tbl { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,.06); }
-    .tbl thead tr { background: #f8fafc; }
-    .tbl th { padding: 11px 10px; font-size: 12px; font-weight: 700; color: #666; text-align: center; border-bottom: 2px solid #e5e7eb; white-space: nowrap; }
+    .tbl { width:100%; }
+    .tbl th { padding: 11px 10px; font-size: 12px; font-weight: 700; color: #52647e; text-align: center; background:#eef3f9; white-space: nowrap; }
     .tbl th[data-column="description"] { text-align: right; }
-    .tbl tbody tr { border-bottom: 1px solid #f0f0f0; transition: background .1s; }
-    .tbl tbody tr:hover { background: #f9fbff; }
-    .tbl td { padding: 9px 10px; font-size: 12px; color: #333; text-align: center; white-space: nowrap; }
+    .tbl td { font-size: 12px; color: #334155; text-align: center; }
+    .product-row::before, .row-accent::before {
+      content:''; position:absolute; right:5px; top:50%; width:3px; height:24px;
+      transform:translateY(-50%); border-radius:3px; background:#7ea2fa; pointer-events:none;
+    }
+    @media (min-width:641px) {
+      .table-wrap { padding: 8px 28px 32px; overflow-x:auto; }
+      .tbl { border-collapse:separate; border-spacing:0 5px; }
+      .tbl th:first-child { border-radius:0 8px 8px 0; }
+      .tbl th:last-child { border-radius:8px 0 0 8px; }
+      .tbl td { padding:10px; white-space:nowrap; }
+      .tbl .product-row > td { background:#fbfdff; border-block:1px solid #dce6f3; transition:background-color .15s; }
+      .tbl .product-row:hover > td, .tbl .product-row:focus-within > td { background:#f0f6ff; }
+      .tbl .product-row > td:first-child { position:relative; border-right:1px solid #dce6f3; border-radius:0 10px 10px 0; padding-right:15px; }
+      .tbl .product-row > td:last-child { border-left:1px solid #dce6f3; border-radius:10px 0 0 10px; }
+      .tbl .product-row > .td-price { font-size:14px; color:#152744; }
+      .product-row::before { content:none; }
+    }
+    @media (max-width:640px) {
+      .product-row::before { top:13px; transform:none; }
+    }
     .td-desc { text-align: right !important; font-size: 11.5px; color: #111; max-width: 280px; }
     .td-desc .prod-name { white-space: normal; overflow: visible; text-overflow: unset; }
     .tbl td.td-code { font-size: 12px; color: #334155; font-weight:700; font-family: monospace; direction: ltr; }
@@ -218,6 +237,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
 .search-block{background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(239,246,255,.94));box-shadow:0 10px 34px rgba(30,64,175,.06)}
 .search-box{border-color:#cbdaf6;box-shadow:0 8px 25px rgba(29,78,216,.07)}
 #tbody>tr{content-visibility:auto;contain-intrinsic-size:64px;contain:layout paint style}
+#tbody>.product-row:has(.desc-popup.show){content-visibility:visible;contain:none}
 @keyframes shopOrb{to{transform:translate3d(18px,-22px,0) scale(1.08)}}
 @media(prefers-reduced-motion:reduce){body:before,body:after{animation:none}}</style>
 </head>
@@ -306,7 +326,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
           <th class="td-hide-mob" data-column="category">گروه کالا</th>
           <th class="td-hide-mob" data-column="flow">گردش</th>
           <th class="td-hide-mob stock-col" data-column="availability">موجودی</th>
-          <th id="priceHeader" data-column="price">قیمت (ت)</th>
+          <th id="priceHeader" data-column="price">قیمت ( تومان )</th>
           <th data-column="quantity">تعداد</th>
           <th class="td-hide-mob" data-column="total">جمع کل</th>
         </tr>
@@ -361,6 +381,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
     })[char]);
     let currencyUnit = 'تومان';
     const fmtPrice = n => fmt(n) + ' ' + currencyUnit;
+    const priceColumnLabel = () => `قیمت ( ${currencyUnit} )`;
 
     let products = [];
     let filtered = [];
@@ -392,7 +413,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
 
         if(shopSettings.currency) currencyUnit = shopSettings.currency;
         const ph = document.getElementById('priceHeader');
-        if(ph) ph.textContent = 'قیمت ('+(currencyUnit==='ریال'?'ر':'ت')+')';
+        if(ph) ph.textContent = priceColumnLabel();
 
         // Maintenance mode
         if(shopSettings.maintenance_mode === '1'){
@@ -524,8 +545,8 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       const rowsHtml = filtered.map((p,i) => { var stockB=p.stock?'<span class="chip ch-green">موجود</span>':'<span class="chip ch-red">ناموجود</span>'; var flowB='<span class="chip '+(p.flow?'ch-sky':'ch-gray')+'">'+(p.flow?'دارد':'ندارد')+'</span>';
         const q = qtys[p.id]||0, tot = q*p.price;
         const safeCode=esc(p.code),safeDesc=esc(p.desc),safeNote=esc(p.note||'—'),safeCar=esc(p.car),safeBrand=esc(p.brand),safeCat=esc(p.cat);
-        return `<tr id="productRow_${p.id}">
-          <td class="td-code td-hide-mob" data-column="code">${safeCode}</td>
+        return `<tr id="productRow_${p.id}" class="product-row">
+          <td class="td-code td-hide-mob row-accent" data-column="code">${safeCode}</td>
           <td class="td-desc" data-column="description" style="position:relative">
             <div class="prod-code-mob td-show-mob"><span class="prod-code-label">کد: </span><bdi dir="ltr">${safeCode}</bdi></div>
             <div class="prod-name">${safeDesc}${p.note?`<button class="desc-info-btn" onclick="toggleDescPopup(event,${i})" title="توضیحات اضافه" aria-label="نمایش توضیحات ${safeDesc}"><i class="ti ti-info-circle"></i></button>`:''}</div>
@@ -550,14 +571,14 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
           <td class="td-hide-mob" data-column="category"><span class="chip ch-gray">${safeCat}</span></td>
           <td class="td-hide-mob" data-column="flow">${flowB}</td>
           <td class="td-hide-mob stock-col" data-column="availability">${stockB}</td>
-          <td class="td-price unit-price-cell" data-column="price">${canShowPrice()?`<span class="price-value">${fmt(p.price)}<span class="price-unit">تومان</span></span>`:'<a href="/login" style="color:#1d4ed8;font-size:11px">ورود برای مشاهده</a>'}</td>
+          <td class="td-price unit-price-cell" data-column="price" data-price-label="${esc(priceColumnLabel())}">${canShowPrice()?`<span class="price-value">${fmt(p.price)}</span>`:'<a href="/login" style="color:#1d4ed8;font-size:11px">ورود برای مشاهده</a>'}</td>
           <td class="qty-cell" data-column="quantity"><div class="qty-wrap" id="productQtyWrap_${p.id}">
             <button class="qbtn" onclick="chg(${p.id},-1)" aria-label="کاهش تعداد ${safeDesc}" ${p.stock?'':'disabled'}>−</button>
             <input class="qinp" id="productQty_${p.id}" value="${fa(q)}" onchange="setQ(${p.id},this.value)" aria-label="تعداد ${safeDesc}" inputmode="numeric" ${p.stock?'':'disabled'}/>
             <button class="qbtn" onclick="chg(${p.id},1)" aria-label="افزایش تعداد ${safeDesc}" ${p.stock?'':'disabled'}>+</button>
             <span class="qty-status" id="productQtyStatus_${p.id}" aria-live="polite"></span>
           </div></td>
-          <td class="td-price td-hide-mob" data-column="total" id="productTotal_${p.id}">${tot?fmt(tot):''}</td>
+          <td class="td-price product-total" data-column="total" id="productTotal_${p.id}">${tot?fmt(tot):''}</td>
         </tr>`;
       });
       const body=document.getElementById('tbody'),fragment=document.createDocumentFragment();
