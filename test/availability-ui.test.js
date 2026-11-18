@@ -11,12 +11,14 @@ test('admin product UI and export use availability without numeric stock control
   assert.match(source,/وضعیت موجودی/);assert.match(source,/فایل قدیمی/);
   assert.doesNotMatch(source,/fields\.stock\s*=/);
 });
-test('supplier manual, Excel and review flows expose only binary availability',()=>{
+test('supplier and review show quantity independently from binary availability',()=>{
   const portal=read('supplier/index.html'),review=read('admin/supplier-updates.html');
-  assert.match(portal,/available:c\.available/);assert.match(portal,/وضعیت موجودی/);
-  assert.doesNotMatch(portal,/id="bulkStock"|applyBulkStock|c\.stock|row\.stock/);
-  assert.match(review,/proposed_available/);assert.match(review,/available:item\.proposed_available/);
-  assert.doesNotMatch(review,/type="number"[^>]*placeholder="بدون تغییر"/);
+  assert.match(portal,/role="switch"/);
+  assert.match(portal,/تعداد موجودی/);
+  assert.match(portal,/effectiveQuantity\(product,entry\) === 0/);
+  assert.match(review,/proposed_available/);
+  assert.match(review,/proposed_quantity/);
+  assert.doesNotMatch(portal,/c\.stock|row\.stock/);
 });
 test('shop uses binary availability without treating the sentinel as a quantity cap',()=>{
   const source=read('shop.html');
@@ -74,8 +76,8 @@ test('shop, admin and supplier search use canonical product codes',()=>{
   assert.match(api,/toLowerCase\(\)/);
   assert.match(shop,/_codeSearch:\s*API\.normalizeProductCode\(p\.code\)/);
   assert.match(admin,/API\.normalizeProductCode\(p\.code\)/);
-  assert.match(supplier,/new Map\(products\.map\(product=>\[API\.normalizeProductCode\(product\.code\),product\]\)\)/);
-  assert.match(supplier,/محصول با کد «\$\{originalCode\}» در محصولات مجاز شما یافت نشد/);
+  assert.match(supplier,/codeIndex\.get\(code\)\.push\(product\)/);
+  assert.match(supplier,/matches\.length>1/);
 });
 test('bulk product flow has an explicit opt-in and preserves the zero value',()=>{
   const source=read('admin/products.html');
