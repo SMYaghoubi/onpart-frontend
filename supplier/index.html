@@ -4,92 +4,562 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>پنل تأمین‌کننده | آن‌پارت</title>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <style>
-    *{box-sizing:border-box}body{margin:0;background:#f1f5f9;font-family:Vazirmatn;color:#172033}
-    .top{height:64px;background:#0f172a;color:#fff;display:flex;align-items:center;padding:0 24px;gap:14px}.top img{height:42px;background:#fff;border-radius:8px;padding:4px}.top .company{font-weight:700}
-    .logout{margin-right:auto;border:0;border-radius:8px;padding:8px 12px;background:#ffffff18;color:#fff;font:12px Vazirmatn;cursor:pointer}
-    .page{max-width:1200px;margin:auto;padding:22px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}.stat,.card{background:#fff;border-radius:14px;padding:17px;box-shadow:0 1px 4px #0001}.stat b{font-size:22px;color:#1d4ed8}.stat span{display:block;font-size:11px;color:#888}
-    .tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:13px}.btn{border:0;border-radius:9px;padding:9px 14px;font:600 12.5px Vazirmatn;cursor:pointer;display:inline-flex;align-items:center;gap:5px;text-decoration:none}.blue{background:#1d4ed8;color:#fff}.green{background:#16a34a;color:#fff}.gray{background:#e9eef5;color:#475569}.search{flex:1;min-width:200px;border:1.5px solid #ddd;border-radius:9px;padding:9px 12px;font:13px Vazirmatn}
-    .table-wrap{overflow:auto}.tbl{width:100%;border-collapse:collapse;min-width:900px}.tbl th,.tbl td{padding:9px;border-bottom:1px solid #eee;font-size:12px;text-align:center}.tbl th{background:#f8fafc;color:#64748b}.price,.availability{width:125px;border:1px solid #dce2e8;border-radius:7px;padding:7px;text-align:center}.money-input{display:inline-flex;align-items:center;gap:5px}.money-unit{font-size:10px;color:#64748b}.changed{background:#fff7ed!important;border-color:#fb923c!important}
-    .status{padding:3px 8px;border-radius:15px;font-size:10.5px}.pending{background:#fef3c7;color:#a16207}.approved{background:#dcfce7;color:#15803d}.rejected{background:#fee2e2;color:#b91c1c}.history{margin-top:18px}.empty{text-align:center;padding:35px;color:#999}.note{font-size:11px;color:#777;margin:7px 0}.error-list{white-space:pre-line;background:#fff1f2;color:#be123c;border-radius:8px;padding:10px;font-size:11px;display:none}
-    @media(max-width:650px){html,body{max-width:100%;overflow-x:hidden}.page{padding:10px;max-width:100%}.stats{grid-template-columns:1fr}.top{padding:8px 10px;min-height:64px;height:auto;gap:8px}.top img{height:34px}.top>div{min-width:0}.company{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.logout{min-width:44px;min-height:44px;padding:8px;font-size:0}.logout i{font-size:19px}.actions{flex-wrap:wrap}.actions button,.actions label{min-height:44px}.table-wrap{max-width:100%;-webkit-overflow-scrolling:touch}.tbl{min-width:760px}}
-  </style>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="../css/supplier-portal.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 </head>
 <body>
-  <header class="top"><img src="../images/logo.png" alt="آن‌پارت"><div><div class="company" id="company">پنل تأمین‌کننده</div><div style="font-size:10px;color:#94a3b8">مدیریت قیمت و موجودی مجاز</div></div><button class="logout" onclick="logout()"><i class="ti ti-logout"></i> خروج</button></header>
   <main class="page">
-    <section class="stats"><div class="stat"><b id="productCount">۰</b><span>محصول مجاز</span></div><div class="stat"><b id="changedCount">۰</b><span>تغییر آماده ارسال</span></div><div class="stat"><b id="pendingCount">۰</b><span>بسته در انتظار بررسی</span></div></section>
+    <header class="hero">
+      <img src="../images/logo.png" alt="آن‌پارت">
+      <div><h1>پنل تأمین‌کنندهٔ آن‌پارت</h1><p id="company"></p></div>
+      <button type="button" class="logout" onclick="logout()">خروج</button>
+    </header>
+
     <section class="card">
-      <div class="tools"><input class="search" id="search" placeholder="جستجوی کد، شرح یا برند..." oninput="render()"><button class="btn gray" onclick="downloadTemplate()"><i class="ti ti-download"></i> اکسل محصولات مجاز</button><button class="btn green" onclick="document.getElementById('excel').click()"><i class="ti ti-file-spreadsheet"></i> بارگذاری اکسل</button><input id="excel" type="file" accept=".xlsx,.xls,.csv" hidden onchange="readExcel(this)"><button class="btn blue" id="submitBtn" onclick="submitChanges('manual')"><i class="ti ti-send"></i> ارسال برای بررسی</button></div>
-      <div class="tools" style="padding:10px;background:#f8fafc;border-radius:10px"><button class="btn green" onclick="applyAvailability(true,false)">موجود برای انتخابی‌ها</button><button class="btn green" onclick="applyAvailability(true,true)">موجود برای همه مجاز</button><button class="btn gray" onclick="applyAvailability(false,false)">ناموجود برای انتخابی‌ها</button><button class="btn gray" onclick="applyAvailability(false,true)">ناموجود برای همه مجاز</button></div><div class="note">تمام قیمت‌ها در این پنل به تومان هستند. تغییرات مستقیماً روی فروشگاه اعمال نمی‌شوند و پس از بررسی بازاریاب به‌روزرسانی خواهند شد.</div>
-      <div class="error-list" id="errors"></div><div id="previewBox" style="display:none;margin:12px 0;padding:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;overflow:auto"></div>
-      <div class="table-wrap"><table class="tbl"><thead><tr><th><input type="checkbox" onchange="toggleAll(this.checked)"></th><th>کد</th><th>شرح</th><th>برند</th><th>قیمت فعلی (تومان)</th><th>قیمت تأمین‌کننده (تومان)</th><th>وضعیت فعلی</th><th>وضعیت پیشنهادی</th></tr></thead><tbody id="tbody"></tbody></table></div>
+      <div class="actions">
+        <button type="button" class="primary" data-needs-data disabled onclick="openEntry()">ثبت تکی محصول</button>
+        <button type="button" data-needs-data disabled onclick="document.getElementById('excel').click()">بارگذاری اکسل</button>
+        <button type="button" data-needs-data disabled onclick="downloadTemplate()">اکسل محصولات مجاز</button>
+        <button type="button" data-needs-data disabled onclick="document.getElementById('pasteDialog').showModal()">چسباندن لیست</button>
+        <button type="button" class="quiet" onclick="document.getElementById('exampleDialog').showModal()">نمایش عکس نمونه</button>
+        <input id="excel" type="file" accept=".xlsx,.xls,.csv" hidden onchange="readExcel(this)">
+      </div>
+      <div class="summary">
+        <span><b id="productCount">۰</b> محصول مجاز</span>
+        <span><b id="pendingCount">۰</b> درخواست در انتظار بررسی</span>
+        <button type="button" class="primary" id="previewBtn" disabled onclick="openDraft()">مشاهده و ارسال تغییرات</button>
+      </div>
+      <p id="notice" role="status" hidden></p>
     </section>
-    <section class="card history"><h3 style="font-size:15px;margin-top:0">سوابق ارسالی</h3><div id="history"></div></section>
+
+    <section class="card products" aria-labelledby="listTitle">
+      <div class="section-heading">
+        <h2 id="listTitle">محصولات من</h2>
+        <input id="search" type="search" placeholder="جست‌وجوی نام، کد یا برند" aria-label="جست‌وجوی کالا" oninput="page=0;renderProducts()">
+      </div>
+      <details class="bulk">
+        <summary>تغییر گروهی وضعیت</summary>
+        <div class="actions">
+          <button type="button" onclick="selectFiltered()">انتخاب نتایج جست‌وجو</button>
+          <button type="button" onclick="clearSelection()">پاک کردن انتخاب‌ها</button>
+          <button type="button" onclick="applyAvailability(true)">موجود برای انتخابی‌ها</button>
+          <button type="button" onclick="applyAvailability(false)">ناموجود برای انتخابی‌ها</button>
+          <span id="selectedCount"></span>
+        </div>
+      </details>
+      <div class="product-grid product-head" aria-hidden="true"><span></span><span>محصول</span><span>قیمت همکاری به تومان</span><span>تعداد موجودی</span><span>وضعیت موجودی</span></div>
+      <div id="productList"><p class="empty">در حال دریافت کالاها…</p></div>
+      <div class="pager" id="pager" hidden>
+        <button type="button" id="prevPage" onclick="changePage(-1)">قبلی</button>
+        <span id="pageInfo"></span>
+        <button type="button" id="nextPage" onclick="changePage(1)">بعدی</button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="historyTitle">
+      <h2 id="historyTitle">سوابق ارسال‌ها</h2>
+      <div id="history"><p class="empty">در حال دریافت سوابق…</p></div>
+    </section>
   </main>
+
+  <dialog id="entryDialog" aria-labelledby="entryTitle">
+    <div class="dialog-head"><h2 id="entryTitle">ثبت تکی محصول</h2><button type="button" onclick="closeDialog('entryDialog')" aria-label="بستن فرم">بستن</button></div>
+    <form id="entryForm">
+      <label>کد کالا <small>اجباری</small><input id="entryCode" maxlength="50" required autocomplete="off" oninput="refreshEntryMatches()"></label>
+      <p class="hint">کد درج‌شده روی قطعه یا لیبل بسته‌بندی را وارد کنید.</p>
+      <label id="matchField" hidden>کالای مطابق با کد<select id="entryMatch" onchange="fillEntry()"></select></label>
+      <label>نام محصول<input id="entryName" maxlength="255" required></label>
+      <label>برند<select id="entryBrand" required></select></label>
+      <div class="form-columns">
+        <label>تعداد موجودی<input id="entryQuantity" inputmode="numeric" oninput="if(asciiDigits(this.value).trim()==='0')setSwitch(document.getElementById('entryAvailability'),false)"></label>
+        <label>قیمت همکاری هر عدد به تومان<input id="entryPrice" inputmode="numeric"></label>
+      </div>
+      <div class="stock-line"><span>وضعیت موجودی</span><button id="entryAvailability" type="button" class="switch" role="switch" aria-checked="true" aria-label="موجود بودن کالا" onclick="toggleEntryAvailability()"><span aria-hidden="true" class="track"></span><span class="switch-label">موجود</span></button></div>
+      <p id="entryError" class="error" role="alert" hidden></p>
+      <button type="submit" class="primary full">افزودن به لیست</button>
+    </form>
+  </dialog>
+
+  <dialog id="exampleDialog" aria-labelledby="exampleTitle">
+    <div class="dialog-head"><h2 id="exampleTitle">عکس نمونهٔ تکمیل اکسل</h2><button type="button" onclick="closeDialog('exampleDialog')">بستن</button></div>
+    <img class="example-image" src="../images/supplier-excel-example.png" alt="نمونهٔ ستون‌های کد محصول، شرح، برند، قیمت همکاری به تومان، وضعیت موجودی و تعداد موجودی">
+  </dialog>
+
+  <dialog id="pasteDialog" aria-labelledby="pasteTitle">
+    <div class="dialog-head"><h2 id="pasteTitle">چسباندن لیست کالا</h2><button type="button" onclick="closeDialog('pasteDialog')">بستن</button></div>
+    <p class="hint">ستون‌های کد، نام، برند، تعداد موجودی و قیمت همکاری به تومان را از جدول کپی کنید. اگر نام ستون‌ها را هم کپی کنید، ترتیب آن‌ها آزاد است.</p>
+    <textarea id="pastedRows" rows="6" aria-label="لیست کپی‌شدهٔ کالا" placeholder="لیست کالا را اینجا بچسبانید"></textarea>
+    <p id="pasteError" class="error" role="alert" hidden></p>
+    <button type="button" class="primary full" onclick="readPastedRows()">پیش‌نمایش اقلام</button>
+  </dialog>
+
+  <dialog id="draftDialog" aria-labelledby="draftTitle">
+    <div class="dialog-head"><h2 id="draftTitle">پیش‌نمایش تغییرات</h2><button type="button" id="closeDraft" onclick="closeDialog('draftDialog')">بستن</button></div>
+    <div id="draftItems" class="dialog-list"></div>
+    <p id="draftError" class="error" role="alert" hidden></p>
+    <button type="button" class="primary full" id="submitBtn" onclick="submitChanges()">ارسال برای بررسی</button>
+  </dialog>
+
+  <dialog id="historyDialog" aria-labelledby="detailTitle">
+    <div class="dialog-head"><h2 id="detailTitle">جزئیات درخواست</h2><button type="button" onclick="closeDialog('historyDialog')">بستن</button></div>
+    <div id="details" class="dialog-list"></div>
+  </dialog>
+
   <script src="../js/api.js"></script>
   <script src="../js/product-excel.js"></script>
   <script>
-    const token=OnPartSession.getToken('supplier');if(!token)location.replace('/supplier/login');
-    const supplier=JSON.parse(OnPartSession.getUserRaw('supplier')||'{}');document.getElementById('company').textContent=supplier.company||'پنل تأمین‌کننده';
-    let products=[],changes=new Map(),batches=[],selected=new Set();
-    const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
-    const fmt=n=>fa(Number(n||0).toLocaleString());
-    const numberValue=value=>Number(String(value??'').replace(/[,٬\s]/g,''));
+    const el = id => document.getElementById(id);
+    const esc = value => API.escapeHtml(String(value ?? ''));
+    const fa = value => String(value).replace(/\d/g, digit => '۰۱۲۳۴۵۶۷۸۹'[digit]);
+    const fmt = value => value == null ? '—' : Number(value).toLocaleString('fa-IR');
+    const asciiDigits = value => String(value ?? '').replace(/[۰-۹٠-٩]/g, digit => String(digit.charCodeAt(0) & 15));
+    const textKey = value => asciiDigits(value).normalize('NFKC').replace(/[يى]/g,'ی').replace(/ك/g,'ک').trim().toLowerCase();
+    const availabilityLabel = value => value ? 'موجود' : 'ناموجود';
+    const statusLabel = {pending:'در انتظار بررسی',approved:'تأیید شده',rejected:'رد شده'};
+    const request = (path,options={}) => API.request('/api/supplier-portal' + path, {...options,authContext:'supplier'});
+    const pageSize = 40;
+    const quantityHeader = 'تعداد موجودی';
+    const maxBatchRows = 2000;
+    const priceHeader = 'قیمت همکاری هر عدد به تومان';
+    const supplier = OnPartSession.getUser('supplier');
+    const draftKey = 'onpart-supplier-draft-' + supplier.id;
+    const products = new Map();
+    const codeIndex = new Map();
+    let batches = [], brands = [], selected = new Set(), page = 0, busy = false;
+    let draft = new Map(), source = 'manual', filename = null, submission = null;
+    const authorized = Boolean(OnPartSession.getToken('supplier'));
 
-    async function sreq(path,options={}){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);try{const res=await fetch(API.BASE_URL+path,{...options,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,...(options.headers||{})},signal:controller.signal});const data=await res.json();if(!res.ok){const e=new Error(data.message||'خطا');e.data=data;throw e}return data}finally{clearTimeout(timer)}}
-    async function load(){try{const [p,b]=await Promise.all([sreq('/api/supplier-portal/products'),sreq('/api/supplier-portal/updates')]);products=p.products||[];batches=b.batches||[];document.getElementById('productCount').textContent=fa(products.length);document.getElementById('pendingCount').textContent=fa(batches.filter(x=>x.status==='pending').length);render();renderHistory()}catch(e){alert(e.message)}}
-    const availabilityLabel=value=>value?'موجود':'ناموجود';
-    function render(){
-      const rawQuery=document.getElementById('search').value.trim(),q=rawQuery.toLocaleLowerCase('fa-IR'),codeQuery=API.normalizeProductCode(rawQuery);
-      const rows=products.filter(p=>!q||[p.description,p.brand].some(v=>String(v||'').toLocaleLowerCase('fa-IR').includes(q))||API.normalizeProductCode(p.code).includes(codeQuery));
-      const body=document.getElementById('tbody');
-      if(!rows.length){body.innerHTML='<tr><td colspan="8" class="empty">محصول مجازی برای شما یافت نشد؛ با بازاریاب تماس بگیرید.</td></tr>';return}
-      body.innerHTML=rows.map(p=>{const c=changes.get(p.id)||{};const proposed=c.available;
-        return `<tr><td><input type="checkbox" ${selected.has(p.id)?'checked':''} onchange="toggleSelected(${p.id},this.checked)"></td><td style="font-family:monospace">${API.escapeHtml(p.code)}</td><td style="text-align:right">${API.escapeHtml(p.description)}</td><td>${API.escapeHtml(p.brand||'—')}</td><td>${fmt(p.price)} <small>تومان</small></td><td><span class="money-input"><input class="price ${c.supplier_price!=null?'changed':''}" inputmode="numeric" value="${c.supplier_price??''}" placeholder="قیمت به تومان" onchange="setPrice(${p.id},this.value,this)"><span class="money-unit">تومان</span></span></td><td><span class="status ${p.available?'approved':'rejected'}">${availabilityLabel(Boolean(p.available))}</span></td><td><select class="availability ${proposed!=null?'changed':''}" onchange="setAvailability(${p.id},this.value,this)"><option value="">بدون تغییر</option><option value="true" ${proposed===true?'selected':''}>موجود</option><option value="false" ${proposed===false?'selected':''}>ناموجود</option></select></td></tr>`
-      }).join('');
+    if (!authorized) location.replace('/supplier/login');
+    el('company').textContent = supplier.company || 'مدیریت قیمت و موجودی';
+    if (authorized && supplier.id) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(draftKey) || '{}');
+        draft = new Map(Array.isArray(saved.items) ? saved.items : []);
+        source = saved.source === 'excel' ? 'excel' : 'manual';
+        filename = saved.filename || null;
+        submission = saved.submission || null;
+      } catch (_) {}
     }
-    function commitChange(id,c){if(Object.keys(c).length)changes.set(id,c);else changes.delete(id);document.getElementById('changedCount').textContent=fa(changes.size);renderPreview()}
-    function setPrice(id,value,input){const p=products.find(x=>x.id===id),c=changes.get(id)||{};if(value==='')delete c.supplier_price;else{const price=numberValue(value);if(!Number.isInteger(price)||price<0){alert('قیمت معتبر به تومان وارد کنید');input.value=c.supplier_price??'';return}if(price===Number(p.price))delete c.supplier_price;else c.supplier_price=price}commitChange(id,c);input.classList.toggle('changed',c.supplier_price!=null)}
-    function setAvailability(id,value){const p=products.find(x=>x.id===id),c=changes.get(id)||{};if(value==='')delete c.available;else{const available=value==='true';if(available===Boolean(p.available))delete c.available;else c.available=available}commitChange(id,c);render()}
-    function toggleSelected(id,on){if(on)selected.add(id);else selected.delete(id)}
-    function toggleAll(on){selected=new Set(on?products.map(p=>p.id):[]);render()}
-    function applyAvailability(available,all){const ids=all?products.map(p=>p.id):[...selected];if(!ids.length){alert('حداقل یک ردیف را انتخاب کنید');return}if(!confirm(`وضعیت ${ids.length} ردیف به «${availabilityLabel(available)}» تغییر کند؟`))return;ids.forEach(id=>{const p=products.find(x=>x.id===id),c=changes.get(id)||{};if(available===Boolean(p.available))delete c.available;else c.available=available;if(Object.keys(c).length)changes.set(id,c);else changes.delete(id)});document.getElementById('changedCount').textContent=fa(changes.size);render();renderPreview()}
-    function renderPreview(){const items=collect(),box=document.getElementById('previewBox');if(!items.length){box.style.display='none';return}box.style.display='block';box.innerHTML='<b>پیش‌نمایش تغییرهای واقعی</b><table class="tbl" style="min-width:600px;margin-top:8px"><tr><th>کد</th><th>قیمت قبلی</th><th>قیمت جدید</th><th>وضعیت قبلی</th><th>وضعیت جدید</th></tr>'+items.map(row=>{const p=products.find(x=>x.code===row.code);return '<tr><td>'+API.escapeHtml(row.code)+'</td><td>'+fmt(p.price)+'</td><td>'+fmt(row.supplier_price)+'</td><td>'+availabilityLabel(Boolean(p.available))+'</td><td>'+(row.available==null?'بدون تغییر':availabilityLabel(row.available))+'</td></tr>'}).join('')+'</table>'}
-    function collect(){const rows=[];for(const [id,c] of changes){const p=products.find(x=>x.id===id);if(p&&(c.supplier_price!=null||c.available!=null))rows.push({code:p.code,supplier_price:c.supplier_price??p.price,available:c.available??null})}return rows}
-    async function submitChanges(source,filename){const items=collect();if(!items.length){alert('حداقل یک تغییر واقعی در قیمت یا وضعیت موجودی وارد کنید');return}renderPreview();if(!confirm(items.length+' تغییر واقعی برای بررسی ارسال شود؟'))return;const btn=document.getElementById('submitBtn');btn.disabled=true;try{const d=await sreq('/api/supplier-portal/updates',{method:'POST',body:JSON.stringify({source,filename,items})});alert(d.message);changes.clear();document.getElementById('changedCount').textContent='۰';await load()}catch(e){showErrors(e.data?.errors||[e.message])}finally{btn.disabled=false}}    function showErrors(list){const el=document.getElementById('errors');el.textContent=list.join('\n');el.style.display='block'}
 
-    function downloadTemplate(){
-      const rows=products.map(product=>ProductExcel.row(product,supplier.company||''));
-      const ws=XLSX.utils.json_to_sheet(rows,{header:ProductExcel.ORDER}),wb=XLSX.utils.book_new();ProductExcel.textCodeColumn(ws,rows.length);
-      ws['!cols']=[{wch:20},{wch:48},{wch:18},{wch:18},{wch:20},{wch:18},{wch:16},{wch:10},{wch:24}];
-      XLSX.utils.book_append_sheet(wb,ws,'محصولات');XLSX.writeFile(wb,'onpart-products-for-supplier.xlsx');
+    function persistDraft() {
+      if (supplier.id) {
+        try { localStorage.setItem(draftKey,JSON.stringify({items:[...draft],source,filename,submission})); } catch (_) {}
+      }
+      el('previewBtn').disabled = !draft.size;
+      el('previewBtn').textContent = draft.size ? fa(draft.size) + ' تغییر آمادهٔ ارسال' : 'مشاهده و ارسال تغییرات';
     }
-    function readExcel(input){
-      const file=input.files[0];if(!file)return;const reader=new FileReader();
-      reader.onload=event=>{try{
-        const wb=XLSX.read(event.target.result,{type:'array'}),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false});changes.clear();
-        const errors=[],legacyRows=[],byCode=new Map(products.map(product=>[API.normalizeProductCode(product.code),product]));
-        rows.forEach((row,index)=>{try{
-          const line=index+2,originalCode=String(ProductExcel.value(row,'code')).trim(),code=API.normalizeProductCode(originalCode),product=byCode.get(code);
-          if(!product)throw new Error(`محصول با کد «${originalCode}» در محصولات مجاز شما یافت نشد`);
-          const price=numberValue(ProductExcel.value(row,'price')||row['قیمت تامین کننده']||row['قیمت تأمین‌کننده']||row.supplier_price||'');if(!Number.isInteger(price)||price<0)throw new Error(`قیمت کد «${originalCode}» نامعتبر است`);
-          const change={};if(price!==Number(product.price))change.supplier_price=price;
-          const availability=ProductExcel.availability(row,line);if(availability.legacy)legacyRows.push(line);if(availability.available!==Boolean(product.available))change.available=availability.available;
-          if(Object.keys(change).length)changes.set(product.id,change);
-        }catch(error){errors.push(`ردیف ${index+2}: ${error.message}`)}});
-        document.getElementById('changedCount').textContent=fa(changes.size);render();renderPreview();
-        if(errors.length){showErrors(errors);return}
-        if(legacyRows.length&&!confirm(`این فایل قدیمی است و در ${fa(legacyRows.length)} ردیف موجودی عددی دارد. مقادیر فقط به موجود/ناموجود تبدیل می‌شوند. ادامه می‌دهید؟`))return;
-        if(confirm(`${changes.size} ردیف دارای تغییر واقعی آماده است. اکنون ارسال شود؟`))submitChanges('excel',file.name);
-      }catch(error){showErrors([error.message||'فایل اکسل قابل خواندن نیست'])}};
-      reader.readAsArrayBuffer(file);input.value='';
-    }    function renderHistory(){const labels={pending:'در انتظار بررسی',approved:'تأیید شده',rejected:'رد شده'};document.getElementById('history').innerHTML=batches.length?batches.map(b=>`<div style="display:flex;gap:10px;align-items:center;padding:10px;border-bottom:1px solid #eee;font-size:12px"><b>${fa(b.id)}</b><span>${b.source==='excel'?'اکسل':'دستی'} · ${fa(b.item_count)} محصول</span><span class="status ${b.status}" style="margin-right:auto">${labels[b.status]}</span>${b.markup_percent!=null?`<span>افزایش ${fa(b.markup_percent)}٪</span>`:''}</div>`).join(''):'<div class="empty">هنوز تغییری ارسال نشده است.</div>'}
-    function logout(){OnPartSession.clear('supplier');location.replace('/supplier/login')}
-    load();
+
+    function message(id, value, error = false) {
+      const node = el(id);
+      node.textContent = value;
+      node.hidden = !value;
+      node.classList.toggle('error', error);
+    }
+
+    function numberValue(value, field, maximum) {
+      const trimmed = asciiDigits(value).trim();
+      if (!trimmed) return null;
+      const digits = trimmed.replace(/[,٬\s]/g,'');
+      const number = Number(digits);
+      if (!/^\d+$/.test(digits) || !Number.isSafeInteger(number) || number > maximum) throw new Error(field + ' نامعتبر است');
+      return number;
+    }
+    const priceValue = value => numberValue(value,'قیمت همکاری',Math.floor(Number.MAX_SAFE_INTEGER / 11));
+    const quantityValue = value => numberValue(value,'تعداد موجودی',2147483647);
+
+    async function load() {
+      try {
+        const [catalog, history] = await Promise.all([request('/products'),request('/updates')]);
+        products.clear();
+        codeIndex.clear();
+        for (const product of catalog.products || []) {
+          products.set(Number(product.id),product);
+          const code = API.normalizeProductCode(product.code);
+          if (!codeIndex.has(code)) codeIndex.set(code,[]);
+          codeIndex.get(code).push(product);
+        }
+        brands = catalog.brands || [];
+        batches = history.batches || [];
+        el('productCount').textContent = fa(products.size);
+        el('pendingCount').textContent = fa(batches.filter(batch => batch.status==='pending').length);
+        document.querySelectorAll('[data-needs-data]').forEach(button => { button.disabled = false; });
+        persistDraft();
+        renderProducts();
+        renderHistory();
+      } catch (error) {
+        message('notice',error.message,true);
+        el('productList').textContent = 'دریافت محصولات انجام نشد.';
+        el('history').textContent = 'دریافت سوابق انجام نشد.';
+      }
+    }
+
+    function entryFor(product) {
+      return draft.get('p:' + product.id) || {};
+    }
+
+    function effectiveQuantity(product, entry) {
+      return entry.quantity ?? (product.quantity == null ? null : Number(product.quantity));
+    }
+
+    function effectiveAvailability(product, entry) {
+      return effectiveQuantity(product,entry) === 0 ? false : entry.available ?? Boolean(Number(product.available));
+    }
+
+    function filteredProducts() {
+      const rawQuery = el('search').value.trim();
+      const query = textKey(rawQuery), code = API.normalizeProductCode(rawQuery);
+      return [...products.values()].filter(product => !query
+        || textKey(product.description).includes(query) || textKey(product.brand).includes(query)
+        || (code && API.normalizeProductCode(product.code).includes(code)));
+    }
+
+    function renderProducts() {
+      const matches = filteredProducts();
+      page = Math.max(0,Math.min(page,Math.ceil(matches.length/pageSize)-1));
+      const start = page * pageSize;
+      el('pager').hidden = matches.length <= pageSize;
+      el('prevPage').disabled = page === 0;
+      el('nextPage').disabled = start + pageSize >= matches.length;
+      el('pageInfo').textContent = `${fa(start+1)} تا ${fa(Math.min(start+pageSize,matches.length))} از ${fa(matches.length)}`;
+      el('selectedCount').textContent = fa(selected.size) + ' انتخاب‌شده';
+      el('productList').innerHTML = matches.length ? matches.slice(start,start+pageSize).map(product => {
+        const id = Number(product.id), entry = entryFor(product);
+        const quantity = effectiveQuantity(product,entry), available = effectiveAvailability(product,entry);
+        return `<article class="product-grid product-row" id="row${id}">
+          <label class="pick"><input type="checkbox" aria-label="انتخاب ${esc(product.description)}" ${selected.has(id)?'checked':''} onchange="selectProduct(${id},this.checked)"></label>
+          <div class="product-name"><b>${esc(product.description)}</b><span>${esc(product.brand)} <bdi dir="ltr">${esc(product.code)}</bdi></span></div>
+          <label class="row-field"><span>قیمت همکاری به تومان</span><input inputmode="numeric" value="${esc(entry.supplier_price ?? product.supplier_price ?? '')}" aria-label="قیمت همکاری ${esc(product.description)}" placeholder="قیمت" onchange="editRow(${id},'supplier_price',this)"></label>
+          <label class="row-field"><span>تعداد موجودی</span><input inputmode="numeric" value="${quantity ?? ''}" aria-label="تعداد موجودی ${esc(product.description)}" placeholder="تعداد" onchange="editRow(${id},'quantity',this)"></label>
+          <button type="button" class="switch" role="switch" aria-label="موجود بودن ${esc(product.description)}" aria-checked="${available}" onclick="toggleProduct(${id},this)"><span class="track" aria-hidden="true"></span><span class="switch-label">${availabilityLabel(available)}</span></button>
+        </article>`;
+      }).join('') : '<p class="empty">محصولی پیدا نشد.</p>';
+    }
+
+    function changePage(delta) { page += delta; renderProducts(); }
+
+    function setSwitch(button, value) {
+      button.setAttribute('aria-checked',String(value));
+      button.querySelector('.switch-label').textContent = availabilityLabel(value);
+    }
+
+    function draftChange(product, inputs, target = draft) {
+      const key = 'p:' + product.id;
+      const change = {...(target.get(key) || {}),product_id:Number(product.id),code:product.code};
+      for (const [field,value] of Object.entries(inputs)) {
+        const old = field==='available' ? Boolean(Number(product.available))
+          : product[field] == null ? null : Number(product[field]);
+        if (value == null || value === old) delete change[field];
+        else change[field] = value;
+      }
+      if (effectiveQuantity(product,change) === 0) {
+        if (inputs.available === true) throw new Error('برای فعال کردن کالا، تعداد موجودی بیشتر از صفر وارد کنید.');
+        if (Boolean(Number(product.available))) change.available = false;
+        else delete change.available;
+      }
+      if (['supplier_price','quantity','available'].some(field => Object.hasOwn(change,field))) target.set(key,change);
+      else target.delete(key);
+    }
+
+    function editRow(id, field, input) {
+      const product = products.get(id);
+      try {
+        const value = field==='quantity' ? quantityValue(input.value) : priceValue(input.value);
+        draftChange(product,{[field]:value});
+        input.value = entryFor(product)[field] ?? product[field] ?? '';
+        setSwitch(el('row'+id).querySelector('.switch'),effectiveAvailability(product,entryFor(product)));
+        persistDraft();
+        message('notice','');
+      } catch (error) {
+        input.value = entryFor(product)[field] ?? product[field] ?? '';
+        message('notice',error.message,true);
+      }
+    }
+
+    function toggleProduct(id, button) {
+      try {
+        const product = products.get(id);
+        draftChange(product,{available:button.getAttribute('aria-checked')!=='true'});
+        setSwitch(button,effectiveAvailability(product,entryFor(product)));
+        persistDraft();
+        message('notice','');
+      } catch (error) { message('notice',error.message,true); }
+    }
+
+    function selectProduct(id,on) {
+      if (on) selected.add(id); else selected.delete(id);
+      el('selectedCount').textContent = fa(selected.size) + ' انتخاب‌شده';
+    }
+    function selectFiltered() { filteredProducts().forEach(product => selected.add(Number(product.id))); renderProducts(); }
+    function clearSelection() { selected.clear(); renderProducts(); }
+
+    function applyAvailability(available) {
+      if (!selected.size) return message('notice','حداقل یک کالا را انتخاب کنید.',true);
+      if (!confirm(`وضعیت ${fa(selected.size)} کالای انتخاب‌شده به «${availabilityLabel(available)}» تغییر کند؟`)) return;
+      let skipped = 0;
+      for (const id of selected) {
+        const product = products.get(id);
+        if (!product || (available && effectiveQuantity(product,entryFor(product))===0)) { skipped++; continue; }
+        draftChange(product,{available});
+      }
+      persistDraft();
+      renderProducts();
+      message('notice',skipped ? fa(skipped) + ' کالا با تعداد صفر فعال نشد.' : 'تغییرات به پیش‌نویس اضافه شدند.');
+    }
+
+    function openEntry() {
+      el('entryForm').reset();
+      el('entryBrand').innerHTML = '<option value="">انتخاب برند</option>' + brands.map(brand => `<option>${esc(brand)}</option>`).join('');
+      setSwitch(el('entryAvailability'),true);
+      refreshEntryMatches();
+      message('entryError','');
+      el('entryDialog').showModal();
+      el('entryCode').focus();
+    }
+
+    function refreshEntryMatches() {
+      const matches = codeIndex.get(API.normalizeProductCode(el('entryCode').value)) || [];
+      el('matchField').hidden = !matches.length;
+      const placeholder = matches.length>1 ? '<option value="">کالای درست را انتخاب کنید</option>' : '';
+      el('entryMatch').innerHTML = placeholder + matches.map(product => `<option value="${Number(product.id)}">${esc(product.description)}، ${esc(product.brand)}</option>`).join('') + '<option value="new">ثبت کالای جدید با این کد</option>';
+      fillEntry();
+    }
+
+    function fillEntry() {
+      const product = products.get(Number(el('entryMatch').value));
+      const entry = product ? entryFor(product) : {};
+      el('entryName').readOnly = Boolean(product);
+      el('entryBrand').disabled = Boolean(product);
+      el('entryName').value = product?.description || '';
+      el('entryBrand').value = product?.brand?.trim() || '';
+      el('entryQuantity').value = product ? effectiveQuantity(product,entry) ?? '' : '';
+      el('entryPrice').value = product ? entry.supplier_price ?? product.supplier_price ?? '' : '';
+      el('entryPrice').required = !product;
+      setSwitch(el('entryAvailability'),product ? effectiveAvailability(product,entry) : true);
+    }
+
+    function toggleEntryAvailability() {
+      const button = el('entryAvailability');
+      const next = button.getAttribute('aria-checked') !== 'true';
+      try {
+        if (next && quantityValue(el('entryQuantity').value) === 0) throw new Error('ابتدا تعداد موجودی بیشتر از صفر وارد کنید.');
+        setSwitch(button,next);
+        message('entryError','');
+      } catch (error) { message('entryError',error.message,true); }
+    }
+
+    function stageNew({code,description,brand,supplier_price,quantity,available},target) {
+      const normalized = API.normalizeProductCode(code);
+      if (!normalized || code.length > 50) throw new Error('کد روی قطعه یا بسته‌بندی نامعتبر است');
+      if (!description || description.length > 255 || !brands.includes(brand)) throw new Error('نام محصول و یک برند مجاز را وارد کنید');
+      if (supplier_price == null) throw new Error('قیمت همکاری برای کالای جدید الزامی است');
+      if ((codeIndex.get(normalized) || []).some(product => textKey(product.brand) === textKey(brand))) throw new Error('این کد و برند در فهرست شما وجود دارد؛ همان کالا را انتخاب کنید');
+      target.set('n:' + normalized + ':' + textKey(brand),{new_product:true,code,description,brand,supplier_price,quantity,available:quantity===0?false:available ?? true});
+    }
+
+    el('entryForm').addEventListener('submit',event => {
+      event.preventDefault();
+      try {
+        const match = el('entryMatch').value;
+        if (!match && !el('matchField').hidden) throw new Error('کالای درست را از فهرست انتخاب کنید');
+        const product = products.get(Number(match));
+        const proposal = {
+          code:el('entryCode').value.trim(), description:el('entryName').value.trim(), brand:el('entryBrand').value,
+          quantity:quantityValue(el('entryQuantity').value),supplier_price:priceValue(el('entryPrice').value),
+          available:el('entryAvailability').getAttribute('aria-checked')==='true'
+        };
+        if (product) {
+          draftChange(product,{quantity:proposal.quantity,supplier_price:proposal.supplier_price,available:proposal.available});
+          if (!draft.has('p:' + product.id)) throw new Error('برای این کالا تغییری وارد نشده است');
+        } else stageNew(proposal,draft);
+        persistDraft();
+        renderProducts();
+        closeDialog('entryDialog');
+        message('notice','کالا به لیست تغییرات اضافه شد.');
+      } catch (error) { message('entryError',error.message,true); }
+    });
+
+    function listItem(name, details, extra = '') {
+      return `<div class="list-item"><div><b>${esc(name)}</b><p>${esc(details)}</p></div>${extra}</div>`;
+    }
+
+    function renderDraft() {
+      el('draftItems').innerHTML = [...draft.entries()].map(([key,row]) => {
+        const product = products.get(row.product_id);
+        const fields = [row.code,row.brand || product?.brand,row.new_product?'کالای جدید':'',
+          row.supplier_price==null?'':fmt(row.supplier_price)+' تومان',row.quantity==null?'':fmt(row.quantity)+' عدد',
+          row.available==null?'':availabilityLabel(row.available)].filter(Boolean).join(' / ');
+        return listItem(row.description || product?.description || row.code,fields,`<button type="button" data-key="${esc(key)}" onclick="removeDraft(this.dataset.key)">حذف از لیست</button>`);
+      }).join('') || '<p class="empty">تغییری آمادهٔ ارسال نیست.</p>';
+      el('submitBtn').disabled = busy || !draft.size;
+    }
+
+    function openDraft() { message('draftError',''); renderDraft(); el('draftDialog').showModal(); }
+    function removeDraft(key) { if (!busy) { draft.delete(key); persistDraft(); renderDraft(); renderProducts(); } }
+    function closeDialog(id) { if (!busy || id!=='draftDialog') el(id).close(); }
+    el('draftDialog').addEventListener('cancel',event => { if (busy) event.preventDefault(); });
+
+    async function submitChanges() {
+      if (busy || !draft.size) return;
+      if (draft.size > maxBatchRows) return message('draftError','حداکثر ' + fa(maxBatchRows) + ' ردیف را در هر ارسال نگه دارید.',true);
+      busy = true;
+      el('submitBtn').disabled = true;
+      el('closeDraft').disabled = true;
+      el('draftItems').querySelectorAll('button').forEach(button => {button.disabled=true;});
+      message('draftError','');
+      try {
+        const payload = {source,filename,items:[...draft.values()]};
+        const snapshot = JSON.stringify(payload);
+        if (submission?.snapshot !== snapshot) submission = {snapshot,key:crypto.randomUUID()};
+        persistDraft();
+        const result = await request('/updates',{method:'POST',timeout:30000,body:JSON.stringify({...payload,request_key:submission.key})});
+        draft.clear();
+        submission = null;
+        source = 'manual';
+        filename = null;
+        persistDraft();
+        el('draftDialog').close();
+        message('notice',result.message);
+        await load();
+      } catch (error) {
+        message('draftError',(error.data?.errors || [error.message]).join('\n'),true);
+      } finally {
+        busy = false;
+        el('closeDraft').disabled = false;
+        renderDraft();
+      }
+    }
+
+    function downloadTemplate() {
+      if (!window.XLSX) return message('notice','ابزار اکسل بارگذاری نشد؛ صفحه را دوباره باز کنید.',true);
+      const rows = [...products.values()].map(product => {
+        const row = ProductExcel.row({...product,available:Boolean(Number(product.available))},supplier.company||'');
+        delete row[ProductExcel.HEADERS.price];
+        return {...row,[quantityHeader]:product.quantity ?? '',[priceHeader]:product.supplier_price ?? ''};
+      });
+      const headers = [...ProductExcel.ORDER.filter(header => header!==ProductExcel.HEADERS.price),quantityHeader,priceHeader];
+      const sheet = XLSX.utils.json_to_sheet(rows,{header:headers});
+      ProductExcel.textCodeColumn(sheet,rows.length);
+      sheet['!cols'] = headers.map(header => ({wch:header===ProductExcel.HEADERS.description?44:22}));
+      const book = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(book,sheet,'محصولات');
+      XLSX.writeFile(book,'onpart-products-for-supplier.xlsx');
+    }
+
+    function importRows(rows) {
+      if (!rows.length) throw new Error('ردیفی برای ورود پیدا نشد.');
+      if (rows.length > 10000) throw new Error('لیست را به فایل‌های کوچک‌تر تقسیم کنید.');
+      const imported = new Map(draft);
+      const errors = [], applicable = new Set(), legacyRows = [];
+      rows.forEach((row,index) => {
+        try {
+          const originalCode = String(ProductExcel.value(row,'code')).trim();
+          const code = API.normalizeProductCode(originalCode);
+          if (!code) throw new Error('کد کالا الزامی است');
+          const brand = String(ProductExcel.value(row,'brand')).trim();
+          const matches = (codeIndex.get(code) || []).filter(product => !brand || textKey(product.brand)===textKey(brand));
+          const identity = code + ':' + textKey(brand || matches[0]?.brand);
+          if (applicable.has(identity)) throw new Error('کد و برند تکراری است');
+          applicable.add(identity);
+          if (matches.length>1) throw new Error('برای این کد چند کالا پیدا شد؛ برند یا کد دقیق را مشخص کنید');
+          const quantity = quantityValue(row[quantityHeader]);
+          const supplierPrice = row[priceHeader] || row['قیمت همکاری'] || row['قیمت تأمین‌کننده'] || row['قیمت تامین کننده'];
+          const price = priceValue(supplierPrice || ProductExcel.value(row,'price'));
+          const legacy = ProductExcel.value(row,'legacyStock');
+          const status = ProductExcel.value(row,'availability');
+          let available = null;
+          if (status!=='') available = ProductExcel.availability(row,index+2).available;
+          else if (legacy!=='') {
+            available = quantityValue(legacy)>0;
+            legacyRows.push(index+2);
+          }
+          const product = matches[0];
+          if (product) {
+            const changes = {};
+            if (quantity != null && quantity !== (product.quantity == null ? null : Number(product.quantity))) changes.quantity = quantity;
+            const baseline = supplierPrice ? product.supplier_price : product.supplier_price ?? product.price;
+            if (price != null && (baseline == null || price !== Number(baseline))) changes.supplier_price = price;
+            if (quantity === 0) available = false;
+            if (available != null && available !== Boolean(Number(product.available))) changes.available = available;
+            if (Object.keys(changes).length) draftChange(product,changes,imported);
+          } else stageNew({
+            code:originalCode,description:String(ProductExcel.value(row,'description') || row['نام محصول'] || '').trim(),
+            brand,supplier_price:price,quantity,available
+          },imported);
+        } catch (error) { errors.push('ردیف ' + fa(index+2) + ': ' + error.message); }
+      });
+      if (errors.length) throw new Error(errors.slice(0,40).join('\n') + (errors.length>40 ? '\nخطاهای بیشتری در فایل وجود دارد.' : ''));
+      if (imported.size > maxBatchRows) throw new Error('در هر ارسال حداکثر ' + fa(maxBatchRows) + ' تغییر مجاز است. لیست را کوچک‌تر کنید.');
+      if (legacyRows.length && !confirm('ستون قدیمی «موجودی» به موجود یا ناموجود تبدیل می‌شود. برای ارسال تعداد دقیق از ستون «تعداد موجودی» استفاده کنید. ادامه می‌دهید؟')) return null;
+      return imported;
+    }
+
+    function showImported(imported, origin, name=null) {
+      draft = imported;
+      source = origin;
+      filename = name;
+      persistDraft();
+      renderProducts();
+      if (draft.size) openDraft();
+      else message('notice','تغییری در لیست پیدا نشد.');
+    }
+
+    async function readExcel(input) {
+      const file = input.files[0];
+      input.value = '';
+      if (!file || busy) return;
+      if (!window.XLSX) return message('notice','ابزار اکسل بارگذاری نشد.',true);
+      if (file.size>8*1024*1024) return message('notice','حجم فایل بیشتر از ۸ مگابایت است.',true);
+      try {
+        const book = XLSX.read(await file.arrayBuffer(),{type:'array'});
+        const rows = XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]],{defval:'',raw:false});
+        const imported = importRows(rows);
+        if (imported) showImported(imported,'excel',file.name);
+      } catch (error) { message('notice',error.message || 'فایل اکسل خوانده نشد.',true); }
+    }
+
+    function readPastedRows() {
+      message('pasteError','');
+      try {
+        const cells = el('pastedRows').value.split(/\r?\n/).filter(line=>line.trim()).map(line=>line.split('\t').map(value=>value.trim()));
+        const hasHeading = cells[0]?.some(value=>ProductExcel.aliases.code.includes(value));
+        const headers = hasHeading ? cells.shift() : ['کد','شرح','برند',quantityHeader,priceHeader];
+        if (cells.some(row=>row.length!==headers.length)) throw new Error('ردیف‌ها را از یک جدول با ستون‌های یکسان کپی کنید.');
+        const rows = cells.map(row=>Object.fromEntries(headers.map((header,index)=>[header,row[index]])));
+        const imported = importRows(rows);
+        if (!imported) return;
+        el('pasteDialog').close();
+        showImported(imported,'manual');
+      } catch (error) { message('pasteError',error.message,true); }
+    }
+
+    function renderHistory() {
+      el('history').innerHTML = batches.length ? batches.map(batch => listItem(
+        'درخواست ' + fa(batch.id),
+        API.formatDate(batch.submitted_at,{withTime:true}) + ' / ' + fa(batch.item_count) + ' کالا / ' + (batch.source==='excel'?'اکسل':'ثبت در پنل'),
+        `<span class="badge ${esc(batch.status)}">${esc(statusLabel[batch.status])}</span> <button type="button" onclick="showHistory(${Number(batch.id)})">جزئیات</button>`
+      )).join('') : '<p class="empty">هنوز تغییری ارسال نشده است.</p>';
+    }
+
+    async function showHistory(id) {
+      const dialog = el('historyDialog');
+      el('details').textContent = 'در حال دریافت جزئیات…';
+      dialog.showModal();
+      try {
+        const {batch,items,errors} = await request('/updates/' + id);
+        el('details').innerHTML = listItem('درخواست ' + fa(batch.id),API.formatDate(batch.submitted_at,{withTime:true}) + ' / ' + statusLabel[batch.status])
+          + (batch.note ? listItem('یادداشت بررسی',batch.note) : '')
+          + items.map(item => listItem(item.description,[
+            item.code,item.brand,item.supplier_price == null ? '' : fmt(item.supplier_price)+' تومان',
+            item.quantity == null ? '' : fmt(item.quantity)+' عدد',
+            item.available == null ? '' : availabilityLabel(Boolean(Number(item.available))),statusLabel[item.status]
+          ].filter(Boolean).join(' / '))).join('')
+          + errors.map(error => listItem('خطای ردیف',error.error_message)).join('');
+      } catch (error) { el('details').textContent = error.message; }
+    }
+
+    function logout() { OnPartSession.clear('supplier'); location.replace('/supplier/login'); }
+    if (authorized) load();
   </script>
 </body>
 </html>
