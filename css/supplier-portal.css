@@ -11,7 +11,7 @@ h1 { font-size: clamp(18px, 3vw, 25px); }
 h2 { font-size: 18px; }
 .page { width: min(1140px, 100%); margin: auto; padding: 22px; display: grid; gap: 15px; }
 .hero { background: linear-gradient(115deg, #09667a, #172f70 78%); color: #fff; border-radius: 15px; padding: 19px; display: flex; align-items: center; gap: 13px; }
-.hero img { width: 55px; height: 47px; object-fit: contain; padding: 5px; background: #fff; border-radius: 8px; }
+.hero img { width: 124px; height: 46px; flex-shrink: 0; object-fit: contain; padding: 6px 8px; background: #fff; border-radius: 8px; }
 .hero p { margin-top: 3px; color: #d5ebfd; font-size: 12px; }
 .hero .logout { margin-inline-start: auto; background: #ffffff18; border-color: #ffffff48; color: #fff; }
 .card { min-width: 0; padding: 17px; background: #fff; border: 1px solid #dce7f4; border-radius: 14px; box-shadow: 0 3px 12px #172e6010; }
@@ -71,7 +71,8 @@ dialog::backdrop { background: #10214388; }
 @media (max-width: 670px) {
   .page { gap: 10px; padding: 9px; }
   .hero, .card { padding: 11px; }
-  .hero img { width: 42px; height: 39px; }
+  .hero { gap: 8px; }
+  .hero img { width: 78px; height: 36px; padding: 5px; }
   .hero button, .actions button, .summary button { min-height: 44px; }
   .actions button { flex: 1 1 105px; padding-inline: 7px; font-size: 12px; }
   .actions button.primary, .summary button { flex-basis: 100%; }

@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8"/>
-  <link rel="icon" href="/images/favicon.png"/>
+  <link rel="icon" href="/favicon.ico?v=2" sizes="16x16 32x32 48x48"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>مدیریت فاکتورها | آن‌پارت</title>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -52,9 +52,7 @@
     .modal-close{width:30px;height:30px;background:#f3f4f6;border:none;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
     .inv-wrap{padding:24px;}
     .inv-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;padding-bottom:20px;border-bottom:2px solid #f0f0f0;}
-    .inv-logo-box{width:44px;height:44px;background:#1e3a8a;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;}
-    .inv-logo-name{font-size:18px;font-weight:800;color:#111;}
-    .inv-logo-name span{color:#1d4ed8;}
+    .inv-logo{width:128px;height:40px;object-fit:contain;}
     .inv-num{font-size:20px;font-weight:900;color:#1d4ed8;}
     .inv-date{font-size:12px;color:#aaa;margin-top:2px;}
     .inv-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
@@ -255,8 +253,7 @@ function openModal(i){
   document.getElementById('invContent').innerHTML=`
     <div class="inv-header">
       <div style="display:flex;align-items:center;gap:10px">
-        <div class="inv-logo-box">OP</div>
-        <div><div class="inv-logo-name">On<span>Part</span></div><div style="font-size:11px;color:#aaa">سامانه فروش قطعات یدکی</div></div>
+        <div><img class="inv-logo" src="/images/logo.png?v=2" alt="آن‌پارت"><div style="font-size:11px;color:#aaa">سامانه فروش قطعات یدکی</div></div>
       </div>
       <div style="text-align:left">
         <div class="inv-num">${fa(v.id)}</div>
