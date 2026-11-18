@@ -88,7 +88,7 @@ const Admin = {
     <div class="sidebar" role="navigation" aria-label="منوی مدیریت" aria-hidden="${sidebarInitiallyHidden}">
       <button type="button" class="sb-mobile-close" data-admin-sidebar-close aria-label="بستن منو"><i class="ti ti-x"></i></button>
       <div class="sb-logo" style="justify-content:center;padding:22px 16px">
-        <img src="../images/logo.png" alt="لوگوی آن‌پارت" style="height:54px;object-fit:contain"/>
+        <img src="/images/logo.png?v=2" alt="لوگوی آن‌پارت"/>
       </div>`;
 
     this.sections.forEach(sec => {
@@ -538,10 +538,7 @@ adminStyle.textContent = `
   .layout{display:flex;min-height:100vh;background:#f1f5f9;}
   .sidebar{width:220px;background:#0f172a;display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;z-index:100;overflow-y:auto;}
   .sb-logo{padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
-  .sb-logo-box{width:34px;height:34px;background:#1d4ed8;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;flex-shrink:0;}
-  .sb-logo-text{font-size:15px;font-weight:800;color:#fff;}
-  .sb-logo-text span{color:#60a5fa;}
-  .sb-logo-sub{font-size:10px;color:rgba(255,255,255,.4);}
+  .sb-logo img{width:164px;max-width:100%;height:56px;object-fit:contain;padding:7px 10px;background:#fff;border-radius:10px;box-sizing:border-box;}
   .sb-section{padding:12px 10px 2px;}
   .sb-lbl{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:1px;padding:0 8px;margin-bottom:4px;}
   .sb-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:all .15s;margin-bottom:2px;text-decoration:none;}

@@ -34,7 +34,7 @@ const OnPart = {
     var userAv = userName ? userName[0] : '?';
 
     var nav = '<nav class="op-nav">';
-    nav += '<div class="op-nav-logo"><a href="/" aria-label="صفحه اصلی آن‌پارت"><img src="/images/logo.png" alt="آن‌پارت" style="height:38px;object-fit:contain"/></a></div>';
+    nav += '<div class="op-nav-logo"><a href="/" aria-label="صفحه اصلی آن‌پارت"><img src="/images/logo.png?v=2" alt="آن‌پارت" style="height:38px;object-fit:contain"/></a></div>';
     nav += '<div class="op-nav-links">';
     nav += '<a href="/shop" class="op-nav-link' + (activePage==='shop'?' active':'') + '">صفحه اصلی</a>';
     nav += '<a href="/profile" class="op-nav-link' + (activePage==='profile'?' active':'') + '">پروفایل من</a>';
@@ -51,7 +51,7 @@ const OnPart = {
     // Mobile overlay
     nav += '<div class="op-mobile-overlay" id="mobileOverlay" onclick="OnPart.closeMenu()"></div>';
     nav += '<div class="op-mobile-menu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="منوی کاربری" aria-hidden="true" tabindex="-1">';
-    nav += '<div class="op-mob-header"><img src="/images/logo.png" alt="آن‌پارت" style="height:36px;object-fit:contain"/>';
+    nav += '<div class="op-mob-header"><img src="/images/logo.png?v=2" alt="آن‌پارت" style="height:36px;object-fit:contain"/>';
     nav += '<button onclick="OnPart.closeMenu()" aria-label="بستن منو" style="background:none;border:none;cursor:pointer;font-size:22px;color:#555"><i class="ti ti-x"></i></button></div>';
 
     if(isLoggedIn) {
