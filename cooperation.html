@@ -102,7 +102,7 @@
 <div class="hero">
   <div class="hero-badge"><i class="ti ti-building-factory-2"></i>سامانه همکاری تامین‌کنندگان</div>
   <h1>با <span>آن‌پارت</span> همکار شوید</h1>
-  <p>اگه تامین‌کننده قطعات یدکی خودرو هستید، به شبکه توزیع ما بپیوندید و کالاهای خود را به هزاران خریدار برسانید.</p>
+  <p>فروشگاه‌های لوازم یدکی، شرکت‌ها، تولیدکنندگان، پخش‌کنندگان و انبارداران می‌توانند از همین فرم درخواست همکاری بدهند.</p>
   <a href="/supplier/login" style="display:inline-flex;align-items:center;gap:7px;background:#fff;color:#1d4ed8;border-radius:10px;padding:10px 18px;text-decoration:none;font-size:13px;font-weight:700;margin-bottom:18px;box-shadow:0 5px 18px rgba(0,0,0,.12)"><i class="ti ti-login"></i> قبلاً تأیید شده‌اید؟ ورود به پنل تأمین‌کننده</a>
   <div class="hero-stats">
     <div class="h-stat"><div class="h-stat-val" id="statSuppliers">—</div><div class="h-stat-lbl">تامین‌کننده فعال</div></div>
@@ -133,20 +133,24 @@
   <div class="form-card">
     <div class="form-header">
       <h2><i class="ti ti-clipboard-list"></i> فرم ثبت‌نام تامین‌کننده</h2>
-      <p>اطلاعات زیر را تکمیل کنید تا کارشناسان ما با شما تماس بگیرند</p>
+      <p>اطلاعات زیر را تکمیل کنید؛ دسترسی به پنل تأمین‌کنندگان پس از بررسی و تأیید مدیریت فعال می‌شود.</p>
     </div>
     <div class="form-body">
 
       <div class="sec-title"><i class="ti ti-building"></i>اطلاعات شرکت / فروشگاه</div>
       <div class="fg-grid">
         <div class="fg"><label>نام شرکت / فروشگاه <span>*</span></label><input class="finput" id="s_company" placeholder="مثلاً شرکت قطعات ایران"/></div>
-        <div class="fg"><label>نوع فعالیت <span>*</span></label>
+        <div class="fg"><label for="s_type">نوع فعالیت <span>*</span></label>
           <select class="finput" id="s_type">
             <option value="">انتخاب کنید...</option>
+            <option>فروشگاه لوازم یدکی</option>
+            <option>شرکت تأمین‌کننده</option>
             <option>تولیدکننده</option>
             <option>وارد‌کننده</option>
             <option>عمده‌فروش</option>
             <option>توزیع‌کننده</option>
+            <option>پخش‌کننده</option>
+            <option>انباردار</option>
             <option>سایر</option>
           </select>
         </div>
