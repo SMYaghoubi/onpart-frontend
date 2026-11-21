@@ -95,3 +95,7 @@ dialog::backdrop { background: #10214388; }
 }
 #pastedRows { display: block; margin-block: 10px; resize: vertical; }
 #exampleDialog .example-image { min-width: 610px; }
+
+.price-input { display: flex; align-items: center; gap: 6px; min-width: 0; direction: ltr; }
+.price-input input { flex: 1; width: 0; direction: ltr; text-align: center; }
+.price-input .price-unit { display: inline; flex-shrink: 0; color: #536a83; font-size: 12px; direction: rtl; }
