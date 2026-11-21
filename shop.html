@@ -19,6 +19,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
   <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/shop-cards.css?v=1"/>
   <style>
     body { background: #f3f4f6; }
     /* Search Block */
@@ -244,6 +245,8 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
 <body>
   <div id="navbar-placeholder"></div>
 
+  <header class="shop-shell"><div class="shop-intro"><div><span class="shop-eyebrow">فروشگاه همکاری آن‌پارت</span><h1>قطعات موردنیاز کسب‌وکارتان</h1><p>جست‌وجو، انتخاب تعداد و تکمیل سبد خرید</p></div></div></header>
+
   <!-- Search -->
   <div class="search-block">
     <div class="search-box">
@@ -311,8 +314,18 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
     </div>
   </div>
 
+  <main class="shop-shell" id="shopPresentation">
+    <div class="shop-toolbar">
+      <span class="shop-results" id="shopResults" role="status">در حال دریافت محصولات…</span>
+      <div class="shop-view-switch" role="group" aria-label="نحوه نمایش محصولات">
+        <button id="shopCardsView" type="button" aria-pressed="true" onclick="setShopView('cards')"><i class="ti ti-layout-grid" aria-hidden="true"></i>نمایش تصویری</button>
+        <button id="shopListView" type="button" aria-pressed="false" onclick="setShopView('list')"><i class="ti ti-list" aria-hidden="true"></i>نمایش لیستی</button>
+      </div>
+    </div>
+    <div id="shopCards" class="shop-grid" role="list" aria-label="محصولات فروشگاه"></div>
+    <button id="shopMore" class="shop-more" type="button" onclick="showMoreShopProducts()" hidden>نمایش محصولات بیشتر</button>
   <!-- Table -->
-  <div class="table-wrap">
+  <div class="table-wrap" id="shopList" hidden>
     <table class="tbl">
       <thead>
         <tr>
@@ -338,6 +351,14 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
   <div class="pager">
     <span class="pg-info" id="pgInfo">در حال بارگذاری...</span>
   </div>
+
+  </main>
+
+  <dialog class="shop-image-dialog" id="shopImageDialog" aria-labelledby="shopImageTitle">
+    <header><h2 id="shopImageTitle">تصویر محصول</h2><button type="button" onclick="closeProductImage()" aria-label="بستن تصویر" autofocus>بستن</button></header>
+    <img id="shopImageZoom" alt="" onerror="shopZoomFailed()">
+    <p class="shop-image-error" id="shopImageError" hidden>تصویر در دسترس نیست.</p>
+  </dialog>
 
   <!-- Cart Panel -->
   <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
@@ -372,6 +393,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
   <script src="js/checkout-success.js"></script>
   <script src="js/api.js"></script>
   <script src="js/shop-filter-menu.js"></script>
+  <script src="js/shop-cards.js?v=1"></script>
   <script>
     OnPart.renderNavbar('shop');
     const fa = n => n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
@@ -383,6 +405,12 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
     const fmtPrice = n => fmt(n) + ' ' + currencyUnit;
     const priceColumnLabel = () => `قیمت ( ${currencyUnit} )`;
 
+    const SHOP_CARD_BATCH = 48;
+    let shopView = 'cards';
+    try { shopView = OnPartShopView.readMode(window.localStorage); } catch (_) {}
+    let shopLoadState = 'loading', shopRequestError = '', shopAccessReady = false, shopVisibleCount = SHOP_CARD_BATCH;
+    const shopSavingStates = {};
+    let shopImageTrigger = null;
     let products = [];
     let filtered = [];
     const normalizeSearch = (value,compact=false) => {
@@ -403,8 +431,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
     let shopSettings = {};
 
     function canShowPrice(){
-      if(shopSettings.show_price_guest === '1') return true;
-      return !!OnPartSession.getToken('user');
+      return shopAccessReady && !!OnPartSession.getToken('user');
     }
 
     async function checkShopSettings(){
@@ -437,7 +464,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
         // Disable online ordering if turned off
         if(shopSettings.online_order === '0'){
           const style2 = document.createElement('style');
-          style2.textContent = '.qty-wrap,.ab-cart{display:none!important}';
+          style2.textContent = '.qty-wrap,.ab-cart,.shop-add,.shop-card-quantity{display:none!important}';
           document.head.appendChild(style2);
         }
 
@@ -460,6 +487,8 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
     }
 
     async function loadProducts(){
+      shopLoadState = 'loading';
+      shopRequestError = '';
       renderSkeleton();
       let metadataError=null;
       const metadataPromise=requestShopData('/api/products/metadata',{attempts:2}).catch(error=>{
@@ -479,6 +508,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
           stock: p.available===true || Number(p.stock) > 0,
           price: Number(p.price),
           note: p.note || '',
+          image: p.image || '',
           _searchText: normalizeSearch([p.description,p.brand,p.category].join(' '),true),
           _codeSearch: API.normalizeProductCode(p.code),
           _carKey: normalizeSearch(p.car,true),
@@ -488,17 +518,26 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       } catch(e) {
         products = [];
         filtered = [];
+        shopAccessReady = false;
         if (e && (e.status === 401 || e.status === 403)) {
           document.getElementById('tbody').innerHTML = '<tr><td colspan="10" role="alert" style="text-align:center;padding:40px">مشاهدهٔ محصولات و قیمت‌ها به حساب صنفی تأییدشده نیاز دارد.<br><a href="/login" style="display:inline-block;margin-top:12px;color:#1d4ed8">ورود به حساب کاربری</a></td></tr>';
           document.getElementById('pgInfo').textContent = 'ورود و تأیید حساب لازم است';
+          shopLoadState = 'denied';
+          render();
           return;
         }
         const message=e&&e.message?e.message:'دریافت محصولات از سرور انجام نشد';
         document.getElementById('tbody').innerHTML = '<tr><td colspan="10" role="alert" style="text-align:center;padding:40px;color:#dc2626"><i class="ti ti-wifi-off" style="font-size:32px;display:block;margin-bottom:8px"></i>'+esc(message)+'<br><button onclick="loadProducts()" style="margin-top:12px;border:none;border-radius:8px;padding:8px 14px;background:#1d4ed8;color:#fff;font-family:Vazirmatn;cursor:pointer">تلاش دوباره</button></td></tr>';
         document.getElementById('pgInfo').textContent = 'ارتباط با سرویس محصولات برقرار نشد';
+        shopLoadState = 'error';
+        shopRequestError = message;
+        render();
         return;
       }
       filtered = [...products];
+      shopAccessReady = true;
+      shopLoadState = 'ready';
+      shopVisibleCount = SHOP_CARD_BATCH;
 
       // Restore the signed-in user's cart from the server/database.
       Object.keys(qtys).forEach(key => delete qtys[key]);
@@ -514,7 +553,6 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       }
 
       render();
-      document.getElementById('pgInfo').textContent = `${fa(products.length)} محصول`;
 
       const metadata=await metadataPromise;
       const hadFilter = shopFilterIds.some(id => document.getElementById(id).value);
@@ -530,7 +568,121 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
 
     const qtys = {}, cartSaveQueues = {};
 
-    function renderSkeleton(){
+    function syncShopView() {
+      document.getElementById('shopCards').hidden = shopView !== 'cards';
+      document.getElementById('shopList').hidden = shopView !== 'list';
+      document.getElementById('shopCardsView').setAttribute('aria-pressed',String(shopView==='cards'));
+      document.getElementById('shopListView').setAttribute('aria-pressed',String(shopView==='list'));
+    }
+    function setShopView(mode) {
+      if (!['cards','list'].includes(mode)) return;
+      shopView = mode;
+      try { OnPartShopView.saveMode(window.localStorage,mode); } catch (_) {}
+      render();
+    }
+    function clearShopPrivateData() {
+      products = []; filtered = []; shopAccessReady = false;
+      Object.keys(qtys).forEach(key => delete qtys[key]);
+      closeProductImage();
+      updateCartCount();
+    }
+    function renderShopMessage(kind) {
+      const denied = kind==='denied';
+      const content = denied
+        ? 'مشاهدهٔ محصولات و قیمت‌ها به حساب صنفی تأییدشده نیاز دارد.<br><a href="/login">ورود به حساب کاربری</a>'
+        : kind==='error' ? esc(shopRequestError || 'دریافت محصولات انجام نشد')+'<br><button type="button" onclick="loadProducts()">تلاش دوباره</button>'
+        : 'محصولی یافت نشد.';
+      document.getElementById('shopCards').innerHTML = '<div class="shop-empty" role="status">'+content+'</div>';
+      document.getElementById('tbody').innerHTML = '<tr><td colspan="10"><div class="shop-empty" role="status">'+content+'</div></td></tr>';
+      document.getElementById('shopResults').textContent = denied?'ورود و تأیید حساب لازم است':kind==='error'?'دریافت محصولات انجام نشد':'محصولی یافت نشد';
+      document.getElementById('shopMore').hidden = true;
+    }
+    function renderSkeleton() {
+      syncShopView();
+      document.getElementById('shopMore').hidden = true;
+      document.getElementById('shopResults').textContent = 'در حال دریافت محصولات…';
+      if (shopView==='list') { document.getElementById('shopCards').replaceChildren(); renderListSkeleton(); }
+      else {
+        document.getElementById('tbody').replaceChildren();
+        document.getElementById('shopCards').innerHTML = Array.from({length:8},()=>'<div class="shop-skeleton" aria-hidden="true"></div>').join('');
+      }
+    }
+    function render() {
+      syncShopView();
+      if (!OnPartSession.getToken('user')) {
+        clearShopPrivateData(); shopLoadState='denied'; renderShopMessage('denied'); return;
+      }
+      if (shopLoadState==='loading') { renderSkeleton(); return; }
+      if (!shopAccessReady || shopLoadState==='error' || shopLoadState==='denied') {
+        renderShopMessage(shopLoadState==='error'?'error':'denied'); return;
+      }
+      if (!filtered.length) { renderShopMessage('empty'); return; }
+      document.getElementById('shopResults').textContent = fa(filtered.length)+' محصول';
+      if (shopView==='list') {
+        document.getElementById('shopCards').replaceChildren();
+        document.getElementById('shopMore').hidden = true;
+        renderList();
+      } else {
+        document.getElementById('tbody').replaceChildren();
+        const visible = filtered.slice(0,shopVisibleCount);
+        document.getElementById('shopCards').innerHTML = visible.map(p=>OnPartShopView.renderCard(p,{
+          quantity:qtys[p.id]||0,formatPrice:fmtPrice,formatNumber:fa,showPrice:canShowPrice()
+        })).join('');
+        document.getElementById('shopMore').hidden = visible.length>=filtered.length;
+        document.getElementById('pgInfo').textContent = 'نمایش '+fa(visible.length)+' از '+fa(filtered.length)+' محصول';
+        updateCartCount();
+      }
+      Object.entries(shopSavingStates).forEach(([id,state])=>setProductSaving(Number(id),state.saving,state.failed));
+    }
+    function showMoreShopProducts() { shopVisibleCount+=SHOP_CARD_BATCH; render(); }
+    async function addProductToCart(productId) {
+      if (qtys[productId]>0) { openCart(); return; }
+      await persistCartQuantity(productId,1);
+    }
+    function shopImageFailed(image) {
+      image.hidden=true;
+      const button=image.closest('.shop-card-media');
+      if (!button) return;
+      const placeholder=button.querySelector('.shop-image-placeholder');
+      if(placeholder) { placeholder.hidden=false; placeholder.querySelector('span').textContent='تصویر در دسترس نیست'; }
+      const zoom=button.querySelector('.shop-zoom-label'); if(zoom) zoom.hidden=true;
+      button.disabled=true;
+    }
+    function openProductImage(productId,trigger) {
+      if (!canShowPrice()) return;
+      const product=products.find(p=>p.id===productId);
+      const src=product&&OnPartShopView.imageUrl(product.image,API.BASE_URL,window.location.origin);
+      if(!src)return;
+      const dialog=document.getElementById('shopImageDialog'),image=document.getElementById('shopImageZoom');
+      shopImageTrigger=trigger||null;
+      document.getElementById('shopImageTitle').textContent=product.desc;
+      document.getElementById('shopImageError').hidden=true;
+      image.hidden=false;image.alt=product.desc;image.src=src;
+      if(!dialog.open)dialog.showModal();
+    }
+    function shopZoomFailed() {
+      document.getElementById('shopImageZoom').hidden=true;
+      document.getElementById('shopImageError').hidden=false;
+    }
+    function closeProductImage() {
+      const dialog=document.getElementById('shopImageDialog');
+      if(!dialog)return;
+      if(dialog.open)dialog.close();
+      document.getElementById('shopImageZoom').removeAttribute('src');
+    }
+    const shopImageDialog=document.getElementById('shopImageDialog');
+    shopImageDialog.addEventListener('click',event=>{if(event.target===shopImageDialog)closeProductImage();});
+    shopImageDialog.addEventListener('close',()=>{
+      document.getElementById('shopImageZoom').removeAttribute('src');
+      if(shopImageTrigger?.isConnected)shopImageTrigger.focus();
+    });
+    window.addEventListener('storage',event=>{
+      if(event.key!=='op_session_signal'||!event.newValue)return;
+      try { const change=JSON.parse(event.newValue); if(change.context==='user'&&change.action==='logout'){clearShopPrivateData();shopLoadState='denied';render();} } catch (_) {}
+    });
+    window.addEventListener('pageshow',()=>{if(!OnPartSession.getToken('user'))render();});
+
+    function renderListSkeleton(){
       const body = document.getElementById('tbody');
       if(!body) return;
       body.innerHTML = Array.from({length:8}, () =>
@@ -538,7 +690,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       ).join('');
     }
 
-    function render() {
+    function renderList() {
       if(!products.length){
         document.getElementById('tbody').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:#aaa"><i class="ti ti-package" style="font-size:32px;display:block;margin-bottom:8px"></i>در حال بارگذاری محصولات...</td></tr>`;
         return;
@@ -652,10 +804,16 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       const input = document.getElementById('productQty_' + productId);
       const total = document.getElementById('productTotal_' + productId);
       if(input) input.value = fa(quantity);
-      if(total) total.textContent = quantity ? fmt(quantity * product.price) : '';
+      if(total) total.textContent = quantity ? (shopView==='cards'?fmtPrice(quantity * product.price):fmt(quantity * product.price)) : '';
+      const add = document.getElementById('productAdd_' + productId);
+      if(add) add.textContent = product.stock ? (quantity?'مشاهده در سبد خرید':'افزودن به سبد خرید') : 'ناموجود';
     }
 
     function setProductSaving(productId, saving, failed) {
+      shopSavingStates[productId] = { saving:Boolean(saving), failed:Boolean(failed) };
+      const add = document.getElementById('productAdd_' + productId);
+      const product = products.find(p => p.id === productId);
+      if(add) add.disabled = saving || !product?.stock;
       const wrap = document.getElementById('productQtyWrap_' + productId);
       const status = document.getElementById('productQtyStatus_' + productId);
       if(wrap) wrap.classList.toggle('is-saving', saving);
@@ -702,6 +860,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       const t=normalizeSearch(rawSearch,true),codeSearch=API.normalizeProductCode(rawSearch);
       const car=normalizeSearch(document.getElementById('fCar').value,true),br=normalizeSearch(document.getElementById('fBrand').value,true),cat=normalizeSearch(document.getElementById('fCat').value,true);
       filtered=products.filter(p=>(!t||p._searchText.includes(t)||p._codeSearch.includes(codeSearch))&&(!car||p._carKey===car)&&(!br||p._brandKey===br)&&(!cat||p._catKey===cat));
+      shopVisibleCount = SHOP_CARD_BATCH;
       render();updateFilterSummary();
     }
 
