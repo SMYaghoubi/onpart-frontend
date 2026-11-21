@@ -75,7 +75,7 @@
       <label>برند<select id="entryBrand" required></select></label>
       <div class="form-columns">
         <label>تعداد موجودی<input id="entryQuantity" inputmode="numeric" oninput="if(asciiDigits(this.value).trim()==='0')setSwitch(document.getElementById('entryAvailability'),false)"></label>
-        <label>قیمت همکاری هر عدد به تومان<div class="price-input"><input id="entryPrice" inputmode="numeric" onblur="formatPriceInput(this)"><span class="price-unit">تومان</span></div></label>
+        <label>قیمت همکاری هر عدد به تومان<div class="price-input"><input id="entryPrice" inputmode="numeric" oninput="formatPriceInput(this,event)" onblur="formatPriceInput(this)"><span class="price-unit">تومان</span></div></label>
       </div>
       <div class="stock-line"><span>وضعیت موجودی</span><button id="entryAvailability" type="button" class="switch" role="switch" aria-checked="true" aria-label="موجود بودن کالا" onclick="toggleEntryAvailability()"><span aria-hidden="true" class="track"></span><span class="switch-label">موجود</span></button></div>
       <p id="entryError" class="error" role="alert" hidden></p>
@@ -174,8 +174,26 @@
       return numberValue(digits,'قیمت همکاری',Math.floor(Number.MAX_SAFE_INTEGER / 11));
     };
     const priceText = value => value == null || value === '' ? '' : String(value).replace(/\B(?=(\d{3})+(?!\d))/g,'/');
-    function formatPriceInput(input) {
-      try { input.value = priceText(priceValue(input.value)); } catch (_) {}
+    function formatPriceInput(input, event) {
+      if (event?.isComposing) return;
+      try {
+        const raw = asciiDigits(input.value);
+        const caret = input.selectionStart ?? raw.length;
+        const digitsBefore = raw.slice(0,caret).replace(/[^\d]/g,'').length;
+        const digits = raw.replace(/[/,٬\s]/g,'');
+        if (!/^\d*$/.test(digits)) return;
+        const value = priceValue(digits);
+        const formatted = priceText(value);
+        const removedZeros = digits.length - (value == null ? 0 : String(value).length);
+        const targetDigits = Math.max(0,digitsBefore-removedZeros);
+        let position = 0, count = 0;
+        while (position < formatted.length && count < targetDigits) {
+          if (/\d/.test(formatted[position])) count++;
+          position++;
+        }
+        input.value = formatted;
+        input.setSelectionRange(position,position);
+      } catch (_) {}
     }
     const quantityValue = value => numberValue(value,'تعداد موجودی',2147483647);
 
@@ -245,7 +263,7 @@
         return `<article class="product-grid product-row" id="row${id}">
           <label class="pick"><input type="checkbox" aria-label="انتخاب ${esc(product.description)}" ${selected.has(id)?'checked':''} onchange="selectProduct(${id},this.checked)"></label>
           <div class="product-name"><b>${esc(product.description)}</b><span>${esc(product.brand)} <bdi dir="ltr">${esc(product.code)}</bdi></span><span class="badge ${draft.has('p:'+id)?'draft':'approved'}" data-product-status>${draft.has('p:'+id)?'پیش‌نویس تغییرات':'تأیید شده'}</span></div>
-          <label class="row-field"><span>قیمت همکاری به تومان</span><div class="price-input"><input inputmode="numeric" value="${esc(priceText(entry.supplier_price ?? product.supplier_price ?? ''))}" aria-label="قیمت همکاری ${esc(product.description)}" placeholder="قیمت" onchange="editRow(${id},'supplier_price',this)"><span class="price-unit">تومان</span></div></label>
+          <label class="row-field"><span>قیمت همکاری به تومان</span><div class="price-input"><input inputmode="numeric" value="${esc(priceText(entry.supplier_price ?? product.supplier_price ?? ''))}" aria-label="قیمت همکاری ${esc(product.description)}" placeholder="قیمت" oninput="formatPriceInput(this,event)" onchange="editRow(${id},'supplier_price',this)"><span class="price-unit">تومان</span></div></label>
           <label class="row-field"><span>تعداد موجودی</span><input inputmode="numeric" value="${quantity ?? ''}" aria-label="تعداد موجودی ${esc(product.description)}" placeholder="تعداد" onchange="editRow(${id},'quantity',this)"></label>
           <button type="button" class="switch" role="switch" aria-label="موجود بودن ${esc(product.description)}" aria-checked="${available}" onclick="toggleProduct(${id},this)"><span class="track" aria-hidden="true"></span><span class="switch-label">${availabilityLabel(available)}</span></button>
         </article>`;
