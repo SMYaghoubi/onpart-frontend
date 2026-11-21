@@ -136,7 +136,7 @@
         <div class="fg"><label class="flabel">نوع فعالیت</label>
           <select class="finput" id="a_type">
             <option value="">انتخاب کنید...</option>
-            <option>تولیدکننده</option><option>وارد‌کننده</option><option>عمده‌فروش</option><option>توزیع‌کننده</option><option>سایر</option>
+            <option>فروشگاه لوازم یدکی</option><option>شرکت تأمین‌کننده</option><option>تولیدکننده</option><option>وارد‌کننده</option><option>عمده‌فروش</option><option>توزیع‌کننده</option><option>پخش‌کننده</option><option>انباردار</option><option>سایر</option>
           </select>
         </div>
         <div class="fg"><label class="flabel">نام مسئول <span style="color:#ef4444">*</span></label><input class="finput" id="a_name"/></div>
@@ -274,6 +274,8 @@ function openDetail(i){
 
 function openEdit(i){
   const s=filtered[i]; curId=s.id;
+  const activityTypes=Array.from(document.getElementById('a_type').options,option=>option.value).filter(Boolean);
+  if(s.type&&!activityTypes.includes(s.type)) activityTypes.push(s.type);
   document.getElementById('modalTitle').textContent='ویرایش تامین‌کننده';
   document.getElementById('supplierModalBody').innerHTML=`
     <div class="fg-grid">
@@ -281,7 +283,7 @@ function openEdit(i){
       <div class="fg"><label class="flabel">نوع فعالیت</label>
         <select class="finput" id="ed_type">
           <option value="">انتخاب کنید...</option>
-          ${['تولیدکننده','وارد‌کننده','عمده‌فروش','توزیع‌کننده','سایر'].map(t=>`<option ${s.type===t?'selected':''}>${t}</option>`).join('')}
+          ${activityTypes.map(t=>`<option value="${API.escapeHtml(t)}" ${s.type===t?'selected':''}>${API.escapeHtml(t)}</option>`).join('')}
         </select>
       </div>
       <div class="fg"><label class="flabel">نام مسئول</label><input class="finput" id="ed_name" value="${s.name||''}"/></div>
