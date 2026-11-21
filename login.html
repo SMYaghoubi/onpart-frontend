@@ -183,10 +183,15 @@ async function verifyOTP(){
     const res=await fetch('https://onpartpadmin.liara.run/api/auth/verify-otp',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({phone,otp})
+      body:JSON.stringify({phone,code:otp})
     });
     const data=await res.json();
     if(!res.ok)throw new Error(data.message||'کد اشتباه است');
+    if (data.registration_required) {
+      OnPartSession.setSession('registration', data.token, data.user);
+      window.location.href='/register';
+      return;
+    }
     OnPartSession.setSession('user', data.token, data.user);
     window.location.href='/shop';
   }catch(e){alert(e.message);}

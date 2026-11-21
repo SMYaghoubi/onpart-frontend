@@ -61,3 +61,14 @@ test('admin and partner can keep isolated shop and management sessions',()=>{
   assert.throws(()=>env.OnPartSession.setSession('admin',shopToken,{role:'admin'}));
   env.OnPartSession.clear('user');assert.equal(env.OnPartSession.getToken('user'),null);assert.equal(env.OnPartSession.getToken('admin'),managementToken);
 });
+
+test('registration tokens are isolated from shop tokens and cannot authorize shopping', () => {
+  const env=manager('/register');
+  const token=jwt('user',undefined,'registration');
+  env.OnPartSession.setSession('registration',token,{role:'user'});
+  assert.equal(env.OnPartSession.getToken('registration'),token);
+  assert.equal(env.OnPartSession.getToken('user'),null);
+  assert.throws(()=>env.OnPartSession.setSession('user',token,{role:'user'}));
+  env.OnPartSession.clear('registration');
+  assert.equal(env.OnPartSession.getToken('registration'),null);
+});
