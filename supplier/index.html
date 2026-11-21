@@ -6,7 +6,7 @@
   <title>پنل تأمین‌کننده | آن‌پارت</title>
   <link rel="icon" href="/favicon.ico?v=2" sizes="16x16 32x32 48x48"/>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
-  <link rel="stylesheet" href="../css/supplier-portal.css?v=2">
+  <link rel="stylesheet" href="../css/supplier-portal.css?v=3">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 </head>
 <body>
@@ -39,6 +39,7 @@
         <h2 id="listTitle">محصولات من</h2>
         <input id="search" type="search" placeholder="جست‌وجوی نام، کد یا برند" aria-label="جست‌وجوی کالا" oninput="page=0;renderProducts()">
       </div>
+      <p class="hint product-list-hint">پیش‌نویس هنوز ارسال نشده است. محصول جدید پس از تأیید مدیریت در فروشگاه نمایش داده می‌شود.</p>
       <details class="bulk">
         <summary>تغییر گروهی وضعیت</summary>
         <div class="actions">
@@ -128,7 +129,7 @@
     const draftKey = 'onpart-supplier-draft-' + supplier.id;
     const products = new Map();
     const codeIndex = new Map();
-    let batches = [], brands = [], selected = new Set(), page = 0, busy = false;
+    let batches = [], brands = [], pendingProducts = [], selected = new Set(), page = 0, busy = false;
     let draft = new Map(), source = 'manual', filename = null, submission = null;
     const authorized = Boolean(OnPartSession.getToken('supplier'));
 
@@ -182,6 +183,7 @@
           codeIndex.get(code).push(product);
         }
         brands = catalog.brands || [];
+        pendingProducts = catalog.pending_products || [];
         batches = history.batches || [];
         el('productCount').textContent = fa(products.size);
         el('pendingCount').textContent = fa(batches.filter(batch => batch.status==='pending').length);
@@ -191,7 +193,7 @@
         renderHistory();
       } catch (error) {
         message('notice',error.message,true);
-        el('productList').textContent = 'دریافت محصولات انجام نشد.';
+        renderProducts();
         el('history').textContent = 'دریافت سوابق انجام نشد.';
       }
     }
@@ -211,7 +213,10 @@
     function filteredProducts() {
       const rawQuery = el('search').value.trim();
       const query = textKey(rawQuery), code = API.normalizeProductCode(rawQuery);
-      return [...products.values()].filter(product => !query
+      const newDrafts = [...draft.entries()].filter(([,row]) => row.new_product === true)
+        .map(([key,row]) => ({...row,display_status:'draft',draft_key:key}));
+      const pending = pendingProducts.map(row => ({...row,display_status:'pending'}));
+      return [...newDrafts,...pending,...products.values()].filter(product => !query
         || textKey(product.description).includes(query) || textKey(product.brand).includes(query)
         || (code && API.normalizeProductCode(product.code).includes(code)));
     }
@@ -226,16 +231,41 @@
       el('pageInfo').textContent = `${fa(start+1)} تا ${fa(Math.min(start+pageSize,matches.length))} از ${fa(matches.length)}`;
       el('selectedCount').textContent = fa(selected.size) + ' انتخاب‌شده';
       el('productList').innerHTML = matches.length ? matches.slice(start,start+pageSize).map(product => {
+        if (product.display_status) return renderProposedProduct(product);
         const id = Number(product.id), entry = entryFor(product);
         const quantity = effectiveQuantity(product,entry), available = effectiveAvailability(product,entry);
         return `<article class="product-grid product-row" id="row${id}">
           <label class="pick"><input type="checkbox" aria-label="انتخاب ${esc(product.description)}" ${selected.has(id)?'checked':''} onchange="selectProduct(${id},this.checked)"></label>
-          <div class="product-name"><b>${esc(product.description)}</b><span>${esc(product.brand)} <bdi dir="ltr">${esc(product.code)}</bdi></span></div>
+          <div class="product-name"><b>${esc(product.description)}</b><span>${esc(product.brand)} <bdi dir="ltr">${esc(product.code)}</bdi></span><span class="badge ${draft.has('p:'+id)?'draft':'approved'}" data-product-status>${draft.has('p:'+id)?'پیش‌نویس تغییرات':'تأیید شده'}</span></div>
           <label class="row-field"><span>قیمت همکاری به تومان</span><input inputmode="numeric" value="${esc(entry.supplier_price ?? product.supplier_price ?? '')}" aria-label="قیمت همکاری ${esc(product.description)}" placeholder="قیمت" onchange="editRow(${id},'supplier_price',this)"></label>
           <label class="row-field"><span>تعداد موجودی</span><input inputmode="numeric" value="${quantity ?? ''}" aria-label="تعداد موجودی ${esc(product.description)}" placeholder="تعداد" onchange="editRow(${id},'quantity',this)"></label>
           <button type="button" class="switch" role="switch" aria-label="موجود بودن ${esc(product.description)}" aria-checked="${available}" onclick="toggleProduct(${id},this)"><span class="track" aria-hidden="true"></span><span class="switch-label">${availabilityLabel(available)}</span></button>
         </article>`;
       }).join('') : '<p class="empty">محصولی پیدا نشد.</p>';
+    }
+
+    function renderProposedProduct(product) {
+      const pending = product.display_status === 'pending';
+      const available = Number(product.quantity) !== 0 || product.quantity == null
+        ? Boolean(Number(product.available)) : false;
+      return `<article class="product-grid product-row" data-product-state="${pending?'pending':'draft'}">
+        <span aria-hidden="true"></span>
+        <div class="product-name"><b>${esc(product.description)}</b><span>${esc(product.brand)} <bdi dir="ltr">${esc(product.code)}</bdi></span>
+          <span class="badge ${pending?'pending':'draft'}">${pending?'در انتظار تأیید مدیریت':'پیش‌نویس — ارسال نشده'}</span>
+          ${pending?`<button type="button" class="proposal-action" onclick="showHistory(${Number(product.batch_id)})">جزئیات درخواست ${fa(Number(product.batch_id))}</button>`:'<button type="button" class="proposal-action" onclick="openDraft()">مشاهده و ارسال پیش‌نویس</button>'}
+        </div>
+        <label class="row-field"><span>قیمت همکاری به تومان</span><input readonly value="${esc(product.supplier_price ?? '')}" aria-label="قیمت همکاری ${esc(product.description)}"></label>
+        <label class="row-field"><span>تعداد موجودی</span><input readonly value="${esc(product.quantity ?? '')}" aria-label="تعداد موجودی ${esc(product.description)}"></label>
+        <button type="button" class="switch" role="switch" disabled aria-label="وضعیت پیشنهادی موجودی ${esc(product.description)}" aria-checked="${available}"><span class="track" aria-hidden="true"></span><span class="switch-label">${availabilityLabel(available)}</span></button>
+      </article>`;
+    }
+
+    function updateRowStatus(id) {
+      const badge = el('row'+id)?.querySelector('[data-product-status]');
+      if (!badge) return;
+      const changed = draft.has('p:'+id);
+      badge.className = 'badge ' + (changed?'draft':'approved');
+      badge.textContent = changed?'پیش‌نویس تغییرات':'تأیید شده';
     }
 
     function changePage(delta) { page += delta; renderProducts(); }
@@ -271,6 +301,7 @@
         input.value = entryFor(product)[field] ?? product[field] ?? '';
         setSwitch(el('row'+id).querySelector('.switch'),effectiveAvailability(product,entryFor(product)));
         persistDraft();
+        updateRowStatus(id);
         message('notice','');
       } catch (error) {
         input.value = entryFor(product)[field] ?? product[field] ?? '';
@@ -284,6 +315,7 @@
         draftChange(product,{available:button.getAttribute('aria-checked')!=='true'});
         setSwitch(button,effectiveAvailability(product,entryFor(product)));
         persistDraft();
+        updateRowStatus(id);
         message('notice','');
       } catch (error) { message('notice',error.message,true); }
     }
@@ -292,7 +324,7 @@
       if (on) selected.add(id); else selected.delete(id);
       el('selectedCount').textContent = fa(selected.size) + ' انتخاب‌شده';
     }
-    function selectFiltered() { filteredProducts().forEach(product => selected.add(Number(product.id))); renderProducts(); }
+    function selectFiltered() { filteredProducts().filter(product => !product.display_status).forEach(product => selected.add(Number(product.id))); renderProducts(); }
     function clearSelection() { selected.clear(); renderProducts(); }
 
     function applyAvailability(available) {
@@ -380,7 +412,7 @@
         persistDraft();
         renderProducts();
         closeDialog('entryDialog');
-        message('notice','کالا به لیست تغییرات اضافه شد.');
+        message('notice','کالا به پیش‌نویس این مرورگر اضافه شد؛ برای بررسی مدیریت، تغییرات را ارسال کنید.');
       } catch (error) { message('entryError',error.message,true); }
     });
 

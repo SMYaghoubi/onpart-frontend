@@ -65,6 +65,10 @@ dialog::backdrop { background: #10214388; }
 .list-item > div { flex: 1 1 150px; }
 .list-item p { margin-top: 3px; font-size: 12px; color: #536a83; overflow-wrap: anywhere; }
 .badge { padding: 4px 7px; border-radius: 7px; font-size: 11px; }
+.product-name .badge { width: fit-content; }
+.product-list-hint { margin-bottom: 12px; }
+.draft { color: #31548e; background: #e9efff; }
+.proposal-action { justify-self: start; min-height: 32px; font-size: 12px; }
 .pending { color: #865313; background: #fff0d1; }
 .approved { color: #176047; background: #e7f8ef; }
 .rejected { color: #a52640; background: #ffeef2; }
