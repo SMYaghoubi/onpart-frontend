@@ -222,6 +222,10 @@
 let currentPhone = '';
 let timerInterval = null;
 let timerSeconds = 120;
+if (OnPartSession.getToken('registration')) {
+  currentPhone = OnPartSession.getUser('registration').phone || '';
+  showStep(3);
+}
  
 // Replace history so back button goes to index, not back into registration
 history.replaceState(null, '', '/register');
@@ -346,9 +350,9 @@ async function verifyOtp(){
     btn.disabled = false; btn.textContent = 'تایید کد';
     if(!res.ok){ showErr('otpErr', data.message||'کد نامعتبر است'); return; }
     clearInterval(timerInterval);
-    OnPartSession.setSession('user', data.token, data.user);
+    OnPartSession.setSession(data.registration_required ? 'registration' : 'user', data.token, data.user);
     // If user already has a name, they're already registered - redirect to login
-    if(!data.isNewUser && data.user.name){
+    if(!data.registration_required && !data.isNewUser && data.user.name){
       alert('این شماره قبلاً ثبت‌نام کرده. به صفحه ورود هدایت می‌شوید.');
       window.location.href = '/login';
       return;
@@ -395,7 +399,7 @@ async function completeProfile(){
   btn.disabled = true; btn.textContent = 'در حال ثبت...';
  
   try{
-    const token = OnPartSession.getToken('user');
+    const token = OnPartSession.getToken('registration') || OnPartSession.getToken('user');
  
     // Step 1: Save text fields first (fast)
     const jsonData = {
@@ -418,15 +422,19 @@ async function completeProfile(){
     btn.disabled = false; btn.textContent = 'تکمیل ثبت‌نام';
     if(!res.ok){ alert(data.message||'خطا در ذخیره اطلاعات'); return; }
  
-    // Step 2: Upload files in background (non-blocking)
+    // Upload documents before reporting successful completion.
     const idCard = document.getElementById('f_idcard').files[0];
     if(idCard || shopImg){
       const fd = new FormData();
       if(idCard) fd.append('id_card_image', idCard);
       if(shopImg) fd.append('shop_image', shopImg);
-      fetch('https://onpartpadmin.liara.run/api/users/me',{
+      const uploadResponse = await fetch('https://onpartpadmin.liara.run/api/users/me',{
         method:'PUT', headers:{'Authorization':'Bearer '+token}, body:fd
-      }).catch(()=>{});
+      });
+      if (!uploadResponse.ok) {
+        const uploadError = await uploadResponse.json();
+        throw new Error(uploadError.message || 'بارگذاری مدارک انجام نشد؛ دوباره تلاش کنید');
+      }
     }
  
     // Play only after the profile was actually accepted; never on validation/server failure.
@@ -434,10 +442,11 @@ async function completeProfile(){
 
     // Always show success page
     OnPartSession.clear('user');
+    OnPartSession.clear('registration');
     showStep(4);
   }catch(e){
     btn.disabled = false; btn.textContent = 'تکمیل ثبت‌نام';
-    alert('خطا در ارتباط با سرور');
+    alert(e.message || 'خطا در ارتباط با سرور');
   }
 }
 </script>

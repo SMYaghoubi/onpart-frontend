@@ -109,6 +109,7 @@
 
   <script src="../js/api.js"></script>
   <script src="../js/product-excel.js"></script>
+  <script src="../js/supplier-brands.js"></script>
   <script>
     const el = id => document.getElementById(id);
     const esc = value => API.escapeHtml(String(value ?? ''));
@@ -310,7 +311,7 @@
 
     function openEntry() {
       el('entryForm').reset();
-      el('entryBrand').innerHTML = '<option value="">انتخاب برند</option>' + brands.map(brand => `<option>${esc(brand)}</option>`).join('');
+      el('entryBrand').innerHTML = '<option value="">انتخاب برند</option>' + brands.map(brand => `<option value="${esc(brand)}">${esc(brand)}</option>`).join('');
       setSwitch(el('entryAvailability'),true);
       refreshEntryMatches();
       message('entryError','');
@@ -332,7 +333,7 @@
       el('entryName').readOnly = Boolean(product);
       el('entryBrand').disabled = Boolean(product);
       el('entryName').value = product?.description || '';
-      el('entryBrand').value = product?.brand?.trim() || '';
+      el('entryBrand').value = SupplierBrands.resolve(product?.brand, brands) || '';
       el('entryQuantity').value = product ? effectiveQuantity(product,entry) ?? '' : '';
       el('entryPrice').value = product ? entry.supplier_price ?? product.supplier_price ?? '' : '';
       el('entryPrice').required = !product;
@@ -352,10 +353,13 @@
     function stageNew({code,description,brand,supplier_price,quantity,available},target) {
       const normalized = API.normalizeProductCode(code);
       if (!normalized || code.length > 50) throw new Error('کد روی قطعه یا بسته‌بندی نامعتبر است');
-      if (!description || description.length > 255 || !brands.includes(brand)) throw new Error('نام محصول و یک برند مجاز را وارد کنید');
+      if (!description) throw new Error('نام محصول را وارد کنید');
+      if (description.length > 255) throw new Error('نام محصول باید حداکثر ۲۵۵ کاراکتر باشد');
+      brand = SupplierBrands.resolve(brand, brands);
+      if (!brand) throw new Error('برند کالا را از برندهای مجاز انتخاب کنید');
       if (supplier_price == null) throw new Error('قیمت همکاری برای کالای جدید الزامی است');
-      if ((codeIndex.get(normalized) || []).some(product => textKey(product.brand) === textKey(brand))) throw new Error('این کد و برند در فهرست شما وجود دارد؛ همان کالا را انتخاب کنید');
-      target.set('n:' + normalized + ':' + textKey(brand),{new_product:true,code,description,brand,supplier_price,quantity,available:quantity===0?false:available ?? true});
+      if ((codeIndex.get(normalized) || []).some(product => SupplierBrands.key(product.brand) === SupplierBrands.key(brand))) throw new Error('این کد و برند در فهرست شما وجود دارد؛ همان کالا را انتخاب کنید');
+      target.set('n:' + normalized + ':' + SupplierBrands.key(brand),{new_product:true,code,description,brand,supplier_price,quantity,available:quantity===0?false:available ?? true});
     }
 
     el('entryForm').addEventListener('submit',event => {
@@ -458,8 +462,8 @@
           const code = API.normalizeProductCode(originalCode);
           if (!code) throw new Error('کد کالا الزامی است');
           const brand = String(ProductExcel.value(row,'brand')).trim();
-          const matches = (codeIndex.get(code) || []).filter(product => !brand || textKey(product.brand)===textKey(brand));
-          const identity = code + ':' + textKey(brand || matches[0]?.brand);
+          const matches = (codeIndex.get(code) || []).filter(product => !brand || SupplierBrands.key(product.brand)===SupplierBrands.key(brand));
+          const identity = code + ':' + SupplierBrands.key(brand || matches[0]?.brand);
           if (applicable.has(identity)) throw new Error('کد و برند تکراری است');
           applicable.add(identity);
           if (matches.length>1) throw new Error('برای این کد چند کالا پیدا شد؛ برند یا کد دقیق را مشخص کنید');

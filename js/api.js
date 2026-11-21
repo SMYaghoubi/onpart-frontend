@@ -49,7 +49,8 @@
   const definitions={
     user:{token:'op_user_token',data:'op_user_data',roles:['user','partner','admin'],tokenContext:'shop'},
     admin:{token:'op_admin_token',data:'op_admin_data',roles:['admin','partner'],tokenContext:'management'},
-    supplier:{token:'op_supplier_token',data:'op_supplier',roles:['supplier'],tokenContext:'supplier'}
+    supplier:{token:'op_supplier_token',data:'op_supplier',roles:['supplier'],tokenContext:'supplier'},
+    registration:{token:'op_registration_token',data:'op_registration_data',roles:['user'],tokenContext:'registration'}
   };
   function decodeToken(token){
     try{
@@ -164,6 +165,37 @@
 // OnPart API Helper
 // All backend API calls centralized here
 // Change BASE_URL to your domain
+
+document.addEventListener('click', async event => {
+  const link = event.target.closest?.('a[href]');
+  if (!link) return;
+  let url;
+  try { url = new URL(link.href, location.href); } catch (_) { return; }
+  if (url.origin !== new URL(API.BASE_URL).origin || !/^\/uploads\/(?:user_|credit_)/i.test(url.pathname)) return;
+  event.preventDefault();
+  const popup = window.open('about:blank', '_blank');
+  if (popup) popup.opener = null;
+  try {
+    const filename = decodeURIComponent(url.pathname.slice('/uploads/'.length));
+    const context = OnPartSession.contextFor();
+    const response = await fetch(API.BASE_URL + '/api/documents/' + encodeURIComponent(filename) + (context === 'admin' ? '?admin=1' : ''), {
+      headers: API.headers(context), cache: 'no-store'
+    });
+    if (!response.ok) throw new Error('دریافت مدرک انجام نشد؛ دسترسی و نشست خود را بررسی کنید');
+    const objectUrl = URL.createObjectURL(await response.blob());
+    if (popup) popup.location.replace(objectUrl);
+    else {
+      const download = document.createElement('a');
+      download.href = objectUrl;
+      download.download = filename;
+      download.click();
+    }
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+  } catch (error) {
+    if (popup) popup.close();
+    alert(error.message);
+  }
+});
 
 const API = {
   BASE_URL: 'https://onpartpadmin.liara.run',

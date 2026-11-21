@@ -204,7 +204,7 @@
               </div>
               <div class="toggle-row">
                 <div><div class="toggle-title">تأیید دستی کاربران جدید</div><div class="toggle-sub">مدیر باید کاربران جدید را تأیید کند</div></div>
-                <button class="toggle off" id="t_manual_approve" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button>
+                <button class="toggle on" id="t_manual_approve" disabled aria-label="تأیید مدیریت الزامی است"><div class="toggle-thumb"></div></button>
               </div>
             </div>
             <div class="form-grid" style="margin-top:16px">
@@ -294,14 +294,15 @@ async function loadSettings(){
     if(s.min_order) document.getElementById('s_min_order').value=s.min_order;
     if(s.currency) document.getElementById('s_currency').value=s.currency;
 
-    setToggle('t_show_price', s.show_price_guest==='1');
+    setToggle('t_show_price', false);
+    document.getElementById('t_show_price').disabled = true;
     setToggle('t_online_order', s.online_order!=='0');
     setToggle('t_show_stock', s.show_stock!=='0');
     setToggle('t_maintenance', s.maintenance_mode==='1');
 
     setToggle('t_otp', s.otp_enabled!=='0');
     setToggle('t_open_register', s.open_register!=='0');
-    setToggle('t_manual_approve', s.manual_approve==='1');
+    setToggle('t_manual_approve', true);
     if(s.jwt_expires_days) document.getElementById('s_jwt_days').value=s.jwt_expires_days;
     if(s.max_login_attempts) document.getElementById('s_max_attempts').value=s.max_login_attempts;
 
@@ -360,7 +361,7 @@ async function saveSettings(section){
       min_order:document.getElementById('s_min_order').value,
       tax_rate:document.getElementById('s_tax').value,
       currency:document.getElementById('s_currency').value,
-      show_price_guest: document.getElementById('t_show_price').classList.contains('on') ? '1' : '0',
+      show_price_guest: '0',
       online_order: document.getElementById('t_online_order').classList.contains('on') ? '1' : '0',
       show_stock: document.getElementById('t_show_stock').classList.contains('on') ? '1' : '0',
       maintenance_mode: document.getElementById('t_maintenance').classList.contains('on') ? '1' : '0'
@@ -369,7 +370,7 @@ async function saveSettings(section){
     data={
       otp_enabled: document.getElementById('t_otp').classList.contains('on') ? '1' : '0',
       open_register: document.getElementById('t_open_register').classList.contains('on') ? '1' : '0',
-      manual_approve: document.getElementById('t_manual_approve').classList.contains('on') ? '1' : '0',
+      manual_approve: '1',
       jwt_expires_days: document.getElementById('s_jwt_days').value,
       max_login_attempts: document.getElementById('s_max_attempts').value
     };

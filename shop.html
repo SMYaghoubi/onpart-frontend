@@ -488,6 +488,11 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       } catch(e) {
         products = [];
         filtered = [];
+        if (e && (e.status === 401 || e.status === 403)) {
+          document.getElementById('tbody').innerHTML = '<tr><td colspan="10" role="alert" style="text-align:center;padding:40px">مشاهدهٔ محصولات و قیمت‌ها به حساب صنفی تأییدشده نیاز دارد.<br><a href="/login" style="display:inline-block;margin-top:12px;color:#1d4ed8">ورود به حساب کاربری</a></td></tr>';
+          document.getElementById('pgInfo').textContent = 'ورود و تأیید حساب لازم است';
+          return;
+        }
         const message=e&&e.message?e.message:'دریافت محصولات از سرور انجام نشد';
         document.getElementById('tbody').innerHTML = '<tr><td colspan="10" role="alert" style="text-align:center;padding:40px;color:#dc2626"><i class="ti ti-wifi-off" style="font-size:32px;display:block;margin-bottom:8px"></i>'+esc(message)+'<br><button onclick="loadProducts()" style="margin-top:12px;border:none;border-radius:8px;padding:8px 14px;background:#1d4ed8;color:#fff;font-family:Vazirmatn;cursor:pointer">تلاش دوباره</button></td></tr>';
         document.getElementById('pgInfo').textContent = 'ارتباط با سرویس محصولات برقرار نشد';
