@@ -6,7 +6,7 @@
   <title>پنل تأمین‌کننده | آن‌پارت</title>
   <link rel="icon" href="/favicon.ico?v=2" sizes="16x16 32x32 48x48"/>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
-  <link rel="stylesheet" href="../css/supplier-portal.css?v=3">
+  <link rel="stylesheet" href="../css/supplier-portal.css?v=4">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 </head>
 <body>
@@ -75,7 +75,7 @@
       <label>برند<select id="entryBrand" required></select></label>
       <div class="form-columns">
         <label>تعداد موجودی<input id="entryQuantity" inputmode="numeric" oninput="if(asciiDigits(this.value).trim()==='0')setSwitch(document.getElementById('entryAvailability'),false)"></label>
-        <label>قیمت همکاری هر عدد به تومان<input id="entryPrice" inputmode="numeric"></label>
+        <label>قیمت همکاری هر عدد به تومان<div class="price-input"><input id="entryPrice" inputmode="numeric" onblur="formatPriceInput(this)"><span class="price-unit">تومان</span></div></label>
       </div>
       <div class="stock-line"><span>وضعیت موجودی</span><button id="entryAvailability" type="button" class="switch" role="switch" aria-checked="true" aria-label="موجود بودن کالا" onclick="toggleEntryAvailability()"><span aria-hidden="true" class="track"></span><span class="switch-label">موجود</span></button></div>
       <p id="entryError" class="error" role="alert" hidden></p>
@@ -168,7 +168,15 @@
       if (!/^\d+$/.test(digits) || !Number.isSafeInteger(number) || number > maximum) throw new Error(field + ' نامعتبر است');
       return number;
     }
-    const priceValue = value => numberValue(value,'قیمت همکاری',Math.floor(Number.MAX_SAFE_INTEGER / 11));
+    const priceValue = value => {
+      const formatted = asciiDigits(value).trim();
+      const digits = /^\d{1,3}(?:\/\d{3})+$/.test(formatted) ? formatted.replace(/\//g,'') : formatted;
+      return numberValue(digits,'قیمت همکاری',Math.floor(Number.MAX_SAFE_INTEGER / 11));
+    };
+    const priceText = value => value == null || value === '' ? '' : String(value).replace(/\B(?=(\d{3})+(?!\d))/g,'/');
+    function formatPriceInput(input) {
+      try { input.value = priceText(priceValue(input.value)); } catch (_) {}
+    }
     const quantityValue = value => numberValue(value,'تعداد موجودی',2147483647);
 
     async function load() {
@@ -237,7 +245,7 @@
         return `<article class="product-grid product-row" id="row${id}">
           <label class="pick"><input type="checkbox" aria-label="انتخاب ${esc(product.description)}" ${selected.has(id)?'checked':''} onchange="selectProduct(${id},this.checked)"></label>
           <div class="product-name"><b>${esc(product.description)}</b><span>${esc(product.brand)} <bdi dir="ltr">${esc(product.code)}</bdi></span><span class="badge ${draft.has('p:'+id)?'draft':'approved'}" data-product-status>${draft.has('p:'+id)?'پیش‌نویس تغییرات':'تأیید شده'}</span></div>
-          <label class="row-field"><span>قیمت همکاری به تومان</span><input inputmode="numeric" value="${esc(entry.supplier_price ?? product.supplier_price ?? '')}" aria-label="قیمت همکاری ${esc(product.description)}" placeholder="قیمت" onchange="editRow(${id},'supplier_price',this)"></label>
+          <label class="row-field"><span>قیمت همکاری به تومان</span><div class="price-input"><input inputmode="numeric" value="${esc(priceText(entry.supplier_price ?? product.supplier_price ?? ''))}" aria-label="قیمت همکاری ${esc(product.description)}" placeholder="قیمت" onchange="editRow(${id},'supplier_price',this)"><span class="price-unit">تومان</span></div></label>
           <label class="row-field"><span>تعداد موجودی</span><input inputmode="numeric" value="${quantity ?? ''}" aria-label="تعداد موجودی ${esc(product.description)}" placeholder="تعداد" onchange="editRow(${id},'quantity',this)"></label>
           <button type="button" class="switch" role="switch" aria-label="موجود بودن ${esc(product.description)}" aria-checked="${available}" onclick="toggleProduct(${id},this)"><span class="track" aria-hidden="true"></span><span class="switch-label">${availabilityLabel(available)}</span></button>
         </article>`;
@@ -254,7 +262,7 @@
           <span class="badge ${pending?'pending':'draft'}">${pending?'در انتظار تأیید مدیریت':'پیش‌نویس — ارسال نشده'}</span>
           ${pending?`<button type="button" class="proposal-action" onclick="showHistory(${Number(product.batch_id)})">جزئیات درخواست ${fa(Number(product.batch_id))}</button>`:'<button type="button" class="proposal-action" onclick="openDraft()">مشاهده و ارسال پیش‌نویس</button>'}
         </div>
-        <label class="row-field"><span>قیمت همکاری به تومان</span><input readonly value="${esc(product.supplier_price ?? '')}" aria-label="قیمت همکاری ${esc(product.description)}"></label>
+        <label class="row-field"><span>قیمت همکاری به تومان</span><div class="price-input"><input readonly value="${esc(priceText(product.supplier_price ?? ''))}" aria-label="قیمت همکاری ${esc(product.description)}"><span class="price-unit">تومان</span></div></label>
         <label class="row-field"><span>تعداد موجودی</span><input readonly value="${esc(product.quantity ?? '')}" aria-label="تعداد موجودی ${esc(product.description)}"></label>
         <button type="button" class="switch" role="switch" disabled aria-label="وضعیت پیشنهادی موجودی ${esc(product.description)}" aria-checked="${available}"><span class="track" aria-hidden="true"></span><span class="switch-label">${availabilityLabel(available)}</span></button>
       </article>`;
@@ -298,13 +306,15 @@
       try {
         const value = field==='quantity' ? quantityValue(input.value) : priceValue(input.value);
         draftChange(product,{[field]:value});
-        input.value = entryFor(product)[field] ?? product[field] ?? '';
+        const current = entryFor(product)[field] ?? product[field] ?? '';
+        input.value = field==='supplier_price' ? priceText(current) : current;
         setSwitch(el('row'+id).querySelector('.switch'),effectiveAvailability(product,entryFor(product)));
         persistDraft();
         updateRowStatus(id);
         message('notice','');
       } catch (error) {
-        input.value = entryFor(product)[field] ?? product[field] ?? '';
+        const current = entryFor(product)[field] ?? product[field] ?? '';
+        input.value = field==='supplier_price' ? priceText(current) : current;
         message('notice',error.message,true);
       }
     }
@@ -367,7 +377,7 @@
       el('entryName').value = product?.description || '';
       el('entryBrand').value = SupplierBrands.resolve(product?.brand, brands) || '';
       el('entryQuantity').value = product ? effectiveQuantity(product,entry) ?? '' : '';
-      el('entryPrice').value = product ? entry.supplier_price ?? product.supplier_price ?? '' : '';
+      el('entryPrice').value = product ? priceText(entry.supplier_price ?? product.supplier_price ?? '') : '';
       el('entryPrice').required = !product;
       setSwitch(el('entryAvailability'),product ? effectiveAvailability(product,entry) : true);
     }
@@ -424,7 +434,7 @@
       el('draftItems').innerHTML = [...draft.entries()].map(([key,row]) => {
         const product = products.get(row.product_id);
         const fields = [row.code,row.brand || product?.brand,row.new_product?'کالای جدید':'',
-          row.supplier_price==null?'':fmt(row.supplier_price)+' تومان',row.quantity==null?'':fmt(row.quantity)+' عدد',
+          row.supplier_price==null?'':priceText(row.supplier_price)+' تومان',row.quantity==null?'':fmt(row.quantity)+' عدد',
           row.available==null?'':availabilityLabel(row.available)].filter(Boolean).join(' / ');
         return listItem(row.description || product?.description || row.code,fields,`<button type="button" data-key="${esc(key)}" onclick="removeDraft(this.dataset.key)">حذف از لیست</button>`);
       }).join('') || '<p class="empty">تغییری آمادهٔ ارسال نیست.</p>';
@@ -587,7 +597,7 @@
         el('details').innerHTML = listItem('درخواست ' + fa(batch.id),API.formatDate(batch.submitted_at,{withTime:true}) + ' / ' + statusLabel[batch.status])
           + (batch.note ? listItem('یادداشت بررسی',batch.note) : '')
           + items.map(item => listItem(item.description,[
-            item.code,item.brand,item.supplier_price == null ? '' : fmt(item.supplier_price)+' تومان',
+            item.code,item.brand,item.supplier_price == null ? '' : priceText(item.supplier_price)+' تومان',
             item.quantity == null ? '' : fmt(item.quantity)+' عدد',
             item.available == null ? '' : availabilityLabel(Boolean(Number(item.available))),statusLabel[item.status]
           ].filter(Boolean).join(' / '))).join('')
