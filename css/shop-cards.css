@@ -41,9 +41,7 @@
 .shop-card .qbtn{width:38px;min-width:38px;height:40px;border-radius:8px;background:#f5f8ff;border-color:#d8e4fa;color:#1d4ed8}
 .shop-card .qinp{width:44px;height:40px;border-radius:8px;font-size:16px}
 .shop-card .qbtn:disabled,.shop-card .qinp:disabled{opacity:.45;cursor:default}
-.shop-card-total{min-height:0;font-size:13px;color:#536a83}
-.shop-card-total:empty{display:none}
-.shop-card-total:not(:empty)::before{content:'جمع انتخاب: ';color:#697c96}
+.shop-card-total{display:none}
 .shop-add{width:100%;min-height:44px;border:0;border-radius:9px;background:#1d4ed8;color:white;font:600 14px Vazirmatn,sans-serif;cursor:pointer}
 .shop-add:hover{background:#163fae}
 .shop-add:disabled{background:#edf1f7;color:#8a98ac;cursor:default}
