@@ -6,7 +6,7 @@
   <title>پنل تأمین‌کننده | آن‌پارت</title>
   <link rel="icon" href="/favicon.ico?v=2" sizes="16x16 32x32 48x48"/>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
-  <link rel="stylesheet" href="../css/supplier-portal.css?v=4">
+  <link rel="stylesheet" href="../css/supplier-portal.css?v=5">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 </head>
 <body>
@@ -78,6 +78,14 @@
         <label>قیمت همکاری هر عدد به تومان<div class="price-input"><input id="entryPrice" inputmode="numeric" oninput="formatPriceInput(this,event)" onblur="formatPriceInput(this)"><span class="price-unit">تومان</span></div></label>
       </div>
       <div class="stock-line"><span>وضعیت موجودی</span><button id="entryAvailability" type="button" class="switch" role="switch" aria-checked="true" aria-label="موجود بودن کالا" onclick="toggleEntryAvailability()"><span aria-hidden="true" class="track"></span><span class="switch-label">موجود</span></button></div>
+      <section class="entry-photo-field" aria-label="عکس محصول">
+        <label for="entryPhoto">عکس محصول <small>اختیاری</small></label>
+        <input id="entryPhoto" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="selectEntryPhoto(this)">
+        <div class="photo-file-actions"><button type="button" onclick="document.getElementById('entryPhoto').click()">انتخاب عکس</button><span id="entryPhotoName">عکسی انتخاب نشده است</span></div>
+        <p class="hint">یک عکس واضح از خود کالا انتخاب کنید؛ JPG، PNG یا WebP، حداکثر ۵ مگابایت. عکس فقط پس از تأیید مدیریت در فروشگاه نمایش داده می‌شود.</p>
+        <div id="entryPhotoPreview" class="entry-photo-preview" hidden></div>
+        <button type="button" class="quiet" id="entryPhotoRemove" hidden onclick="clearEntryPhoto()">لغو عکس پیشنهادی</button>
+      </section>
       <p id="entryError" class="error" role="alert" hidden></p>
       <button type="submit" class="primary full">افزودن به لیست</button>
     </form>
@@ -111,6 +119,7 @@
   <script src="../js/api.js"></script>
   <script src="../js/product-excel.js"></script>
   <script src="../js/supplier-brands.js"></script>
+  <script src="../js/supplier-photos.js?v=1"></script>
   <script>
     const el = id => document.getElementById(id);
     const esc = value => API.escapeHtml(String(value ?? ''));
@@ -131,6 +140,7 @@
     const codeIndex = new Map();
     let batches = [], brands = [], pendingProducts = [], selected = new Set(), page = 0, busy = false;
     let draft = new Map(), source = 'manual', filename = null, submission = null;
+    let entryFile = null, entryImageId = null, entryObjectUrl = null, entryDraftKey = null, entrySaving = false;
     const authorized = Boolean(OnPartSession.getToken('supplier'));
 
     if (!authorized) location.replace('/supplier/login');
@@ -262,12 +272,13 @@
         const quantity = effectiveQuantity(product,entry), available = effectiveAvailability(product,entry);
         return `<article class="product-grid product-row" id="row${id}">
           <label class="pick"><input type="checkbox" aria-label="انتخاب ${esc(product.description)}" ${selected.has(id)?'checked':''} onchange="selectProduct(${id},this.checked)"></label>
-          <div class="product-name"><b>${esc(product.description)}</b><span>${esc(product.brand)} <bdi dir="ltr">${esc(product.code)}</bdi></span><span class="badge ${draft.has('p:'+id)?'draft':'approved'}" data-product-status>${draft.has('p:'+id)?'پیش‌نویس تغییرات':'تأیید شده'}</span></div>
+          <div class="product-name"><b>${esc(product.description)}</b><span>${esc(product.brand)} <bdi dir="ltr">${esc(product.code)}</bdi></span><span class="badge ${draft.has('p:'+id)?'draft':'approved'}" data-product-status>${draft.has('p:'+id)?'پیش‌نویس تغییرات':'تأیید شده'}</span>${entry.image_id?SupplierPhotos.markup(entry.image_id):approvedPhotoMarkup(product.image)}<button type="button" class="proposal-action" onclick="openEntry(${id})">ثبت یا تغییر عکس</button></div>
           <label class="row-field"><span>قیمت همکاری به تومان</span><div class="price-input"><input inputmode="numeric" value="${esc(priceText(entry.supplier_price ?? product.supplier_price ?? ''))}" aria-label="قیمت همکاری ${esc(product.description)}" placeholder="قیمت" oninput="formatPriceInput(this,event)" onchange="editRow(${id},'supplier_price',this)"><span class="price-unit">تومان</span></div></label>
           <label class="row-field"><span>تعداد موجودی</span><input inputmode="numeric" value="${quantity ?? ''}" aria-label="تعداد موجودی ${esc(product.description)}" placeholder="تعداد" onchange="editRow(${id},'quantity',this)"></label>
           <button type="button" class="switch" role="switch" aria-label="موجود بودن ${esc(product.description)}" aria-checked="${available}" onclick="toggleProduct(${id},this)"><span class="track" aria-hidden="true"></span><span class="switch-label">${availabilityLabel(available)}</span></button>
         </article>`;
       }).join('') : '<p class="empty">محصولی پیدا نشد.</p>';
+      SupplierPhotos.load(el('productList'));
     }
 
     function renderProposedProduct(product) {
@@ -278,7 +289,8 @@
         <span aria-hidden="true"></span>
         <div class="product-name"><b>${esc(product.description)}</b><span>${esc(product.brand)} <bdi dir="ltr">${esc(product.code)}</bdi></span>
           <span class="badge ${pending?'pending':'draft'}">${pending?'در انتظار تأیید مدیریت':'پیش‌نویس — ارسال نشده'}</span>
-          ${pending?`<button type="button" class="proposal-action" onclick="showHistory(${Number(product.batch_id)})">جزئیات درخواست ${fa(Number(product.batch_id))}</button>`:'<button type="button" class="proposal-action" onclick="openDraft()">مشاهده و ارسال پیش‌نویس</button>'}
+          ${SupplierPhotos.markup(product.image_id)}
+          ${pending?`<button type="button" class="proposal-action" onclick="showHistory(${Number(product.batch_id)})">جزئیات درخواست ${fa(Number(product.batch_id))}</button>`:`<button type="button" class="proposal-action" data-key="${esc(product.draft_key)}" onclick="openEntry(null,this.dataset.key)">ویرایش کالا و عکس</button><button type="button" class="proposal-action" onclick="openDraft()">مشاهده و ارسال پیش‌نویس</button>`}
         </div>
         <label class="row-field"><span>قیمت همکاری به تومان</span><div class="price-input"><input readonly value="${esc(priceText(product.supplier_price ?? ''))}" aria-label="قیمت همکاری ${esc(product.description)}"><span class="price-unit">تومان</span></div></label>
         <label class="row-field"><span>تعداد موجودی</span><input readonly value="${esc(product.quantity ?? '')}" aria-label="تعداد موجودی ${esc(product.description)}"></label>
@@ -305,7 +317,7 @@
       const key = 'p:' + product.id;
       const change = {...(target.get(key) || {}),product_id:Number(product.id),code:product.code};
       for (const [field,value] of Object.entries(inputs)) {
-        const old = field==='available' ? Boolean(Number(product.available))
+        const old = field==='image_id' ? null : field==='available' ? Boolean(Number(product.available))
           : product[field] == null ? null : Number(product[field]);
         if (value == null || value === old) delete change[field];
         else change[field] = value;
@@ -315,7 +327,7 @@
         if (Boolean(Number(product.available))) change.available = false;
         else delete change.available;
       }
-      if (['supplier_price','quantity','available'].some(field => Object.hasOwn(change,field))) target.set(key,change);
+      if (['supplier_price','quantity','available','image_id'].some(field => Object.hasOwn(change,field))) target.set(key,change);
       else target.delete(key);
     }
 
@@ -369,11 +381,22 @@
       message('notice',skipped ? fa(skipped) + ' کالا با تعداد صفر فعال نشد.' : 'تغییرات به پیش‌نویس اضافه شدند.');
     }
 
-    function openEntry() {
+    function openEntry(productId = null, draftProductKey = null) {
+      if(entrySaving)return;
+      entryDraftKey=draftProductKey;
       el('entryForm').reset();
       el('entryBrand').innerHTML = '<option value="">انتخاب برند</option>' + brands.map(brand => `<option value="${esc(brand)}">${esc(brand)}</option>`).join('');
       setSwitch(el('entryAvailability'),true);
       refreshEntryMatches();
+      if(productId && products.has(Number(productId))){
+        el('entryCode').value=products.get(Number(productId)).code;refreshEntryMatches();el('entryMatch').value=String(productId);fillEntry();
+      } else if(draftProductKey && draft.has(draftProductKey)) {
+        const proposal=draft.get(draftProductKey);
+        el('entryCode').value=proposal.code;refreshEntryMatches();el('entryMatch').value='new';fillEntry();
+        el('entryName').value=proposal.description;el('entryBrand').value=proposal.brand;
+        el('entryQuantity').value=proposal.quantity??'';el('entryPrice').value=priceText(proposal.supplier_price);
+        setSwitch(el('entryAvailability'),Boolean(proposal.available));resetEntryPhoto(proposal.image_id);
+      }
       message('entryError','');
       el('entryDialog').showModal();
       el('entryCode').focus();
@@ -398,7 +421,34 @@
       el('entryPrice').value = product ? priceText(entry.supplier_price ?? product.supplier_price ?? '') : '';
       el('entryPrice').required = !product;
       setSwitch(el('entryAvailability'),product ? effectiveAvailability(product,entry) : true);
+      resetEntryPhoto(entry.image_id,product?.image);
     }
+
+    function approvedPhotoMarkup(value){const url=API.safeUrl(value);return url?`<span class="supplier-photo"><img src="${esc(url)}" alt="عکس تأییدشده محصول" loading="lazy"></span>`:'';}
+    function resetEntryPhoto(id=null,currentImage=null) {
+      if(entryObjectUrl)URL.revokeObjectURL(entryObjectUrl);
+      entryObjectUrl=null;entryFile=null;entryImageId=SupplierPhotos.validId(id)?id:null;
+      el('entryPhoto').value='';
+      el('entryPhotoName').textContent=entryImageId?'عکس پیشنهادی ذخیره‌شده':'عکسی انتخاب نشده است';
+      const current=API.safeUrl(currentImage);
+      el('entryPhotoPreview').innerHTML=entryImageId?SupplierPhotos.markup(entryImageId):current?`<img src="${esc(current)}" alt="عکس فعلی محصول"><span>عکس فعلی؛ با انتخاب عکس جدید، پیشنهاد جایگزینی برای مدیریت ارسال می‌شود.</span>`:'';
+      el('entryPhotoPreview').hidden=!entryImageId&&!current;
+      el('entryPhotoRemove').hidden=!entryImageId;
+      SupplierPhotos.load(el('entryPhotoPreview'));
+    }
+    function selectEntryPhoto(input) {
+      if(!input.files.length)return;
+      try {
+        const file=SupplierPhotos.validate(input.files[0]);
+        if(entryObjectUrl)URL.revokeObjectURL(entryObjectUrl);
+        entryFile=file;entryObjectUrl=URL.createObjectURL(file);
+        el('entryPhotoName').textContent=file.name;
+        el('entryPhotoPreview').innerHTML=`<img src="${esc(entryObjectUrl)}" alt="پیش‌نمایش عکس انتخاب‌شده"><span>عکس پیشنهادی — هنوز ارسال نشده</span>`;
+        el('entryPhotoPreview').hidden=false;el('entryPhotoRemove').hidden=false;message('entryError','');
+      }catch(error){input.value='';message('entryError',error.message,true);}
+    }
+    function clearEntryPhoto(){const product=products.get(Number(el('entryMatch').value));resetEntryPhoto(null,product?.image);}
+    function discardUnusedPhoto(id){if(id&&![...draft.values()].some(row=>row.image_id===id))request('/images/'+encodeURIComponent(id),{method:'DELETE'}).catch(()=>{});}
 
     function toggleEntryAvailability() {
       const button = el('entryAvailability');
@@ -410,7 +460,7 @@
       } catch (error) { message('entryError',error.message,true); }
     }
 
-    function stageNew({code,description,brand,supplier_price,quantity,available},target) {
+    function stageNew({code,description,brand,supplier_price,quantity,available,image_id},target) {
       const normalized = API.normalizeProductCode(code);
       if (!normalized || code.length > 50) throw new Error('کد روی قطعه یا بسته‌بندی نامعتبر است');
       if (!description) throw new Error('نام محصول را وارد کنید');
@@ -419,11 +469,16 @@
       if (!brand) throw new Error('برند کالا را از برندهای مجاز انتخاب کنید');
       if (supplier_price == null) throw new Error('قیمت همکاری برای کالای جدید الزامی است');
       if ((codeIndex.get(normalized) || []).some(product => SupplierBrands.key(product.brand) === SupplierBrands.key(brand))) throw new Error('این کد و برند در فهرست شما وجود دارد؛ همان کالا را انتخاب کنید');
-      target.set('n:' + normalized + ':' + SupplierBrands.key(brand),{new_product:true,code,description,brand,supplier_price,quantity,available:quantity===0?false:available ?? true});
+      target.set('n:' + normalized + ':' + SupplierBrands.key(brand),{new_product:true,code,description,brand,supplier_price,quantity,available:quantity===0?false:available ?? true,...(image_id?{image_id}:{})});
     }
 
-    el('entryForm').addEventListener('submit',event => {
+    el('entryForm').addEventListener('submit',async event => {
       event.preventDefault();
+      if(entrySaving)return;
+      entrySaving=true;
+      const controls=[...el('entryForm').querySelectorAll('input,select,button')].map(node=>[node,node.disabled]);
+      controls.forEach(([node])=>node.disabled=true);
+      let uploaded=null;
       try {
         const match = el('entryMatch').value;
         if (!match && !el('matchField').hidden) throw new Error('کالای درست را از فهرست انتخاب کنید');
@@ -433,15 +488,28 @@
           quantity:quantityValue(el('entryQuantity').value),supplier_price:priceValue(el('entryPrice').value),
           available:el('entryAvailability').getAttribute('aria-checked')==='true'
         };
+        const nextDraft=new Map(draft);
+        const prior=nextDraft.get(entryDraftKey || (product?'p:'+product.id:'n:'+API.normalizeProductCode(proposal.code)+':'+SupplierBrands.key(proposal.brand)));
+        if(entryFile){
+          const form=new FormData();form.append('brand',proposal.brand);form.append('image',entryFile);
+          uploaded=await request('/images',{method:'POST',body:form,timeout:30000});entryImageId=uploaded.id;
+        }
         if (product) {
-          draftChange(product,{quantity:proposal.quantity,supplier_price:proposal.supplier_price,available:proposal.available});
-          if (!draft.has('p:' + product.id)) throw new Error('برای این کالا تغییری وارد نشده است');
-        } else stageNew(proposal,draft);
+          draftChange(product,{quantity:proposal.quantity,supplier_price:proposal.supplier_price,available:proposal.available,image_id:entryImageId},nextDraft);
+          if (!nextDraft.has('p:' + product.id)&&!prior) throw new Error('برای این کالا تغییری وارد نشده است');
+        } else {
+          stageNew({...proposal,image_id:entryImageId},nextDraft);
+          const newKey='n:'+API.normalizeProductCode(proposal.code)+':'+SupplierBrands.key(proposal.brand);
+          if(entryDraftKey&&entryDraftKey!==newKey)nextDraft.delete(entryDraftKey);
+        }
+        draft=nextDraft;
         persistDraft();
+        if(prior?.image_id&&prior.image_id!==entryImageId)discardUnusedPhoto(prior.image_id);
         renderProducts();
-        closeDialog('entryDialog');
+        el('entryDialog').close();resetEntryPhoto();
         message('notice','کالا به پیش‌نویس این مرورگر اضافه شد؛ برای بررسی مدیریت، تغییرات را ارسال کنید.');
-      } catch (error) { message('entryError',error.message,true); }
+      } catch (error) { if(uploaded){entryImageId=null;discardUnusedPhoto(uploaded.id);} message('entryError',error.message,true); }
+      finally {entrySaving=false;controls.forEach(([node,disabled])=>node.disabled=disabled);}
     });
 
     function listItem(name, details, extra = '') {
@@ -454,14 +522,16 @@
         const fields = [row.code,row.brand || product?.brand,row.new_product?'کالای جدید':'',
           row.supplier_price==null?'':priceText(row.supplier_price)+' تومان',row.quantity==null?'':fmt(row.quantity)+' عدد',
           row.available==null?'':availabilityLabel(row.available)].filter(Boolean).join(' / ');
-        return listItem(row.description || product?.description || row.code,fields,`<button type="button" data-key="${esc(key)}" onclick="removeDraft(this.dataset.key)">حذف از لیست</button>`);
+        return listItem(row.description || product?.description || row.code,fields,`${SupplierPhotos.markup(row.image_id)}<button type="button" data-key="${esc(key)}" onclick="removeDraft(this.dataset.key)">حذف از لیست</button>`);
       }).join('') || '<p class="empty">تغییری آمادهٔ ارسال نیست.</p>';
       el('submitBtn').disabled = busy || !draft.size;
+      SupplierPhotos.load(el('draftItems'));
     }
 
     function openDraft() { message('draftError',''); renderDraft(); el('draftDialog').showModal(); }
-    function removeDraft(key) { if (!busy) { draft.delete(key); persistDraft(); renderDraft(); renderProducts(); } }
-    function closeDialog(id) { if (!busy || id!=='draftDialog') el(id).close(); }
+    function removeDraft(key) { if (!busy) { const photo=draft.get(key)?.image_id;draft.delete(key);discardUnusedPhoto(photo);persistDraft(); renderDraft(); renderProducts(); } }
+    function closeDialog(id) { if(id==='entryDialog'&&entrySaving)return;if (!busy || id!=='draftDialog') el(id).close(); }
+    el('entryDialog').addEventListener('cancel',event=>{if(entrySaving)event.preventDefault();});
     el('draftDialog').addEventListener('cancel',event => { if (busy) event.preventDefault(); });
 
     async function submitChanges() {
@@ -618,8 +688,9 @@
             item.code,item.brand,item.supplier_price == null ? '' : priceText(item.supplier_price)+' تومان',
             item.quantity == null ? '' : fmt(item.quantity)+' عدد',
             item.available == null ? '' : availabilityLabel(Boolean(Number(item.available))),statusLabel[item.status]
-          ].filter(Boolean).join(' / '))).join('')
+          ].filter(Boolean).join(' / '),SupplierPhotos.markup(item.image_id))).join('')
           + errors.map(error => listItem('خطای ردیف',error.error_message)).join('');
+        SupplierPhotos.load(el('details'));
       } catch (error) { el('details').textContent = error.message; }
     }
 
@@ -628,3 +699,4 @@
   </script>
 </body>
 </html>
+

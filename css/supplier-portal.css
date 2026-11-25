@@ -1,3 +1,16 @@
+/* One optional product photo, reviewed with the existing supplier batch. */
+.entry-photo-field{padding:12px;border:1px solid #dce7f4;border-radius:10px;background:#f8fbff;display:grid;gap:9px}
+.entry-photo-field input[type=file]{max-width:100%;padding:10px;background:white}
+.entry-photo-preview{display:grid;justify-items:center;gap:8px;color:#536a83;font-size:13px}
+.entry-photo-preview>img,.entry-photo-preview .supplier-photo{width:100%;height:160px;object-fit:contain;background:white;border-radius:8px}
+.supplier-photo{display:inline-flex;align-items:center;justify-content:center;width:86px;height:72px;background:white;border:1px solid #dce7f4;border-radius:8px;overflow:hidden;flex-shrink:0;color:#536a83;font-size:12px}
+.supplier-photo img{width:100%;height:100%;object-fit:contain}
+.supplier-photo span{padding:5px;text-align:center}
+.list-item>.supplier-photo{margin-inline-start:auto}
+.product-name .supplier-photo{margin-top:6px}
+.entry-photo-field button{justify-self:start;min-height:44px}
+.photo-file-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.photo-file-actions span{font-size:13px;color:#536a83;overflow-wrap:anywhere;min-width:0}
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { margin: 0; background: #edf3f9; color: #142742; font: 14px Vazirmatn, sans-serif; }
@@ -99,3 +112,4 @@ dialog::backdrop { background: #10214388; }
 .price-input { display: flex; align-items: center; gap: 6px; min-width: 0; direction: ltr; }
 .price-input input { flex: 1; width: 0; direction: ltr; text-align: center; }
 .price-input .price-unit { display: inline; flex-shrink: 0; color: #536a83; font-size: 12px; direction: rtl; }
+
