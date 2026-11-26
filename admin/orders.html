@@ -734,6 +734,8 @@ function calcNoTotal(){
 // ── PRODUCT SEARCH ──
 let activeProdInp=null,activeProdPrefix='',activeProdJ=0;
 function searchProd(inp){
+  const editedRow=inp.closest('[data-product-id]');
+  if(editedRow) delete editedRow.dataset.productId;
   activeProdInp=inp;
   activeProdPrefix=inp.dataset.prefix;
   activeProdJ=Number(inp.dataset.j);
@@ -867,9 +869,10 @@ async function submitNewOrder(){
     const qty=Number(document.getElementById('noqty_'+j)?.value)||0;
     const price=Number(document.getElementById('noprice_'+j)?.value)||0;
     const disc=Number(document.getElementById('nodisc_'+j)?.value)||0;
-    if(desc&&qty>0)items.push({desc,qty,price,discount:disc,total:Math.round(qty*price*(1-disc/100))});
+    if(desc&&qty>0)items.push({product_id:Number(row.dataset.productId)||null,desc,qty,price,discount:disc,total:Math.round(qty*price*(1-disc/100))});
   });
   if(!items.length){toast('حداقل یک قلم اضافه کنید',false);return;}
+  if(items.some(item=>!item.product_id)){toast('برای هر ردیف یک کالا از فهرست پیشنهادها انتخاب کنید.',false);return;}
   const disc=Number(document.getElementById('no_discount').value)||0;
   const total=Math.round(items.reduce((s,it)=>s+it.total,0)*(1-disc/100));
   const token=OnPartSession.getToken('admin');
@@ -877,13 +880,14 @@ async function submitNewOrder(){
     const res=await fetch(`${API.BASE_URL}/api/orders/manual`,{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({user_id:selectedCustomer.id,user_name:selectedCustomer.name,user_phone:selectedCustomer.phone,items,total,status:document.getElementById('no_status').value,note:document.getElementById('no_note').value})
+      body:JSON.stringify({user_id:selectedCustomer.id,user_name:selectedCustomer.name,user_phone:selectedCustomer.phone,items,total,overall_discount:disc,status:document.getElementById('no_status').value,note:document.getElementById('no_note').value})
     });
     const data=await res.json();
+    if(!res.ok)throw new Error(data.message||'ثبت سفارش انجام نشد');
     orders.unshift({id:data.id||Date.now(),user_name:selectedCustomer.name,user_phone:selectedCustomer.phone,created_at:new Date().toISOString(),items_count:items.length,total,status:document.getElementById('no_status').value});
     filtered=[...orders];renderTable();updateStats();closeNewOrder();
     toast(`سفارش ${selectedCustomer.name} ثبت شد ✓`);
-  }catch(e){toast('خطا در ثبت سفارش',false);}
+  }catch(e){toast(e.message||'خطا در ثبت سفارش',false);}
 }
 
 

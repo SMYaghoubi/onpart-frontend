@@ -6,7 +6,7 @@
   <title>پنل تأمین‌کننده | آن‌پارت</title>
   <link rel="icon" href="/favicon.ico?v=2" sizes="16x16 32x32 48x48"/>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
-  <link rel="stylesheet" href="../css/supplier-portal.css?v=6">
+  <link rel="stylesheet" href="../css/supplier-portal.css?v=7">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 </head>
 <body>
@@ -39,6 +39,7 @@
       <nav class="sidebar-nav" aria-label="بخش‌های پنل">
         <button type="button" class="nav-item active" data-view="dashboard" aria-current="page"><svg class="icon"><use href="#i-grid"/></svg><span>پیشخوان</span></button>
         <button type="button" class="nav-item" data-view="products"><svg class="icon"><use href="#i-box"/></svg><span>محصولات من</span></button>
+        <button type="button" class="nav-item" data-view="orders"><svg class="icon"><use href="#i-file"/></svg><span>سفارش‌های من</span></button>
         <button type="button" class="nav-item" data-entry-action data-needs-data disabled><svg class="icon"><use href="#i-plus"/></svg><span>ثبت محصول جدید</span></button>
         <button type="button" class="nav-item" data-view="bulk"><svg class="icon"><use href="#i-upload"/></svg><span>ثبت گروهی محصولات</span></button>
         <button type="button" class="nav-item" data-view="requests"><svg class="icon"><use href="#i-file"/></svg><span>درخواست‌ها و وضعیت تأیید</span><b id="navPending" class="nav-count" hidden></b></button>
@@ -108,6 +109,16 @@
       </div>
     </section>
 
+    <section class="card dashboard-view seller-orders" id="view-orders" data-panel="orders" aria-labelledby="sellerOrdersTitle" hidden>
+      <div class="section-heading"><div><p class="eyebrow">فروش به همکاران</p><h1 id="sellerOrdersTitle" tabindex="-1">سفارش‌های من</h1></div><button type="button" id="sellerOrderRefresh">به‌روزرسانی سفارش‌ها</button></div>
+      <p class="hint seller-orders-note">فقط اقلام متعلق به شما از سفارش‌های دارای پرداخت کامل و تأییدشده نمایش داده می‌شوند. مبالغ، ارزش کالاها به قیمت همکاری ثبت‌شده شما هستند؛ موجودی کیف پول یا مبلغ قابل تسویه نیستند.</p>
+      <label class="seller-order-filter">وضعیت سفارش<select id="sellerOrderStatus"><option value="">همه وضعیت‌ها</option><option value="preparing">در حال آماده‌سازی</option><option value="shipping">ارسال‌شده</option><option value="delivered">تحویل‌شده</option><option value="cancelled">لغوشده</option></select></label>
+      <p class="hint">سفارش‌های قدیمی که فروشنده آن‌ها در زمان ثبت مشخص نشده، خودکار به حساب شما نسبت داده نمی‌شوند.</p>
+      <div id="sellerOrderList" class="seller-order-list" aria-live="polite"></div>
+      <div id="sellerOrderPager" class="pager" hidden><button type="button" id="sellerOrderPrev">قبلی</button><span id="sellerOrderPage"></span><button type="button" id="sellerOrderNext">بعدی</button></div>
+      <section id="sellerOrderDetails" class="seller-order-details" aria-labelledby="sellerOrderDetailTitle" hidden><div class="section-heading"><h2 id="sellerOrderDetailTitle" tabindex="-1">اقلام سفارش</h2><button type="button" id="sellerOrderDetailClose">بستن جزئیات</button></div><div id="sellerOrderDetailBody"></div></section>
+    </section>
+
     <section class="card dashboard-view" id="view-requests" data-panel="requests" aria-labelledby="historyTitle" hidden>
       <div class="section-heading"><div><p class="eyebrow">پیگیری درخواست‌ها</p><h1 id="historyTitle" tabindex="-1">درخواست‌ها و وضعیت تأیید</h1></div><select id="historyStatus" aria-label="فیلتر وضعیت درخواست‌ها" onchange="renderHistory()"><option value="">همه درخواست‌ها</option><option value="pending">در انتظار بررسی</option><option value="approved">تأییدشده</option><option value="rejected">ردشده</option></select></div><p class="hint history-hint">حداکثر ۱۰۰ درخواست اخیر این حساب نمایش داده می‌شود. برای مشاهده نتیجه بررسی و عکس‌های ارسالی، جزئیات هر درخواست را باز کنید.</p>
       <div id="history"><p class="empty">در حال دریافت سوابق…</p></div>
@@ -175,7 +186,8 @@
   <script src="../js/product-excel.js"></script>
   <script src="../js/supplier-brands.js"></script>
   <script src="../js/supplier-photos.js?v=1"></script>
-  <script src="../js/supplier-dashboard.js?v=1"></script>
+  <script src="../js/supplier-orders.js?v=1"></script>
+  <script src="../js/supplier-dashboard.js?v=2"></script>
   <script>
     const el = id => document.getElementById(id);
     const esc = value => API.escapeHtml(String(value ?? ''));
@@ -775,4 +787,5 @@
   </script>
 </body>
 </html>
+
 
