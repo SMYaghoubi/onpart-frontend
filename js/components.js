@@ -151,11 +151,13 @@ const OnPart = {
       // Normalize to also expose qty/code for backward compatibility
       return rows.map(function(r){
         return {
+          offer_token:r.offer_token,offer_version:r.offer_version,expected_price:r.price,offer_label:r.offer_label,needs_selection:r.needs_selection,needs_review:r.needs_review,
           product_id: r.product_id,
           qty: Number(r.quantity) || 0,
           code: r.code,
           desc: r.description,
-          price: Number(r.price) || 0,
+          price: r.price==null?null:Number(r.price),
+          image:r.image,
           stock: r.stock,
           car: r.car,
           brand: r.brand
@@ -172,9 +174,10 @@ const OnPart = {
       var res = await fetch(this.CART_API + '/item', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ product_id: productId, quantity: qty })
+        body: JSON.stringify({ product_id: productId, quantity: qty, ...(options&&options.offer_token?{offer_token:options.offer_token,offer_version:options.offer_version,expected_price:options.expected_price}:{}) })
       });
       if(!options || options.refreshCount !== false) this.updateCartCount();
+      if(!res.ok){var error=await res.json().catch(function(){return {}});this.toast(error.message||'ذخیره پیشنهاد انجام نشد','error');}
       return res.ok;
     } catch(e){ return false; }
   },
@@ -461,3 +464,4 @@ document.addEventListener('keydown',function(e){
     else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
   }
 });
+

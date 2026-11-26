@@ -8,6 +8,7 @@ const products=[
   {id:1,description:'محصول آزمایشی یک',brand:'پولاسا',code:'POLA-001',car:'مشترک',category:'شلنگ سوخت',price:10000,available:true,image:'/uploads/test.jpg'},
   {id:2,description:'محصول آزمایشی دو',brand:'خاتم',code:'KHA-002',car:'پژو ۲۰۶',category:'شلنگ بای پس',price:20000,available:false}
 ];
+const selectedQuote=id=>({product_id:id,qty:1,offer_token:'a'.repeat(32),offer_version:2,expected_price:10000,offer_label:'عرضه‌کننده AAAAAA',needs_selection:false,needs_review:false});
 function createShopHarness(shopHtml,viewSource,config={},URLClass=URL) {
   const nodes=new Map(),dynamic=new Map(),calls=[],timers=[];
   const state={token:config.token===undefined?'approved-test-token':config.token,
@@ -18,7 +19,7 @@ function createShopHarness(shopHtml,viewSource,config={},URLClass=URL) {
       addEventListener(){},setAttribute(k,v){this.attrs[k]=String(v);},getAttribute(k){return this.attrs[k]??null;},
       removeAttribute(k){delete this.attrs[k];if(k==='src')this.src='';},focus(){},showModal(){this.open=true;},close(){this.open=false;},
       contains(){return false;},querySelector(){return null;},querySelectorAll(){return [];},
-      appendChild(child){this.children.push(child);},replaceChildren(...children){
+      insertAdjacentHTML(_position,html){this._html+=html;},remove(){},appendChild(child){this.children.push(child);},replaceChildren(...children){
         this.children=children;
         if(this.tag==='select'){this.options=children.flatMap(c=>c.children||[c]);return;}
         this.innerHTML=children.map(c=>c.html||c._html||(c.children||[]).map(x=>x.html||x._html||'').join('')).join('');
@@ -39,11 +40,11 @@ function createShopHarness(shopHtml,viewSource,config={},URLClass=URL) {
   const staticIds=['shopCards','shopList','shopCardsView','shopListView','shopMore','shopResults','tbody','pgInfo','priceHeader','filterSummary','cartCount','cartCountBtn','clearCartButton','totalBar','totalBarVal','cartBody','cartTotal','cartOverlay','cartPanel','clearCartDialog','clearCartCancel','clearCartConfirm','shopImageDialog','shopImageTitle','shopImageError','shopImageZoom','notifPanel','notifBtn','notifDot','notifList'];
   staticIds.forEach(id=>nodes.set(id,element(id)));
   for(const id of ['fText','fCar','fBrand','fCat'])nodes.set(id,element(id,id==='fText'?'input':'select'));
-  const document={getElementById:id=>nodes.get(id)||dynamic.get(id)||null,querySelector:()=>null,querySelectorAll:()=>[],
+  const document={getElementById:id=>nodes.get(id)||dynamic.get(id)||null,querySelector:selector=>selector==='.btn-checkout'?element('checkoutButton'):null,querySelectorAll:()=>[],
     addEventListener(){},head:element(),body:element(),createElement:tag=>element('',tag),
     createDocumentFragment:()=>({children:[],appendChild(child){this.children.push(child);},get html(){return this.children.map(c=>c.html||c._html||'').join('');}})};
   const storage=new Map(config.storage||[]),localStorage={getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,String(value))};
-  const window={localStorage,location:{origin:'https://onpart.ir',href:''},addEventListener(){}};
+  const window={localStorage,location:{origin:'https://onpart.ir',href:'',hash:''},addEventListener(){}};
   const module={exports:{}};new Function('module','exports','URL',viewSource)(module,module.exports,URLClass);
   const API={BASE_URL:'https://onpartpadmin.liara.run',
     normalizeProductCode:value=>String(value||'').replace(/[۰-۹٠-٩]/g,c=>c.charCodeAt(0)&15).replace(/[\s-]/g,'').toLowerCase(),
@@ -63,7 +64,7 @@ function createShopHarness(shopHtml,viewSource,config={},URLClass=URL) {
     setCartItem:async(id,quantity,options)=>{
       calls.push({save:id,quantity,options});if(!state.saveSucceeds)return false;
       state.cart=state.cart.filter(p=>p.product_id!==id);
-      if(quantity)state.cart.push({product_id:id,qty:quantity});
+      if(quantity)state.cart.push({...options,product_id:id,qty:quantity});
       return true;
     },clearCart:async()=>{state.cart=[];return true;}};
   const source=shopHtml.match(/<script>\s*([\s\S]*?)<\/script>/)[1];
@@ -71,25 +72,25 @@ function createShopHarness(shopHtml,viewSource,config={},URLClass=URL) {
     '\nreturn {render,setShopView,doFilter,clearFilters,chg,setQ,addProductToCart,openCart,removeCartItem,loadProducts,openProductImage,closeProductImage,shopImageFailed,showMoreShopProducts,state:()=>({products,filtered,qtys,shopView,shopLoadState,shopAccessReady,shopVisibleCount})};');
   const app=runtime(window,document,OnPart,{getToken:()=>state.token},API,module.exports,
     ()=>()=>{},fn=>{timers.push(fn);return timers.length;},()=>{},()=>1,fn=>fn(),{warn(){},error(){}});
-  return {app,state,document,nodes,dynamic,storage,calls,view:module.exports,settle:async()=>{for(let i=0;i<25;i++)await Promise.resolve();}};
+  return {app,state,window,document,nodes,dynamic,storage,calls,view:module.exports,settle:async()=>{for(let i=0;i<25;i++)await Promise.resolve();}};
 }
 test('cards are default; switching preserves filters, selections, and the server cart',async()=>{
-  const e=createShopHarness(html,viewSource,{products});await e.settle();
+  const e=createShopHarness(html,viewSource,{products,cart:[selectedQuote(1)]});await e.settle();
   assert.equal(e.app.state().shopView,'cards');
   assert.equal(e.nodes.get('shopList').hidden,true);
-  assert.equal(e.dynamic.get('productQty_1').value,'۰');
+  assert.equal(e.dynamic.get('productQty_1').value,'۱');
   await e.app.chg(1,1);
-  assert.equal(e.state.cart[0].qty,1);
+  assert.equal(e.state.cart[0].qty,2);
   e.app.setShopView('list');
   assert.equal(e.nodes.get('shopCards').innerHTML,'');
-  assert.equal(e.dynamic.get('productQty_1').value,'۱');
+  assert.equal(e.dynamic.get('productQty_1').value,'۲');
   await e.app.setQ(1,'۳');
   e.app.setShopView('cards');
   assert.equal(e.app.state().qtys[1],3);
   assert.equal(e.dynamic.get('productQty_1').value,'۳');
   assert.equal(e.state.cart[0].qty,3);
   assert.equal(e.storage.get('onpart-shop-view'),'cards');
-  assert.deepEqual(e.calls.filter(c=>c.save).map(c=>c.quantity),[1,3]);
+  assert.deepEqual(e.calls.filter(c=>c.save).map(c=>c.quantity),[2,3]);
 });
 test('both views use the same text/code search and exact car/brand/category filters',async()=>{
   const e=createShopHarness(html,viewSource,{products});await e.settle();
@@ -125,17 +126,18 @@ test('approval and missing-session errors expose no products or prices in either
   }
 });
 test('unavailable products cannot be added and failed cart saves roll back in both views',async()=>{
-  const e=createShopHarness(html,viewSource,{products});await e.settle();
+  const e=createShopHarness(html,viewSource,{products,cart:[selectedQuote(1)]});await e.settle();
   for(const mode of ['cards','list']){
     e.app.setShopView(mode);
     await e.app.chg(2,1);
     assert.equal(e.calls.filter(c=>c.save===2).length,0);
     e.state.saveSucceeds=false;
     await e.app.chg(1,1);
-    assert.equal(e.app.state().qtys[1]||0,0);
-    assert.equal(e.dynamic.get('productQty_1').value,'۰');
+    assert.equal(e.app.state().qtys[1],1);
+    assert.equal(e.dynamic.get('productQty_1').value,'۱');
     e.state.saveSucceeds=true;
   }
+  await e.app.chg(1,-1);
   await e.app.addProductToCart(1);
   assert.equal(e.app.state().qtys[1],1);
   e.app.openCart();
@@ -187,4 +189,20 @@ test('losing the buyer session removes rendered products and the open image',asy
   assert.equal(e.nodes.get('shopImageDialog').open,false);
   assert.equal(e.nodes.get('cartCountBtn').textContent,'۰');
   assert.doesNotMatch(e.nodes.get('shopCards').innerHTML,/POLA-001|محصول آزمایشی/);
+});
+
+
+test('a new or stale cart selection navigates to real offers without auto-selecting the lowest price',async()=>{
+ for(const cart of [[],[{...selectedQuote(1),needs_review:true}], [{product_id:1,qty:1,needs_selection:true}]]){
+  const e=createShopHarness(html,viewSource,{products,cart});await e.settle();await e.app.chg(1,1);
+  assert.equal(e.window.location.href,'/product?id=1');assert.equal(e.calls.filter(c=>c.save).length,0);
+ }
+});
+test('quantity updates preserve the explicitly selected token, revision and quoted price in both views',async()=>{
+ const e=createShopHarness(html,viewSource,{products,cart:[{...selectedQuote(1),expected_price:12000}]});await e.settle();
+ for(const mode of ['cards','list']){e.app.setShopView(mode);await e.app.chg(1,1);const saved=e.calls.filter(c=>c.save).at(-1);assert.equal(saved.options.offer_token,'a'.repeat(32));assert.equal(saved.options.offer_version,2);assert.equal(saved.options.expected_price,12000);}
+ e.app.openCart();assert.match(e.nodes.get('cartBody').innerHTML,/عرضه‌کننده AAAAAA/);assert.match(e.nodes.get('cartBody').innerHTML,/هزینه پست/);
+});
+test('missing quotes stay unknown and cannot look like a free order',async()=>{
+ const e=createShopHarness(html,viewSource,{products,cart:[{product_id:1,qty:1,needs_selection:true,expected_price:null}]});await e.settle();e.app.openCart();assert.match(e.nodes.get('cartTotal').textContent,/پس از انتخاب پیشنهاد/);assert.match(e.nodes.get('cartBody').innerHTML,/بررسی مجدد/);
 });

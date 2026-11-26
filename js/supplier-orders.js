@@ -12,7 +12,7 @@
   const node=id=>document.getElementById(id);
   function orderCard(order){
     return '<article class="seller-order-card"><div class="seller-order-top"><b>سفارش '+fa(order.id)+'</b><span class="seller-order-status '+esc(order.status)+'">'+esc(status(order.status))+'</span></div>'
-      +'<p class="hint">'+esc(date(order.created_at))+'</p><dl><div><dt>اقلام مربوط به شما</dt><dd>'+fa(order.line_count)+' ردیف · '+fa(order.quantity)+' عدد</dd></div><div><dt>ارزش اقلام به قیمت همکاری شما</dt><dd>'+esc(money(order.supplier_total))+'</dd></div></dl>'
+      +'<p class="hint">'+esc(date(order.created_at))+'</p>'+(order.fulfillment_policy==='shahriar_hub_post_recipient'?'<p class="hint">اقلام را با شماره سفارش به مرکز آن‌پارت در شهریار تحویل دهید؛ ارسال به خریدار توسط آن‌پارت انجام می‌شود.</p>':'')+'<dl><div><dt>اقلام مربوط به شما</dt><dd>'+fa(order.line_count)+' ردیف · '+fa(order.quantity)+' عدد</dd></div><div><dt>ارزش اقلام به قیمت همکاری شما</dt><dd>'+esc(money(order.supplier_total))+'</dd></div></dl>'
       +'<button type="button" class="seller-order-detail" data-seller-order="'+Number(order.id)+'">مشاهده اقلام سفارش</button></article>';
   }
   function itemCard(item){
@@ -54,7 +54,7 @@
     try{
       const data=await request('/orders/'+id);if(current!==detailSequence)return;
       node('sellerOrderDetailBody').innerHTML='<p class="hint">'+esc(status(data.status))+' · '+esc(date(data.created_at))+'</p>'
-        +(data.items||[]).map(itemCard).join('')+'<div class="seller-order-sum">ارزش اقلام شما: <b>'+esc(money(data.supplier_total))+'</b></div>';
+        +(data.fulfillment_policy==='shahriar_hub_post_recipient'?'<p class="hint">محل تحویل: مرکز آن‌پارت در شهریار. برای هماهنگی تحویل با مدیریت تماس بگیرید؛ شماره سفارش را روی بسته درج کنید. بسته برای خریدار توسط آن‌پارت ارسال می‌شود.</p>':'')+(data.items||[]).map(itemCard).join('')+'<div class="seller-order-sum">ارزش اقلام شما: <b>'+esc(money(data.supplier_total))+'</b></div>';
     }catch(error){if(current===detailSequence)node('sellerOrderDetailBody').innerHTML='<p class="error" role="alert">'+esc(error.message||'دریافت جزئیات انجام نشد.')+'</p>';}
   }
   function init(options){
