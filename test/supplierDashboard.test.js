@@ -13,3 +13,6 @@ test('an empty real account has zero counts and the history cap is reported expl
  const batches=Array.from({length:100},(_,id)=>({id,status:id%2?'pending':'approved'}));
  assert.equal(statistics({batches}).pending,50);assert.equal(statistics({batches}).limitedHistory,true);
 });
+
+
+test('own-account UI shows the persistent seller code only after a fresh authenticated read',()=>{const source=require('node:fs').readFileSync(require.resolve('../js/supplier-dashboard.js'),'utf8');assert.match(source,/accountSellerCode/);assert.match(source,/fresh &&/);const html=require('node:fs').readFileSync(require.resolve('../supplier/index.html'),'utf8');assert.match(html,/id="accountSellerCode" dir="ltr"/);});

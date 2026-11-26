@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
   <link rel="stylesheet" href="css/style.css"/>
   <link rel="stylesheet" href="css/shop-cards.css?v=3"/>
+  <link rel="stylesheet" href="css/marketplace.css?v=1"/>
   <style>
     body { background: #f3f4f6; }
     /* Search Block */
@@ -392,7 +393,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
   <script src="js/checkout-success.js"></script>
   <script src="js/api.js"></script>
   <script src="js/shop-filter-menu.js"></script>
-  <script src="js/shop-cards.js?v=1"></script>
+  <script src="js/shop-cards.js?v=2"></script>
   <script>
     OnPart.renderNavbar('shop');
     const fa = n => n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
@@ -505,7 +506,8 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
           cat: p.category || '',
           flow: p.has_flow == 1,
           stock: p.available===true || Number(p.stock) > 0,
-          price: Number(p.price),
+          price: p.price == null ? null : Number(p.price),
+          offer_count: Number(p.offer_count)||0, marketplace: true,
           note: p.note || '',
           image: p.image || '',
           _searchText: normalizeSearch([p.description,p.brand,p.category].join(' '),true),
@@ -540,18 +542,23 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
 
       // Restore the signed-in user's cart from the server/database.
       Object.keys(qtys).forEach(key => delete qtys[key]);
+      Object.keys(chosenOffers).forEach(key=>delete chosenOffers[key]);
       try {
         const serverCart = await OnPart.getCart();
         serverCart.forEach(item => {
           const productId = Number(item.product_id);
           const quantity = Number(item.qty) || 0;
-          if(productId && quantity > 0) qtys[productId] = quantity;
+          if(productId && quantity > 0) {
+            qtys[productId] = quantity; chosenOffers[productId] = item;
+            if(!products.some(p=>Number(p.id)===productId))products.push({id:productId,desc:item.desc||'کالای خارج از فهرست فعال',code:item.code||'',car:item.car||'',brand:item.brand||'',cat:'',image:item.image||'',price:null,stock:false,offer_count:0,_searchText:normalizeSearch(item.desc||'',true),_codeSearch:API.normalizeProductCode(item.code||''),_carKey:normalizeSearch(item.car||'',true),_brandKey:normalizeSearch(item.brand||'',true),_catKey:''});
+          }
         });
       } catch(e) {
         OnPart.toast('خطا در بارگذاری سبد خرید', 'error');
       }
 
       render();
+      if(window.location.hash==='#cart')openCart();
 
       const metadata=await metadataPromise;
       const hadFilter = shopFilterIds.some(id => document.getElementById(id).value);
@@ -565,7 +572,13 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       if(metadataError) OnPart.toast('محصولات نمایش داده شدند؛ فیلترها موقتاً در دسترس نیستند', 'info');
     }
 
-    const qtys = {}, cartSaveQueues = {};
+    const qtys = {}, chosenOffers = {}, cartSaveQueues = {};
+    let checkoutKey = null, checkoutFingerprint = null;
+    function selectedProduct(product) {
+      const chosen=chosenOffers[product.id];
+      return chosen?.offer_token ? {...product,price:chosen.expected_price,selected_offer:true} : product;
+    }
+    function validSelection(id) { const q=chosenOffers[id];return q?.offer_token&&!q.needs_selection&&!q.needs_review; }
 
     function syncShopView() {
       document.getElementById('shopCards').hidden = shopView !== 'cards';
@@ -582,6 +595,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
     function clearShopPrivateData() {
       products = []; filtered = []; shopAccessReady = false;
       Object.keys(qtys).forEach(key => delete qtys[key]);
+      Object.keys(chosenOffers).forEach(key=>delete chosenOffers[key]);
       closeProductImage();
       updateCartCount();
     }
@@ -624,7 +638,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       } else {
         document.getElementById('tbody').replaceChildren();
         const visible = filtered.slice(0,shopVisibleCount);
-        document.getElementById('shopCards').innerHTML = visible.map(p=>OnPartShopView.renderCard(p,{
+        document.getElementById('shopCards').innerHTML = visible.map(p=>OnPartShopView.renderCard(selectedProduct(p),{
           quantity:qtys[p.id]||0,formatPrice:fmtPrice,formatNumber:fa,showPrice:canShowPrice()
         })).join('');
         document.getElementById('shopMore').hidden = visible.length>=filtered.length;
@@ -699,18 +713,19 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
         return;
       }
       const rowsHtml = filtered.map((p,i) => { var stockB=p.stock?'<span class="chip ch-green">موجود</span>':'<span class="chip ch-red">ناموجود</span>'; var flowB='<span class="chip '+(p.flow?'ch-sky':'ch-gray')+'">'+(p.flow?'دارد':'ندارد')+'</span>';
-        const q = qtys[p.id]||0, tot = q*p.price;
+        p=selectedProduct(p);
+        const q = qtys[p.id]||0, tot = validSelection(p.id)?q*p.price:0;
         const safeCode=esc(p.code),safeDesc=esc(p.desc),safeNote=esc(p.note||'—'),safeCar=esc(p.car),safeBrand=esc(p.brand),safeCat=esc(p.cat);
         return `<tr id="productRow_${p.id}" class="product-row">
           <td class="td-code td-hide-mob row-accent" data-column="code">${safeCode}</td>
           <td class="td-desc" data-column="description" style="position:relative">
             <div class="prod-code-mob td-show-mob"><span class="prod-code-label">کد: </span><bdi dir="ltr">${safeCode}</bdi></div>
-            <div class="prod-name">${safeDesc}${p.note?`<button class="desc-info-btn" onclick="toggleDescPopup(event,${i})" title="توضیحات اضافه" aria-label="نمایش توضیحات ${safeDesc}"><i class="ti ti-info-circle"></i></button>`:''}</div>
+            <div class="prod-name"><a class="market-choice" href="/product?id=${p.id}">${safeDesc}</a>${p.note?`<button class="desc-info-btn" onclick="toggleDescPopup(event,${i})" title="توضیحات اضافه" aria-label="نمایش توضیحات ${safeDesc}"><i class="ti ti-info-circle"></i></button>`:''}</div>
             <div class="desc-popup" id="descPopup_${i}">
               <div class="desc-popup-title">توضیحات اضافه</div>
               <div style="font-size:11.5px;color:#444;line-height:1.8;white-space:pre-wrap">${safeNote}</div>
             </div>
-            <div class="prod-meta">
+            <a class="market-choice" href="/product?id=${p.id}">مقایسه ${fa(p.offer_count)} پیشنهاد</a><div class="prod-meta">
               <span style="font-size:10px;color:#666;display:inline-flex;align-items:center;gap:2px"><i class="ti ti-car" style="font-size:10px"></i>${safeCar}</span>
               <span style="color:#ddd;margin:0 3px">·</span>
               <span style="font-size:10px;color:#666">${safeBrand}</span>
@@ -727,7 +742,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
           <td class="td-hide-mob" data-column="category"><span class="chip ch-gray">${safeCat}</span></td>
           <td class="td-hide-mob" data-column="flow">${flowB}</td>
           <td class="td-hide-mob stock-col" data-column="availability">${stockB}</td>
-          <td class="td-price unit-price-cell" data-column="price" data-price-label="${esc(priceColumnLabel())}">${canShowPrice()?`<span class="price-value">${fmt(p.price)}</span>`:'<a href="/login" style="color:#1d4ed8;font-size:11px">ورود برای مشاهده</a>'}</td>
+          <td class="td-price unit-price-cell" data-column="price" data-price-label="${esc(priceColumnLabel())}">${canShowPrice()?`<span class="price-value">${p.price==null?'بدون پیشنهاد فعال':(p.selected_offer?'':'از ')+fmt(p.price)}</span>`:'<a href="/login" style="color:#1d4ed8;font-size:11px">ورود برای مشاهده</a>'}</td>
           <td class="qty-cell" data-column="quantity"><div class="qty-wrap" id="productQtyWrap_${p.id}">
             <button class="qbtn" onclick="chg(${p.id},-1)" aria-label="کاهش تعداد ${safeDesc}" ${p.stock?'':'disabled'}>−</button>
             <input class="qinp" id="productQty_${p.id}" value="${fa(q)}" onchange="setQ(${p.id},this.value)" aria-label="تعداد ${safeDesc}" inputmode="numeric" ${p.stock?'':'disabled'}/>
@@ -752,6 +767,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       }
 
       quantity = Math.max(0, Number(quantity) || 0);
+      if(quantity>0&&!validSelection(productId)){window.location.href="/product?id="+productId;return false;}
       const product = products.find(p => p.id === productId);
       if(!product || (!product.stock && quantity > 0)) {
         OnPart.toast('این کالا موجود نیست', 'error');
@@ -762,13 +778,14 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
         OnPart.toast(`حداکثر تعداد مجاز برای هر کالا ${MAX_ITEM_QUANTITY.toLocaleString('fa-IR')} است`, 'info');
       }
       const previous = qtys[productId] || 0;
+      checkoutKey=null;checkoutFingerprint=null;
       qtys[productId] = quantity;
       updateProductRow(productId);
       updateCartCount();
       setProductSaving(productId, true);
 
       const saveTask = (cartSaveQueues[productId] || Promise.resolve())
-        .then(() => OnPart.setCartItem(productId, quantity, { refreshCount: false }));
+        .then(() => OnPart.setCartItem(productId, quantity, { refreshCount: false,...chosenOffers[productId] }));
       cartSaveQueues[productId] = saveTask.catch(() => false);
       const saved = await saveTask;
       if(!saved) {
@@ -803,9 +820,9 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       const input = document.getElementById('productQty_' + productId);
       const total = document.getElementById('productTotal_' + productId);
       if(input) input.value = fa(quantity);
-      if(total) total.textContent = quantity ? (shopView==='cards'?fmtPrice(quantity * product.price):fmt(quantity * product.price)) : '';
+      if(total) total.textContent = shopView==='cards'?'':(quantity&&validSelection(productId)?fmt(quantity * selectedProduct(product).price):'');
       const add = document.getElementById('productAdd_' + productId);
-      if(add) add.textContent = product.stock ? (quantity?'مشاهده در سبد خرید':'افزودن به سبد خرید') : 'ناموجود';
+      if(add) add.textContent = product.stock ? 'مقایسه و انتخاب پیشنهاد' : 'بدون پیشنهاد فعال';
     }
 
     function setProductSaving(productId, saving, failed) {
@@ -825,7 +842,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
     }
 
     function updateTotalBar(){
-      const total=products.reduce((s,p)=>s+(qtys[p.id]||0)*p.price,0);
+      const total=products.reduce((s,p)=>s+(validSelection(p.id)?(qtys[p.id]||0)*selectedProduct(p).price:0),0);
       const bar=document.getElementById('totalBar');
       const val=document.getElementById('totalBarVal');
       if(bar&&val){
@@ -919,24 +936,28 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
     }
 
     function openCart(){
-      const items = products.map(p=>({...p,qty:qtys[p.id]||0})).filter(p=>p.qty>0);
-      const total = items.reduce((s,p)=>s+p.qty*p.price,0);
+      const items = products.map(p=>({...selectedProduct(p),qty:qtys[p.id]||0})).filter(p=>p.qty>0);
+      const total = items.reduce((s,p)=>s+(validSelection(p.id)?p.qty*p.price:0),0);
+      const needsChoice=items.some(p=>!validSelection(p.id));
       document.getElementById('cartBody').innerHTML = items.length
         ? items.map(p=>`<div class="cart-item">
             <div class="cart-item-info">
-              <div class="cart-item-name">${esc(p.desc.slice(0,50))}${p.desc.length>50?'…':''}</div>
-              <div class="cart-item-price">${fmtPrice(p.price)}</div>
+              <a class="cart-item-name" href="/product?id=${p.id}">${esc(p.desc.slice(0,50))}${p.desc.length>50?'…':''}</a>
+              <div class="cart-item-price">${validSelection(p.id)?fmtPrice(p.price)+" · "+esc(chosenOffers[p.id].offer_label):'<a href="/product?id='+p.id+'">پیشنهاد نیازمند انتخاب یا بررسی مجدد</a>'}</div>
             </div>
             <div style="display:flex;align-items:center;gap:6px">
               <button class="qbtn" onclick="cartChg(${p.id},-1)">−</button>
               <input class="qinp" value="${fa(p.qty)}" onchange="cartSetQ(${p.id},this.value)" style="width:32px"/>
               <button class="qbtn" onclick="cartChg(${p.id},1)">+</button>
             </div>
-            <div class="cart-item-qty">${fmt(p.qty*p.price)} ت</div>
+            <div class="cart-item-qty">${validSelection(p.id)?fmt(p.qty*p.price)+' ت':'—'}</div>
             <button class="cart-remove" onclick="removeCartItem(${p.id})" aria-label="حذف ${esc(p.desc)} از سبد"><i class="ti ti-trash"></i></button>
           </div>`).join('')
         : '<div style="text-align:center;padding:40px;color:#aaa">سبد خرید خالی است</div>';
-      document.getElementById('cartTotal').textContent = fmtPrice(total);
+      document.getElementById('cartTotal').textContent = needsChoice?'پس از انتخاب پیشنهاد همه اقلام':fmtPrice(total);
+      document.querySelector('.btn-checkout').disabled=needsChoice||!items.length;
+      document.getElementById('cartShippingPolicy')?.remove();
+      document.getElementById('cartBody').insertAdjacentHTML('beforeend','<p id="cartShippingPolicy" class="market-note">ارسال از مرکز آن‌پارت در شهریار به سراسر کشور. هزینه پست جدا از مبلغ کالا، در مقصد پرداخت می‌شود.</p>');
       document.getElementById('cartOverlay').classList.add('show');
       document.getElementById('cartPanel').classList.add('show');
       document.body.style.overflow='hidden';
@@ -973,7 +994,7 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       await Promise.allSettled(Object.values(cartSaveQueues));
       const cleared=await OnPart.clearCart({refreshCount:false});
       if(cleared){
-        Object.keys(qtys).forEach(key=>delete qtys[key]);
+        Object.keys(qtys).forEach(key=>delete qtys[key]);Object.keys(chosenOffers).forEach(key=>delete chosenOffers[key]);checkoutKey=null;checkoutFingerprint=null;
         Object.keys(cartSaveQueues).forEach(key=>delete cartSaveQueues[key]);
         products.forEach(product=>updateProductRow(product.id));
         updateCartCount();
@@ -1009,16 +1030,17 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
     let checkoutInFlight = false;
     async function checkout(){
       if(checkoutInFlight) return;
+      await Promise.allSettled(Object.values(cartSaveQueues));
       const items = products.map(p=>({product_id:p.id,qty:qtys[p.id]||0})).filter(p=>p.qty>0);
       if(!items.length){OnPart.toast('سبد خرید خالی است','error');return;}
 
       const token = OnPartSession.getToken('user');
       if(!token){ OnPart.toast('لطفاً ابتدا وارد حساب کاربری شوید','error'); window.location.href='/login'; return; }
 
-      const orderItems = items.map(it => ({
-        product_id: it.product_id,
-        quantity: it.qty
-      }));
+      if(items.some(it=>!validSelection(it.product_id))){OnPart.toast('ابتدا پیشنهاد همه اقلام را بررسی و انتخاب کنید','error');return;}
+      const orderItems = items.map(it => ({product_id:it.product_id,quantity:it.qty,offer_token:chosenOffers[it.product_id].offer_token,offer_version:chosenOffers[it.product_id].offer_version,expected_price:chosenOffers[it.product_id].expected_price}));
+      const fingerprint=JSON.stringify(orderItems);
+      if(!checkoutKey||checkoutFingerprint!==fingerprint){checkoutKey=crypto.randomUUID();checkoutFingerprint=fingerprint;}
 
       const btn = document.querySelector('.btn-checkout');
       checkoutInFlight = true;
@@ -1028,13 +1050,13 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
       try {
         const data = await API.request('/api/orders', {
           method: 'POST',
-          body: JSON.stringify({items: orderItems})
+          body: JSON.stringify({items: orderItems,request_key:checkoutKey})
         });
 
         if(!data || !data.id) throw new Error('پاسخ ثبت سفارش معتبر نیست');
         try {
           await OnPart.clearCart();
-          Object.keys(qtys).forEach(k => delete qtys[k]);
+          Object.keys(qtys).forEach(k => delete qtys[k]);Object.keys(chosenOffers).forEach(k=>delete chosenOffers[k]);checkoutKey=null;checkoutFingerprint=null;
           updateCartCount();
           closeCart();
           loadProducts();
@@ -1138,3 +1160,4 @@ body:after{width:280px;height:280px;left:-100px;bottom:40px;background:radial-gr
   </script>
 </body>
 </html>
+

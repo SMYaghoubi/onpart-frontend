@@ -91,6 +91,7 @@
     const company = account.company || config.supplier.company || 'تأمین‌کننده گرامی';
     node('company').textContent = company;
     node('sidebarCompany').textContent = company;
+    node('accountSellerCode').textContent = fresh && /^OP-[1-9][0-9]{5}$/.test(account.seller_code || '') ? account.seller_code : '—';
     node('accountCompany').textContent = account.company || '—';
     node('accountName').textContent = account.name || '—';
     node('accountMobile').textContent = account.mobile ? fa(account.mobile) : '—';
