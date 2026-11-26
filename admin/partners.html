@@ -77,7 +77,7 @@
       </div>
 
       <div class="toolbar">
-        <input class="fi fi-input" id="searchInp" placeholder="جستجو نام، شرکت، موبایل..." oninput="renderTable()"/>
+        <input class="fi fi-input" id="searchInp" placeholder="جستجو نام، شرکت، موبایل یا کد فروشندگی..." oninput="renderTable()"/>
         <select class="fi" id="statusF" onchange="renderTable()">
           <option value="">همه وضعیت‌ها</option>
           <option value="pending">در انتظار</option>
@@ -208,16 +208,16 @@ function updateStats(){
 }
 
 function renderTable(){
-  const q=(document.getElementById('searchInp').value||'').toLowerCase();
+  const q=(document.getElementById('searchInp').value||'').toLowerCase().replace(/[۰-۹٠-٩]/g,c=>String(c.charCodeAt(0)&15));
   const sf=document.getElementById('statusF').value;
   filtered=suppliers.filter(s=>
-    (!q||(s.company||'').toLowerCase().includes(q)||(s.name||'').toLowerCase().includes(q)||(s.mobile||'').includes(q))&&
+    (!q||(s.company||'').toLowerCase().includes(q)||(s.name||'').toLowerCase().includes(q)||(s.mobile||'').includes(q)||(s.seller_code||'').toLowerCase().includes(q))&&
     (!sf||s.status===sf)
   );
   document.getElementById('supplierCount').textContent=fa(filtered.length);
   document.getElementById('supplierTbody').innerHTML=filtered.map((s,i)=>`
     <tr>
-      <td style="text-align:right"><div style="font-weight:700;color:#111">${s.company}</div><div style="font-size:11px;color:#aaa">${s.type||''}</div></td>
+      <td style="text-align:right"><div style="font-weight:700;color:#111">${s.company}</div><div style="font-size:11px;color:#aaa">${s.type||''}</div>${s.seller_code?`<div style="font-size:12px;color:#1d4ed8">کد فروشندگی: <bdi dir="ltr">${API.escapeHtml(s.seller_code)}</bdi></div>`:''}</td>
       <td>${s.type||'—'}</td>
       <td>${s.name||'—'}</td>
       <td style="direction:ltr">${s.mobile||'—'}</td>
@@ -250,7 +250,7 @@ function openDetail(i){
       <div style="font-size:17px;font-weight:800;color:#fff">${s.company}</div>
       <div style="font-size:12px;color:rgba(255,255,255,.7);margin-top:3px">${s.type||''} — ${s.city||''}</div>
     </div>
-    <div class="info-grid">
+    <div class="info-grid"><div class="info-box"><div class="info-lbl">کد فروشندگی ثابت</div><div class="info-val" dir="ltr">${API.escapeHtml(s.seller_code||'پس از تأیید صادر می‌شود')}</div></div>
       <div class="info-box"><div class="info-lbl">مسئول</div><div class="info-val">${s.name||'—'}</div></div>
       <div class="info-box"><div class="info-lbl">موبایل</div><div class="info-val" style="direction:ltr">${s.mobile||'—'}</div></div>
       <div class="info-box"><div class="info-lbl">تلفن ثابت</div><div class="info-val" style="direction:ltr">${s.phone||'—'}</div></div>
@@ -414,3 +414,4 @@ loadSuppliers();
 </script>
 </body>
 </html>
+

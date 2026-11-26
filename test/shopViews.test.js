@@ -8,7 +8,7 @@ const products=[
   {id:1,description:'محصول آزمایشی یک',brand:'پولاسا',code:'POLA-001',car:'مشترک',category:'شلنگ سوخت',price:10000,available:true,image:'/uploads/test.jpg'},
   {id:2,description:'محصول آزمایشی دو',brand:'خاتم',code:'KHA-002',car:'پژو ۲۰۶',category:'شلنگ بای پس',price:20000,available:false}
 ];
-const selectedQuote=id=>({product_id:id,qty:1,offer_token:'a'.repeat(32),offer_version:2,expected_price:10000,offer_label:'عرضه‌کننده AAAAAA',needs_selection:false,needs_review:false});
+const selectedQuote=id=>({product_id:id,qty:1,offer_token:'a'.repeat(32),offer_version:2,expected_price:10000,offer_label:'فروشنده تأییدشده · کد OP-482731',needs_selection:false,needs_review:false});
 function createShopHarness(shopHtml,viewSource,config={},URLClass=URL) {
   const nodes=new Map(),dynamic=new Map(),calls=[],timers=[];
   const state={token:config.token===undefined?'approved-test-token':config.token,
@@ -201,7 +201,7 @@ test('a new or stale cart selection navigates to real offers without auto-select
 test('quantity updates preserve the explicitly selected token, revision and quoted price in both views',async()=>{
  const e=createShopHarness(html,viewSource,{products,cart:[{...selectedQuote(1),expected_price:12000}]});await e.settle();
  for(const mode of ['cards','list']){e.app.setShopView(mode);await e.app.chg(1,1);const saved=e.calls.filter(c=>c.save).at(-1);assert.equal(saved.options.offer_token,'a'.repeat(32));assert.equal(saved.options.offer_version,2);assert.equal(saved.options.expected_price,12000);}
- e.app.openCart();assert.match(e.nodes.get('cartBody').innerHTML,/عرضه‌کننده AAAAAA/);assert.match(e.nodes.get('cartBody').innerHTML,/هزینه پست/);
+ e.app.openCart();assert.match(e.nodes.get('cartBody').innerHTML,/فروشنده تأییدشده · کد OP-482731/);assert.match(e.nodes.get('cartBody').innerHTML,/هزینه پست/);
 });
 test('missing quotes stay unknown and cannot look like a free order',async()=>{
  const e=createShopHarness(html,viewSource,{products,cart:[{product_id:1,qty:1,needs_selection:true,expected_price:null}]});await e.settle();e.app.openCart();assert.match(e.nodes.get('cartTotal').textContent,/پس از انتخاب پیشنهاد/);assert.match(e.nodes.get('cartBody').innerHTML,/بررسی مجدد/);

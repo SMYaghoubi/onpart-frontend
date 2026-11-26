@@ -125,7 +125,7 @@
     </section>
         <section class="card dashboard-view account-view" id="view-account" data-panel="account" aria-labelledby="accountTitle" hidden>
           <div class="section-heading"><div><p class="eyebrow">حساب تأمین‌کننده</p><h1 id="accountTitle" tabindex="-1">اطلاعات حساب کاربری</h1></div><span class="account-avatar"><svg class="icon"><use href="#i-user"/></svg></span></div><p id="accountStatus" class="hint" role="status">در حال دریافت اطلاعات حساب…</p>
-          <dl class="account-details"><div><dt>نام کسب‌وکار</dt><dd id="accountCompany">—</dd></div><div><dt>نام صاحب حساب</dt><dd id="accountName">—</dd></div><div><dt>شماره همراه</dt><dd id="accountMobile" dir="ltr">—</dd></div><div><dt>وضعیت حساب</dt><dd id="accountApproval">—</dd></div></dl><div class="account-brands"><h2>برندهای مجاز</h2><div id="accountBrands" class="brand-tags">در حال دریافت…</div></div>
+          <dl class="account-details"><div><dt>کد فروشندگی</dt><dd id="accountSellerCode" dir="ltr">—</dd></div><div><dt>نام کسب‌وکار</dt><dd id="accountCompany">—</dd></div><div><dt>نام صاحب حساب</dt><dd id="accountName">—</dd></div><div><dt>شماره همراه</dt><dd id="accountMobile" dir="ltr">—</dd></div><div><dt>وضعیت حساب</dt><dd id="accountApproval">—</dd></div></dl><div class="account-brands"><h2>برندهای مجاز</h2><div id="accountBrands" class="brand-tags">در حال دریافت…</div></div>
         </section>
       </main>
     </div>
@@ -187,7 +187,7 @@
   <script src="../js/supplier-brands.js"></script>
   <script src="../js/supplier-photos.js?v=1"></script>
   <script src="../js/supplier-orders.js?v=1"></script>
-  <script src="../js/supplier-dashboard.js?v=2"></script>
+  <script src="../js/supplier-dashboard.js?v=3"></script>
   <script>
     const el = id => document.getElementById(id);
     const esc = value => API.escapeHtml(String(value ?? ''));

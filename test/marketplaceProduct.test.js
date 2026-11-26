@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const source=fs.readFileSync(require.resolve('../js/marketplace-product.js'),'utf8');
-const sample={product:{id:10,description:'قطعه آزمایشی <نام>',code:'TEST-10',brand:'برند آزمایشی',image:null},offers:[{offer_token:'a'.repeat(32),offer_version:1,price:105000,quantity:3,label:'عرضه‌کننده AAAAAA'},{offer_token:'b'.repeat(32),offer_version:4,price:110000,quantity:7,label:'عرضه‌کننده BBBBBB'}]};
+const sample={product:{id:10,description:'قطعه آزمایشی <نام>',code:'TEST-10',brand:'برند آزمایشی',image:null},offers:[{offer_token:'a'.repeat(32),offer_version:1,price:105000,quantity:3,label:'فروشنده تأییدشده · کد OP-482731'},{offer_token:'b'.repeat(32),offer_version:4,price:110000,quantity:7,label:'فروشنده تأییدشده · کد OP-753824'}]};
 function harness({token='approved',fail=false,cart=[]}={}){
  const nodes=new Map(),calls=[],events={};let shouldFail=fail;
  function node(id){if(!nodes.has(id))nodes.set(id,{innerHTML:'',textContent:'',value:'',disabled:false,open:false,addEventListener(type,fn){(events[id]??={})[type]=fn;},querySelector:selector=>node(selector),showModal(){this.open=true},close(){this.open=false}});return nodes.get(id);}
@@ -12,7 +12,7 @@ function harness({token='approved',fail=false,cart=[]}={}){
 }
 test('detail renders one master product and real anonymous offers, zero quantities, no invented image',async()=>{
  const h=harness();await h.settle();const html=h.node('productContent').innerHTML;
- assert.match(html,/قطعه آزمایشی &lt;نام&gt;/);assert.match(html,/تصویر محصول ثبت نشده/);assert.match(html,/عرضه‌کننده AAAAAA/);assert.match(html,/عرضه‌کننده BBBBBB/);assert.equal((html.match(/value="0"/g)||[]).length,2);assert.doesNotMatch(html,/<img/);assert.match(html,/هزینه پست جدا/);assert.match(html,/شهریار/);
+ assert.match(html,/قطعه آزمایشی &lt;نام&gt;/);assert.match(html,/تصویر محصول ثبت نشده/);assert.match(html,/فروشنده تأییدشده · کد OP-482731/);assert.match(html,/فروشنده تأییدشده · کد OP-753824/);assert.equal((html.match(/value="0"/g)||[]).length,2);assert.doesNotMatch(html,/<img/);assert.match(html,/هزینه پست جدا/);assert.match(html,/شهریار/);
 });
 test('selection starts at zero, is bounded by available inventory, and passes exact offer metadata to cart',async()=>{
  const h=harness();await h.settle();await h.click({add:0});assert.equal(h.calls.filter(c=>c.id).length,0);
@@ -21,8 +21,8 @@ test('selection starts at zero, is bounded by available inventory, and passes ex
  for(let i=0;i<5;i++)await h.click({index:0,delta:-1});assert.equal(h.node('offerQty0').value,0);
 });
 test('unapproved or missing sessions reveal no products; failed reads offer a real retry',async()=>{
- const no=harness({token:null});await no.settle();assert.equal(no.calls.length,0);assert.doesNotMatch(no.node('productContent').innerHTML,/قطعه آزمایشی|AAAAAA/);
- const h=harness({fail:true});await h.settle();assert.match(h.node('productContent').innerHTML,/آزمایش قطع ارتباط/);h.setFail(false);await h.events.retryOffers.click();await h.settle();assert.match(h.node('productContent').innerHTML,/عرضه‌کننده AAAAAA/);
+ const no=harness({token:null});await no.settle();assert.equal(no.calls.length,0);assert.doesNotMatch(no.node('productContent').innerHTML,/قطعه آزمایشی|OP-482731/);
+ const h=harness({fail:true});await h.settle();assert.match(h.node('productContent').innerHTML,/آزمایش قطع ارتباط/);h.setFail(false);await h.events.retryOffers.click();await h.settle();assert.match(h.node('productContent').innerHTML,/فروشنده تأییدشده · کد OP-482731/);
 });
 test('only a still-valid previously selected offer is restored; a stale quote is not autoaccepted',async()=>{
  const cart=[{product_id:10,offer_token:'a'.repeat(32),qty:2,needs_review:false},{product_id:10,offer_token:'b'.repeat(32),qty:4,needs_review:true}];const h=harness({cart});await h.settle();const html=h.node('productContent').innerHTML;assert.match(html,/id="offerQty0"[^>]*value="2"/);assert.match(html,/id="offerQty1"[^>]*value="0"/);
