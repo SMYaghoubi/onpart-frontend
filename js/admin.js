@@ -20,6 +20,7 @@ const Admin = {
     { id:'dashboard', label:'داشبورد',       icon:'ti-layout-dashboard', href:'/admin/',    perm:null },
     { id:'orders',    label:'سفارشات',        icon:'ti-shopping-bag',     href:'/admin/orders',   perm:'orders',   badge:'orders' },
     { id:'products',  label:'محصولات',        icon:'ti-packages',         href:'/admin/products', perm:'products' },
+    { id:'brands', label:'مدیریت برندها', icon:'ti-tags', href:'/admin/brands', perm:'products' },
     { id:'invoices',  label:'فاکتورها',        icon:'ti-receipt',          href:'/admin/invoices', perm:'invoices' },
     { id:'payments',  label:'پرداخت‌ها',       icon:'ti-credit-card',      href:'/admin/payments', perm:'payments', badge:'payments' },
     { id:'users',     label:'کاربران',         icon:'ti-users',            href:'/admin/users',    perm:'users' },
@@ -36,7 +37,7 @@ const Admin = {
 
   sections: [
     { label:'داشبورد',    items:['dashboard'] },
-    { label:'فروش',       items:['orders','products','payments','shipping'] },
+    { label:'فروش',       items:['orders','products','brands','payments','shipping'] },
     { label:'کاربران',    items:['users','partners','supplier_updates','admins','credit'] },
     { label:'ارتباطات',   items:['sms','announcements','reports'] },
     { label:'تنظیمات',    items:['settings'] },

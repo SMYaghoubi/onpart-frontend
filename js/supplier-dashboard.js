@@ -3,7 +3,7 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.SupplierDashboard = api;
 })(typeof window === 'undefined' ? this : window, function () {
-  const views = { dashboard:'پیشخوان', products:'محصولات من', orders:'سفارش‌های من', bulk:'ثبت گروهی محصولات', requests:'درخواست‌ها و وضعیت تأیید', account:'اطلاعات حساب کاربری' };
+  const views = { dashboard:'پیشخوان', products:'محصولات من', orders:'سفارش‌های من', bulk:'ثبت گروهی محصولات', requests:'درخواست‌ها و وضعیت تأیید', brands:'برندهای من', account:'اطلاعات حساب کاربری' };
   const fa = value => String(value).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let config, error = '', returnFocus, mobile;
@@ -85,6 +85,7 @@
     if (focus) node('view-' + view).querySelector('h1')?.focus({preventScroll:true});
     window.scrollTo({top:0,behavior:'instant'});
     if (view === 'orders') window.SupplierOrders?.load();
+    if (view === 'brands') window.SupplierBrandRequests?.load();
   }
 
   function renderAccount(account, fresh) {
@@ -102,6 +103,7 @@
   function init(options) {
     config = options;
     window.SupplierOrders?.init({request:config.request});
+    window.SupplierBrandRequests?.init({request:config.request,onApprovedCatalogRefresh:config.reloadCatalog});
     mobile = window.matchMedia('(max-width: 1080px)');
     document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click',() => go(button.dataset.view)));
     document.querySelectorAll('[data-entry-action]').forEach(button => button.addEventListener('click',() => {closeMenu(false);config.openEntry();}));

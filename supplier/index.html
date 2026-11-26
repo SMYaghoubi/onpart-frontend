@@ -7,6 +7,7 @@
   <link rel="icon" href="/favicon.ico?v=2" sizes="16x16 32x32 48x48"/>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="../css/supplier-portal.css?v=7">
+  <link rel="stylesheet" href="../css/brand-picker.css?v=1">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 </head>
 <body>
@@ -43,6 +44,7 @@
         <button type="button" class="nav-item" data-entry-action data-needs-data disabled><svg class="icon"><use href="#i-plus"/></svg><span>ثبت محصول جدید</span></button>
         <button type="button" class="nav-item" data-view="bulk"><svg class="icon"><use href="#i-upload"/></svg><span>ثبت گروهی محصولات</span></button>
         <button type="button" class="nav-item" data-view="requests"><svg class="icon"><use href="#i-file"/></svg><span>درخواست‌ها و وضعیت تأیید</span><b id="navPending" class="nav-count" hidden></b></button>
+        <button type="button" class="nav-item" data-view="brands"><svg class="icon"><use href="#i-check"/></svg><span>برندهای من</span></button>
         <button type="button" class="nav-item" data-view="account"><svg class="icon"><use href="#i-user"/></svg><span>اطلاعات حساب کاربری</span></button>
       </nav>
       <div class="sidebar-bottom"><div class="sidebar-account"><span class="account-avatar" aria-hidden="true"><svg class="icon"><use href="#i-user"/></svg></span><div><b id="sidebarCompany">حساب تأمین‌کننده</b><span>مدیریت کالا و موجودی</span></div></div><button type="button" class="nav-item logout" onclick="logout()"><svg class="icon"><use href="#i-logout"/></svg><span>خروج از حساب</span></button></div>
@@ -123,9 +125,18 @@
       <div class="section-heading"><div><p class="eyebrow">پیگیری درخواست‌ها</p><h1 id="historyTitle" tabindex="-1">درخواست‌ها و وضعیت تأیید</h1></div><select id="historyStatus" aria-label="فیلتر وضعیت درخواست‌ها" onchange="renderHistory()"><option value="">همه درخواست‌ها</option><option value="pending">در انتظار بررسی</option><option value="approved">تأییدشده</option><option value="rejected">ردشده</option></select></div><p class="hint history-hint">حداکثر ۱۰۰ درخواست اخیر این حساب نمایش داده می‌شود. برای مشاهده نتیجه بررسی و عکس‌های ارسالی، جزئیات هر درخواست را باز کنید.</p>
       <div id="history"><p class="empty">در حال دریافت سوابق…</p></div>
     </section>
+        <section class="card dashboard-view" id="view-brands" data-panel="brands" aria-labelledby="supplierBrandsTitle" hidden>
+          <div class="section-heading"><div><p class="eyebrow">انتخاب از فهرست مدیریت</p><h1 id="supplierBrandsTitle" tabindex="-1">برندهای من</h1></div><button type="button" id="supplierBrandRefresh">تازه‌سازی</button></div>
+          <p class="brand-note" id="supplierBrandHint">برندهای فعالیتتان را از فهرست انتخاب و برای تأیید مدیریت ارسال کنید.</p>
+          <div class="brand-tools"><input type="search" class="brand-search" id="supplierBrandSearch" aria-label="جست‌وجوی برند" placeholder="جست‌وجوی برند…"></div>
+          <p id="supplierBrandMessage" class="brand-note" role="status" aria-live="polite"></p>
+          <div class="brand-picker" id="supplierBrandChoices" aria-label="انتخاب برندهای فعالیت"></div>
+          <div class="brand-tools"><button type="button" class="brand-button" id="supplierBrandSubmit" disabled>ارسال برندها برای تأیید مدیریت</button></div>
+          <h2>سوابق درخواست برند</h2><div id="supplierBrandHistory"></div>
+        </section>
         <section class="card dashboard-view account-view" id="view-account" data-panel="account" aria-labelledby="accountTitle" hidden>
           <div class="section-heading"><div><p class="eyebrow">حساب تأمین‌کننده</p><h1 id="accountTitle" tabindex="-1">اطلاعات حساب کاربری</h1></div><span class="account-avatar"><svg class="icon"><use href="#i-user"/></svg></span></div><p id="accountStatus" class="hint" role="status">در حال دریافت اطلاعات حساب…</p>
-          <dl class="account-details"><div><dt>کد فروشندگی</dt><dd id="accountSellerCode" dir="ltr">—</dd></div><div><dt>نام کسب‌وکار</dt><dd id="accountCompany">—</dd></div><div><dt>نام صاحب حساب</dt><dd id="accountName">—</dd></div><div><dt>شماره همراه</dt><dd id="accountMobile" dir="ltr">—</dd></div><div><dt>وضعیت حساب</dt><dd id="accountApproval">—</dd></div></dl><div class="account-brands"><h2>برندهای مجاز</h2><div id="accountBrands" class="brand-tags">در حال دریافت…</div></div>
+          <dl class="account-details"><div><dt>کد فروشندگی</dt><dd id="accountSellerCode" dir="ltr">—</dd></div><div><dt>نام کسب‌وکار</dt><dd id="accountCompany">—</dd></div><div><dt>نام صاحب حساب</dt><dd id="accountName">—</dd></div><div><dt>شماره همراه</dt><dd id="accountMobile" dir="ltr">—</dd></div><div><dt>وضعیت حساب</dt><dd id="accountApproval">—</dd></div></dl><div class="account-brands"><h2>برندهای مجاز</h2><button type="button" class="managed-brand-link" data-view="brands">انتخاب و پیگیری برندهای فعالیت</button><div id="accountBrands" class="brand-tags">در حال دریافت…</div></div>
         </section>
       </main>
     </div>
@@ -138,7 +149,10 @@
       <p class="hint">کد درج‌شده روی قطعه یا لیبل بسته‌بندی را وارد کنید.</p>
       <label id="matchField" hidden>کالای مطابق با کد<select id="entryMatch" onchange="fillEntry()"></select></label>
       <label>نام محصول<input id="entryName" maxlength="255" required></label>
-      <label>برند<select id="entryBrand" required></select></label>
+      <section aria-labelledby="entryBrandLabel"><b id="entryBrandLabel">برند</b><select id="entryBrand" hidden aria-hidden="true" tabindex="-1"></select>
+        <input id="entryBrandSearch" type="search" class="brand-search" aria-label="جست‌وجوی برند محصول" placeholder="جست‌وجو در برندهای تأییدشده…" oninput="renderEntryBrands()">
+        <div id="entryBrandChoices" class="brand-picker compact" aria-label="انتخاب یک برند برای محصول"></div>
+        <button type="button" class="managed-brand-link" onclick="closeDialog('entryDialog');SupplierDashboard.go('brands')">انتخاب برند فعالیت و ارسال برای تأیید</button></section>
       <div class="form-columns">
         <label>تعداد موجودی<input id="entryQuantity" inputmode="numeric" oninput="if(asciiDigits(this.value).trim()==='0')setSwitch(document.getElementById('entryAvailability'),false)"></label>
         <label>قیمت همکاری هر عدد به تومان<div class="price-input"><input id="entryPrice" inputmode="numeric" oninput="formatPriceInput(this,event)" onblur="formatPriceInput(this)"><span class="price-unit">تومان</span></div></label>
@@ -187,7 +201,9 @@
   <script src="../js/supplier-brands.js"></script>
   <script src="../js/supplier-photos.js?v=1"></script>
   <script src="../js/supplier-orders.js?v=1"></script>
-  <script src="../js/supplier-dashboard.js?v=3"></script>
+  <script src="../js/brand-picker.js?v=1"></script>
+  <script src="../js/supplier-brand-requests.js?v=1"></script>
+  <script src="../js/supplier-dashboard.js?v=4"></script>
   <script>
     const el = id => document.getElementById(id);
     const esc = value => API.escapeHtml(String(value ?? ''));
@@ -206,7 +222,7 @@
     const draftKey = 'onpart-supplier-draft-' + supplier.id;
     const products = new Map();
     const codeIndex = new Map();
-    let batches = [], brands = [], pendingProducts = [], selected = new Set(), page = 0, busy = false, catalogLoaded = false;
+    let brandDetails = [], batches = [], brands = [], pendingProducts = [], selected = new Set(), page = 0, busy = false, catalogLoaded = false;
     let draft = new Map(), source = 'manual', filename = null, submission = null;
     let entryFile = null, entryImageId = null, entryObjectUrl = null, entryDraftKey = null, entrySaving = false;
     const authorized = Boolean(OnPartSession.getToken('supplier'));
@@ -287,7 +303,7 @@
           if (!codeIndex.has(code)) codeIndex.set(code,[]);
           codeIndex.get(code).push(product);
         }
-        brands = catalog.brands || [];
+        brands = catalog.brands || []; brandDetails=catalog.brand_details||[];
         pendingProducts = catalog.pending_products || [];
         batches = history.batches || [];
         catalogLoaded = true;
@@ -476,6 +492,7 @@
       if(entrySaving)return;
       entryDraftKey=draftProductKey;
       el('entryForm').reset();
+      el('entryBrandSearch').value='';
       el('entryBrand').innerHTML = '<option value="">انتخاب برند</option>' + brands.map(brand => `<option value="${esc(brand)}">${esc(brand)}</option>`).join('');
       setSwitch(el('entryAvailability'),true);
       refreshEntryMatches();
@@ -488,6 +505,7 @@
         el('entryQuantity').value=proposal.quantity??'';el('entryPrice').value=priceText(proposal.supplier_price);
         setSwitch(el('entryAvailability'),Boolean(proposal.available));resetEntryPhoto(proposal.image_id);
       }
+      renderEntryBrands();
       message('entryError','');
       el('entryDialog').showModal();
       el('entryCode').focus();
@@ -507,12 +525,21 @@
       el('entryName').readOnly = Boolean(product);
       el('entryBrand').disabled = Boolean(product);
       el('entryName').value = product?.description || '';
-      el('entryBrand').value = SupplierBrands.resolve(product?.brand, brands) || '';
+      if(product?.brand && ![...el('entryBrand').options].some(option=>option.value===product.brand)){const option=document.createElement('option');option.value=product.brand;option.textContent=product.brand;el('entryBrand').appendChild(option);}
+      el('entryBrand').value = product?.brand || '';
       el('entryQuantity').value = product ? effectiveQuantity(product,entry) ?? '' : '';
       el('entryPrice').value = product ? priceText(entry.supplier_price ?? product.supplier_price ?? '') : '';
       el('entryPrice').required = !product;
       setSwitch(el('entryAvailability'),product ? effectiveAvailability(product,entry) : true);
       resetEntryPhoto(entry.image_id,product?.image);
+      renderEntryBrands();
+    }
+
+    function renderEntryBrands(){
+      const select=el('entryBrand'),locked=select.disabled,query=el('entryBrandSearch').value.trim().toLocaleLowerCase('fa-IR');
+      const values=locked&&select.value?[select.value]:brands;
+      el('entryBrandSearch').disabled=locked;
+      BrandPicker.render(el('entryBrandChoices'),{items:values.filter(name=>locked||!query||name.toLocaleLowerCase('fa-IR').includes(query)).map(name=>({value:name,name,logo_url:brandDetails.find(row=>row.name===name)?.logo_url})),selected:new Set(select.value?[select.value]:[]),disabled:new Set(locked?values:[]),multiple:false,empty:brands.length?'برندی مطابق جست‌وجو نیست.':'هنوز برند فعالی برای حساب شما تأیید نشده است؛ از «برندهای من» درخواست بدهید.',onChange:values=>{select.value=[...values][0]||'';}});
     }
 
     function approvedPhotoMarkup(value){const url=API.safeUrl(value);return url?`<span class="supplier-photo"><img src="${esc(url)}" alt="عکس تأییدشده محصول" loading="lazy"></span>`:'';}
@@ -790,7 +817,7 @@
 
     function logout() { OnPartSession.clear('supplier'); location.replace('/supplier/login'); }
     if (authorized && window.SupplierDashboard) window.SupplierDashboard.init({
-      supplier, request, openEntry, openDraft, showHistory,
+      supplier, request, openEntry, openDraft, showHistory, reloadCatalog:load,
       filterProducts(value) { el('search').value='';el('productStatus').value=value;page=0;renderProducts(); },
       snapshot:()=>({ products:[...products.values()], drafts:[...draft.values()], batches, brands, loaded:catalogLoaded, busy })
     });
