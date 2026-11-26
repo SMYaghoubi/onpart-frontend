@@ -2,12 +2,12 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="description" content="همکاری با آن‌پارت به عنوان تامین‌کننده قطعات یدکی. به بزرگترین شبکه توزیع قطعات یدکی بپیوندید."/>
+  <meta name="description" content="ثبت‌نام فروشندگان و تأمین‌کنندگان قطعات یدکی در آن‌پارت؛ دسترسی به داشبورد فروشندگان پس از بررسی و تأیید مدیریت."/>
   <meta name="keywords" content="تامین‌کننده قطعات یدکی, همکاری, آن‌پارت"/>
   <meta name="robots" content="index, follow"/>
   <meta name="author" content="آن‌پارت"/>
-  <meta property="og:title" content="سامانه همکاری تامین‌کنندگان | آن‌پارت"/>
-  <meta property="og:description" content="همکاری با آن‌پارت به عنوان تامین‌کننده قطعات یدکی. به بزرگترین شبکه توزیع قطعات یدکی بپیوندید."/>
+  <meta property="og:title" content="ثبت‌نام فروشندگان و تأمین‌کنندگان آن‌پارت"/>
+  <meta property="og:description" content="ثبت‌نام فروشندگان و تأمین‌کنندگان قطعات یدکی در آن‌پارت؛ دسترسی به داشبورد فروشندگان پس از بررسی و تأیید مدیریت."/>
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="https://onpart.ir/"/>
   <meta property="og:site_name" content="آن‌پارت"/>
@@ -15,7 +15,7 @@
   <link rel="canonical" href="https://onpart.ir/cooperation"/>
   <link rel="icon" href="/favicon.ico?v=2" sizes="16x16 32x32 48x48"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>سامانه همکاری تامین‌کنندگان | آن‌پارت</title>
+  <title>ثبت‌نام فروشندگان و تأمین‌کنندگان آن‌پارت</title>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
   <link rel="stylesheet" href="css/style.css"/>
@@ -90,20 +90,31 @@
       .hero{padding:40px 20px}
       .hero h1{font-size:26px}
     }
+
+    .entry-header{background:#fff;border-bottom:1px solid #e5e7eb;min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 28px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px #0000000f}
+    .entry-nav{display:flex;gap:9px;align-items:center;font:600 13px Vazirmatn,sans-serif;flex-shrink:0}
+    .entry-nav a{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:8px 13px;text-decoration:none;color:#526078;border:1px solid #e1e8f3;border-radius:9px;background:#f8fafc;white-space:nowrap}
+    .entry-nav a.entry-login{color:#fff;border-color:#2252e8;background:#2252e8}
+    .entry-header a:focus-visible,.pending-login:focus-visible,.pending-home:focus-visible{outline:3px solid #75a5ff;outline-offset:3px}
+    .hero h1{max-width:960px;margin-inline:auto}.form-header h2{line-height:1.8}.form-header p{line-height:1.9}
+    .pending-status{display:inline-block;background:#fff2d1;color:#865313;border:1px solid #ffe4a3;border-radius:8px;padding:6px 12px;font-size:14px;font-weight:700;margin:2px 0 16px}
+    .pending-login{display:block;background:#2252e8;color:#fff;border-radius:10px;padding:12px 20px;font-size:15px;font-weight:700;text-decoration:none}
+    .pending-home{display:inline-block;margin-top:12px;padding:8px;color:#536780;font-size:13px;text-decoration:none}
+    @media(max-width:480px){.entry-header{padding:8px 12px;gap:8px}.entry-header img{width:92px;height:34px!important}.entry-nav{gap:6px;font-size:12px}.entry-nav a{padding:8px 9px;min-height:44px}.hero h1{font-size:25px;line-height:1.6}.form-header{padding:20px}.form-header h2{font-size:18px}.form-header p{font-size:13px}}
   </style>
 </head>
 <body>
 
-<div style="background:#fff;border-bottom:1px solid #e5e7eb;height:56px;display:flex;align-items:center;padding:0 28px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+<header class="entry-header">
   <a href="/" aria-label="صفحه اصلی آن‌پارت"><img src="images/logo.png?v=2" alt="آن‌پارت" style="height:38px;object-fit:contain"/></a>
-  <a href="/" style="margin-right:auto;display:flex;align-items:center;gap:6px;background:#f8fafc;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 14px;text-decoration:none;color:#555;font-size:13px;font-weight:600;font-family:Vazirmatn,sans-serif"><i class="ti ti-arrow-right"></i>بازگشت به صفحه اصلی</a>
-</div>
+  <nav class="entry-nav" aria-label="ورود و بازگشت"><a class="entry-login" href="/supplier/login"><i class="ti ti-login" aria-hidden="true"></i>ورود به پنل</a><a href="/">صفحه اصلی</a></nav>
+</header>
 
 <div class="hero">
-  <div class="hero-badge"><i class="ti ti-building-factory-2"></i>سامانه همکاری تامین‌کنندگان</div>
-  <h1>با <span>آن‌پارت</span> همکار شوید</h1>
-  <p>فروشگاه‌های لوازم یدکی، شرکت‌ها، تولیدکنندگان، پخش‌کنندگان و انبارداران می‌توانند از همین فرم درخواست همکاری بدهند.</p>
-  <a href="/supplier/login" style="display:inline-flex;align-items:center;gap:7px;background:#fff;color:#1d4ed8;border-radius:10px;padding:10px 18px;text-decoration:none;font-size:13px;font-weight:700;margin-bottom:18px;box-shadow:0 5px 18px rgba(0,0,0,.12)"><i class="ti ti-login"></i> قبلاً تأیید شده‌اید؟ ورود به پنل تأمین‌کننده</a>
+  <div class="hero-badge"><i class="ti ti-building-factory-2"></i>سامانه تأمین‌کنندگان آن‌پارت</div>
+  <h1>ثبت‌نام <span>فروشندگان و تأمین‌کنندگان</span> آن‌پارت</h1>
+  <p>فروشگاه‌های لوازم یدکی، شرکت‌ها، تولیدکنندگان، پخش‌کنندگان و انبارداران با یک‌بار تکمیل همین فرم ثبت‌نام می‌کنند.</p>
+  <a href="/supplier/login" style="display:inline-flex;align-items:center;gap:7px;background:#fff;color:#1d4ed8;border-radius:10px;padding:10px 18px;text-decoration:none;font-size:13px;font-weight:700;margin-bottom:18px;box-shadow:0 5px 18px rgba(0,0,0,.12)"><i class="ti ti-login"></i> ورود اعضای تأییدشده به پنل</a>
   <div class="hero-stats">
     <div class="h-stat"><div class="h-stat-val" id="statSuppliers">—</div><div class="h-stat-lbl">تامین‌کننده فعال</div></div>
     <div class="h-stat"><div class="h-stat-val" id="statBrands">—</div><div class="h-stat-lbl">برند پشتیبانی‌شده</div></div>
@@ -132,8 +143,8 @@
 <div class="form-wrap">
   <div class="form-card">
     <div class="form-header">
-      <h2><i class="ti ti-clipboard-list"></i> فرم ثبت‌نام تامین‌کننده</h2>
-      <p>اطلاعات زیر را تکمیل کنید؛ دسترسی به پنل تأمین‌کنندگان پس از بررسی و تأیید مدیریت فعال می‌شود.</p>
+      <h2><i class="ti ti-clipboard-list"></i> ثبت‌نام فروشندگان و تأمین‌کنندگان آن‌پارت</h2>
+      <p>ثبت‌نام برای همه انواع فعالیت از همین فرم انجام می‌شود. پس از تأیید مدیریت، با شماره همراه ثبت‌شده وارد داشبورد فروشندگان می‌شوید.</p>
     </div>
     <div class="form-body">
 
@@ -239,18 +250,19 @@
       </div>
 
       <button class="btn-submit" id="submitBtn" onclick="submitSupplier()">
-        <i class="ti ti-send"></i>ثبت درخواست همکاری
+        <i class="ti ti-send"></i>ثبت‌نام
       </button>
     </div>
   </div>
 </div>
 
-<div class="suc-overlay" id="sucOverlay">
+<div class="suc-overlay" id="sucOverlay" role="dialog" aria-modal="true" aria-labelledby="sucTitle">
   <div class="suc-box">
     <div class="suc-icon"><i class="ti ti-check"></i></div>
-    <div style="font-size:22px;font-weight:900;color:#111;margin-bottom:10px">درخواست ثبت شد!</div>
-    <div style="font-size:14px;color:#888;line-height:1.8;margin-bottom:24px">کارشناسان ما ظرف ۲ روز کاری با شما تماس خواهند گرفت.</div>
-    <button onclick="window.location.href='/'" style="background:#1d4ed8;color:#fff;border:none;border-radius:10px;padding:12px 32px;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:700;cursor:pointer">بازگشت به صفحه اصلی</button>
+    <div id="sucTitle" style="font-size:22px;font-weight:900;color:#111;margin-bottom:10px">ثبت‌نام شما انجام شد</div>
+    <p class="pending-status">در انتظار تأیید مدیریت</p>
+    <div style="font-size:14px;color:#888;line-height:1.8;margin-bottom:24px">اطلاعات شما برای بررسی مدیریت ارسال شد. پس از تأیید و فعال‌سازی حساب، با همین شماره همراه وارد داشبورد فروشندگان شوید؛ ثبت‌نام دوباره لازم نیست.</div>
+    <a class="pending-login" href="/supplier/login">صفحه ورود به پنل</a><a class="pending-home" href="/">بازگشت به صفحه اصلی</a>
   </div>
 </div>
 
@@ -385,12 +397,12 @@ async function submitSupplier(){
       const d = await res.json();
       alert(d.message || 'خطا در ثبت درخواست');
       btn.disabled = false;
-      btn.innerHTML = '<i class="ti ti-send"></i>ثبت درخواست همکاری';
+      btn.innerHTML = '<i class="ti ti-send"></i>ثبت‌نام';
     }
   } catch(e){
     alert('خطا در ارتباط با سرور');
     btn.disabled = false;
-    btn.innerHTML = '<i class="ti ti-send"></i>ثبت درخواست همکاری';
+    btn.innerHTML = '<i class="ti ti-send"></i>ثبت‌نام';
   }
 }
 </script>
