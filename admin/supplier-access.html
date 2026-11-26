@@ -5,7 +5,7 @@
 <body><div class="layout"><div id="sidebar-placeholder"></div><main class="main"><div id="topbar-placeholder"></div><div class="content"><div class="card">
 <div class="title">تعیین دسترسی محصولات تأمین‌کننده</div><div class="muted">پس از ذخیره، ورود پیامکی پنل برای تأمین‌کننده فعال می‌شود.</div>
 <label class="switch-row"><input type="checkbox" id="assignedCompany"><span><b>محصولات متصل به همین تأمین‌کننده</b><br><span class="muted">محصولاتی که در پنل محصولات، این شرکت به‌عنوان تأمین‌کننده آن‌ها انتخاب شده است.</span></span></label>
-<div style="font-weight:700;font-size:14px">برندهای مجاز از روی محصولات</div><div class="muted">برند از ستون «برند» در پنل محصولات خوانده می‌شود. برای افزودن برند جدید، ابتدا آن را روی حداقل یک محصول فعال ثبت کنید.</div><input class="search" id="brandSearch" placeholder="جستجوی برند محصولات..." oninput="renderBrands()"><div class="brands" id="brands"></div>
+<div style="font-weight:700;font-size:14px">برندهای مدیریت‌شده</div><div class="muted">فهرست برندها از بخش مدیریت برندها خوانده می‌شود؛ وجود محصول برای افزودن برند لازم نیست.</div><input class="search" id="brandSearch" placeholder="جست‌وجوی برند…" oninput="renderBrands()"><div class="brands" id="brands"></div>
 <div class="actions"><button class="btn primary" id="saveBtn" onclick="saveScopes()"><i class="ti ti-check"></i> ذخیره و فعال‌سازی پنل</button><a class="btn secondary" href="/admin/partners" style="text-decoration:none">بازگشت</a></div>
 </div></div></main></div><script src="../js/api.js"></script><script src="../js/admin.js"></script><script>
 Admin.renderSidebar('partners');Admin.renderTopbar('دسترسی تأمین‌کننده','ti-key');
@@ -37,3 +37,4 @@ function renderBrands(){const q=document.getElementById('brandSearch').value.tri
 async function saveScopes(){const btn=document.getElementById('saveBtn');btn.disabled=true;try{await adminRequest(`/api/supplier-portal/admin/suppliers/${supplierId}/scopes`,{method:'PUT',body:JSON.stringify({assigned_company:document.getElementById('assignedCompany').checked,brands:[...selected]})});Admin.toast('دسترسی ذخیره و پنل فعال شد')}catch(error){const message=managementErrorMessage(error);Admin.toast(message,'error');if([401,403].includes(error.status))showAccessError(error)}finally{if(!document.querySelector('#brands [role="alert"]'))btn.disabled=false}}
 load();
 </script></body></html>
+

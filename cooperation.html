@@ -102,6 +102,7 @@
     .pending-home{display:inline-block;margin-top:12px;padding:8px;color:#536780;font-size:13px;text-decoration:none}
     @media(max-width:480px){.entry-header{padding:8px 12px;gap:8px}.entry-header img{width:92px;height:34px!important}.entry-nav{gap:6px;font-size:12px}.entry-nav a{padding:8px 9px;min-height:44px}.hero h1{font-size:25px;line-height:1.6}.form-header{padding:20px}.form-header h2{font-size:18px}.form-header p{font-size:13px}}
   </style>
+<link rel="stylesheet" href="css/brand-picker.css?v=1">
 </head>
 <body>
 
@@ -208,11 +209,11 @@
       <div class="fg">
         <label>برندهایی که کار می‌کنید <span>*</span></label>
         <div class="brand-wrap">
-          <div class="brand-tags" id="brandTags" onclick="document.getElementById('brandInp').focus()">
-            <input class="brand-inp" id="brandInp" placeholder="نام برند..." onkeydown="addBrand(event)" style="min-width:80px"/>
-          </div>
-          <button type="button" onclick="addBrandBtn()" style="margin-top:8px;width:100%;background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe;border-radius:8px;padding:9px;font-family:Vazirmatn,sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-plus"></i>افزودن برند</button>
-          <div class="brand-hint"><i class="ti ti-info-circle"></i> مثال: ایران‌خودرو، سایپا، تویوتا، بوش، NGK</div>
+          <input class="brand-search" id="registrationBrandSearch" type="search" aria-label="جست‌وجوی برند" placeholder="جست‌وجو در برندهای ثبت‌شده مدیریت…">
+          <p class="brand-note" id="registrationBrandStatus" role="status" aria-live="polite">در حال دریافت برندها…</p>
+          <div class="brand-picker" id="registrationBrandChoices" aria-label="برندهای فعالیت"></div>
+          <button type="button" id="registrationBrandRetry" class="brand-button secondary" hidden>دریافت دوباره برندها</button>
+          <p class="brand-note">یک یا چند برند را انتخاب کنید. فعالیت در این برندها پس از تأیید مدیریت فعال می‌شود.</p>
         </div>
       </div>
 
@@ -267,6 +268,7 @@
 </div>
 
 <script src="js/api.js"></script>
+<script src="js/brand-picker.js?v=1"></script>
 <script>
 // Load real stats
 fetch('https://onpartpadmin.liara.run/api/suppliers/public-stats')
@@ -280,51 +282,19 @@ fetch('https://onpartpadmin.liara.run/api/suppliers/public-stats')
     document.getElementById('statBrands').textContent = '۰';
   });
 
-const brands = [];
-
-function addBrand(e){
-  if(e.key !== 'Enter') return;
-  e.preventDefault();
-  addBrandFromInput();
-}
-
-function addBrandBtn(){
-  addBrandFromInput();
-}
-
-function addBrandFromInput(){
-  const val = document.getElementById('brandInp').value.trim();
-  if(!val || brands.includes(val)) return;
-  brands.push(val);
-  renderBrands();
-  document.getElementById('brandInp').value = '';
-}
-
-function removeBrand(b){
-  const i = brands.indexOf(b);
-  if(i > -1) brands.splice(i,1);
-  renderBrands();
-}
-
+const brands = [], selectedBrandIds=new Set();let managedBrands=[];
 function renderBrands(){
-  const wrap = document.getElementById('brandTags');
-  const inp = document.getElementById('brandInp');
-  wrap.innerHTML = '';
-  brands.forEach(b => {
-    const tag = document.createElement('div');
-    tag.className = 'brand-tag';
-    tag.appendChild(document.createTextNode(b));
-    const removeBtn = document.createElement('button');
-    removeBtn.type = 'button';
-    removeBtn.title = 'حذف';
-    removeBtn.setAttribute('aria-label', `حذف برند ${b}`);
-    removeBtn.textContent = '×';
-    removeBtn.addEventListener('click', () => removeBrand(b));
-    tag.appendChild(removeBtn);
-    wrap.appendChild(tag);
-  });
-  wrap.appendChild(inp);
+ const query=document.getElementById('registrationBrandSearch').value.trim().toLocaleLowerCase('fa-IR');
+ BrandPicker.render(document.getElementById('registrationBrandChoices'),{items:managedBrands.filter(brand=>!query||brand.name.toLocaleLowerCase('fa-IR').includes(query)),selected:selectedBrandIds,onChange:values=>{selectedBrandIds.clear();values.forEach(id=>selectedBrandIds.add(id));brands.splice(0,brands.length,...managedBrands.filter(brand=>selectedBrandIds.has(String(brand.id))).map(brand=>brand.name));}});
 }
+async function loadRegistrationBrands(){
+ const status=document.getElementById('registrationBrandStatus'),retry=document.getElementById('registrationBrandRetry');retry.hidden=true;status.textContent='در حال دریافت برندها…';
+ try{const response=await fetch(API.BASE_URL+'/api/brands/registration');const data=await response.json();if(!response.ok)throw Error(data.message||'دریافت برندها انجام نشد');managedBrands=data.brands;const valid=new Set(managedBrands.map(brand=>String(brand.id)));for(const id of selectedBrandIds)if(!valid.has(id))selectedBrandIds.delete(id);brands.splice(0,brands.length,...managedBrands.filter(brand=>selectedBrandIds.has(String(brand.id))).map(brand=>brand.name));renderBrands();status.textContent=managedBrands.length?'برندهای منتخب مدیریت در ابتدای فهرست هستند.':'هنوز برندی توسط مدیریت فعال نشده است.';retry.hidden=managedBrands.length>0;}
+ catch(error){status.textContent=error.message||'دریافت فهرست برندها انجام نشد؛ دوباره تلاش کنید.';retry.hidden=false;}
+}
+document.getElementById('registrationBrandSearch').addEventListener('input',renderBrands);
+document.getElementById('registrationBrandRetry').addEventListener('click',loadRegistrationBrands);
+loadRegistrationBrands();
 
 // Highlight selected categories
 document.querySelectorAll('.cat-item input').forEach(cb => {
@@ -352,7 +322,7 @@ async function submitSupplier(){
   if(!mobile){ alert('شماره موبایل الزامی است'); return; }
   if(!city){ alert('شهر الزامی است'); return; }
   if(!type){ alert('نوع فعالیت را انتخاب کنید'); return; }
-  if(brands.length === 0){ alert('حداقل یک برند وارد کنید'); return; }
+  if(brands.length === 0){ alert('حداقل یک برند از فهرست مدیریت انتخاب کنید'); return; }
   if(!terms){ alert('لطفاً شرایط همکاری را بپذیرید'); return; }
 
   const cats = [...document.querySelectorAll('.cat-item input:checked')].map(c => c.value);
@@ -381,7 +351,8 @@ async function submitSupplier(){
     shipping: document.getElementById('s_shipping').value,
     description: document.getElementById('s_desc').value,
     categories: cats.includes('other_cat') ? cats.filter(c=>c!=='other_cat').concat([`other_cat:${otherCatText}`]).join(',') : cats.join(','),
-    brands: brands.join(',')
+    brands: brands.join(','),
+    brand_ids:[...selectedBrandIds].map(Number)
   };
 
   try {

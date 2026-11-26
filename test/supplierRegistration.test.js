@@ -39,7 +39,7 @@ for (const type of requiredTypes) {
     nodes.s_terms.checked = true;
     const sent = [];
     const context = vm.createContext({
-      brands:['ایساکو'], alert:message => assert.fail(message),
+      brands:['ایساکو'], selectedBrandIds:new Set(['1']), alert:message => assert.fail(message),
       document:{ getElementById:id => nodes[id], querySelectorAll:() => [{ value:'engine' }] },
       fetch:async (url, request) => { sent.push({ url, payload:JSON.parse(request.body) }); return { ok:true }; }
     });
@@ -51,6 +51,7 @@ for (const type of requiredTypes) {
     assert.equal(sent[0].payload.reg_number, '');
     assert.equal(sent[0].payload.categories, 'engine');
     assert.equal(sent[0].payload.brands, 'ایساکو');
+    assert.deepEqual(sent[0].payload.brand_ids,[1]);
     assert.ok(!Object.hasOwn(sent[0].payload, 'status'));
     assert.ok(!Object.hasOwn(sent[0].payload, 'portal_enabled'));
   });
