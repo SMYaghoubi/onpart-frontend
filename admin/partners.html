@@ -229,12 +229,14 @@ function renderTable(){
         <button class="ab" style="background:#eff6ff;color:#1d4ed8" onclick="openDetail(${i})" title="مشاهده"><i class="ti ti-eye"></i></button>
         <button class="ab" style="background:#fef3c7;color:#d97706" onclick="openEdit(${i})" title="ویرایش"><i class="ti ti-edit"></i></button>
         ${s.status==='approved'?`<a class="ab" style="background:#ede9fe;color:#7c3aed;text-decoration:none" href="/admin/supplier-access?supplier=${s.id}" title="دسترسی پنل"><i class="ti ti-key"></i></a>`:''}
-        ${s.status==='pending'?`<button class="ab" style="background:#f0fdf4;color:#16a34a" onclick="approveSupplier(${s.id})" title="تایید"><i class="ti ti-check"></i></button>
+        ${s.status==='pending'?`<button class="ab" style="background:#f0fdf4;color:#16a34a" onclick="reviewSupplier(${i})" title="بررسی و تأیید حساب و برندها"><i class="ti ti-check"></i></button>
         <button class="ab" style="background:#fee2e2;color:#dc2626" onclick="openRejectModal(${s.id})" title="رد"><i class="ti ti-x"></i></button>`:''}
         <button class="ab" style="background:#fee2e2;color:#dc2626" onclick="deleteSupplier(${s.id})" title="حذف"><i class="ti ti-trash"></i></button>
       </div></td>
     </tr>`).join('');
 }
+
+function reviewSupplier(i){ openDetail(i); }
 
 function openDetail(i){
   const s=filtered[i]; curId=s.id;
@@ -262,12 +264,17 @@ function openDetail(i){
       <div class="info-box"><div class="info-lbl">تعداد آیتم انبار</div><div class="info-val">${s.inventory||'—'}</div></div>
       <div class="info-box" style="grid-column:1/-1"><div class="info-lbl">توانایی ارسال</div><div class="info-val">${s.shipping||'—'}</div></div>
       ${cats?`<div class="info-box" style="grid-column:1/-1;background:#eff6ff"><div class="info-lbl" style="color:#1d4ed8">حوزه فعالیت</div><div class="info-val">${cats}</div></div>`:''}
-      <div class="info-box" style="grid-column:1/-1;background:#f0fdf4"><div class="info-lbl" style="color:#16a34a">برندها</div><div class="info-val">${s.brands||'—'}</div></div>
+      <div class="info-box" style="grid-column:1/-1;background:#f0fdf4"><div class="info-lbl" style="color:#16a34a">برندهای اعلام‌شده فروشنده</div><div class="info-val">${API.escapeHtml(s.brands||'—')}</div>${s.status==='pending'?'<p style="font-size:12px;color:#475569;margin:8px 0 0">با تأیید کلی، حساب و دسترسی فعالیت روی همین برندها هم‌زمان فعال می‌شوند. در صورت نیاز، ابتدا برندها را ویرایش کنید.</p>':''}</div>
       ${s.description?`<div class="info-box" style="grid-column:1/-1"><div class="info-lbl">توضیحات</div><div class="info-val" style="font-weight:400">${s.description}</div></div>`:''}
     </div>`;
   document.getElementById('supplierModalFoot').innerHTML = s.status==='pending'?`
-    <button class="btn-prim" style="background:#16a34a" onclick="approveSupplier(${s.id});closeSupplierModal()"><i class="ti ti-check"></i>تایید</button>
+    <button class="btn-prim" id="approveSupplierBtn" style="background:#16a34a" onclick="approveSupplier(${s.id})"><i class="ti ti-check"></i>تأیید کلی حساب و برندها</button>
+    <button class="btn-sec" onclick="openEdit(${i})">ویرایش برندها و اطلاعات</button>
     <button class="btn-danger" onclick="closeSupplierModal();openRejectModal(${s.id})"><i class="ti ti-x"></i>رد</button>
+    <button class="btn-sec" onclick="closeSupplierModal()">بستن</button>`:s.status==='approved'?`
+    <p style="font-size:12px;color:#475569;flex-basis:100%">تأیید مجدد، مجوز برندها را با برندهای اعلام‌شده بالا جایگزین می‌کند.</p>
+    <button class="btn-prim" id="approveSupplierBtn" onclick="approveSupplier(${s.id})">تأیید برندهای اعلام‌شده</button>
+    <button class="btn-sec" onclick="openEdit(${i})">ویرایش برندها و اطلاعات</button>
     <button class="btn-sec" onclick="closeSupplierModal()">بستن</button>`:`<button class="btn-sec" onclick="closeSupplierModal()">بستن</button>`;
   document.getElementById('supplierModal').classList.add('show');
 }
@@ -332,11 +339,18 @@ function closeSupplierModal(){ document.getElementById('supplierModal').classLis
 function openRejectModal(id){ curId=id; document.getElementById('rejectReason').value=''; document.getElementById('rejectModal').classList.add('show'); }
 
 async function approveSupplier(id){
+  const supplier=suppliers.find(s=>s.id===id);
+  if(!supplier) return;
   const token=OnPartSession.getToken('admin');
+  const button=document.getElementById('approveSupplierBtn');
+  if(button) button.disabled=true;
   try{
-    const res=await fetch(`${API.BASE_URL}/api/suppliers/${id}/approve`,{method:'PATCH',headers:{'Authorization':'Bearer '+token}});
-    if(res.ok){ Admin.toast('تایید شد و پیامک ارسال شد'); loadSuppliers(); }
-  }catch(e){ Admin.toast('خطا',false); }
+    const res=await fetch(`${API.BASE_URL}/api/suppliers/${id}/approve`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({expected_brands:supplier.brands||'',confirm_brands:true})});
+    const data=await res.json();
+    if(res.ok){ Admin.toast(data.message||'حساب و برندها تأیید شدند'); closeSupplierModal(); await loadSuppliers(); }
+    else Admin.toast(data.message||'تأیید انجام نشد',false);
+  }catch(e){ Admin.toast('ارتباط برقرار نشد؛ نتیجه را با تازه‌سازی فهرست بررسی کنید.',false); }
+  finally{ if(button) button.disabled=false; }
 }
 
 async function confirmReject(){
